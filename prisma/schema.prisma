@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+model Room {
+  id        String   @id @default(uuid())
+  roomCode  String   @unique @map("room_code")
+  category  String
+  status    String   @default("waiting")
+  expiresAt DateTime @default(dbgenerated("now() + interval '24 hours'")) @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  participants Participant[]
+
+  @@map("rooms")
+}
+
+model Participant {
+  id               String   @id @default(uuid())
+  roomCode         String   @map("room_code")
+  nickname         String
+  abstractLocation String   @map("abstract_location")
+  lat              Float
+  lng              Float
+  transport        String?
+  isHost           Boolean  @default(false) @map("is_host")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  room Room @relation(fields: [roomCode], references: [roomCode], onDelete: Cascade)
+
+  @@map("participants")
+}
