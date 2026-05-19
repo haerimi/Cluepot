@@ -1,37 +1,78 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider  = "postgresql"
 }
 
-model Room {
-  id        String   @id @default(uuid())
-  roomCode  String   @unique @map("room_code")
-  category  String
-  status    String   @default("waiting")
-  expiresAt DateTime @default(dbgenerated("now() + interval '24 hours'")) @map("expires_at")
-  createdAt DateTime @default(now()) @map("created_at")
-
+model User {
+  id           String           @id @default(uuid())
+  email        String           @unique
+  password     String
+  nickname     String
+  profileImage String?          @map("profile_image")
+  createdAt    DateTime         @default(now()) @map("created_at")
   participants Participant[]
+  schedules    ScheduleMember[]
+
+  @@map("users")
+}
+
+model Room {
+  id            String        @id @default(uuid())
+  roomCode      String        @unique @map("room_code")
+  category      String
+  status        String        @default("waiting")
+  linkExpiresAt DateTime      @default(dbgenerated("(now() + '04:00:00'::interval)")) @map("link_expires_at")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  participants  Participant[]
+  schedule      Schedule?
 
   @@map("rooms")
 }
 
 model Participant {
-  id               String   @id @default(uuid())
-  roomCode         String   @map("room_code")
-  nickname         String
-  abstractLocation String   @map("abstract_location")
+  id               String    @id @default(uuid())
+  roomCode         String    @map("room_code")
+  userId           String    @map("user_id")
+  abstractLocation String    @map("abstract_location")
   lat              Float
   lng              Float
   transport        String?
-  isHost           Boolean  @default(false) @map("is_host")
-  createdAt        DateTime @default(now()) @map("created_at")
-
-  room Room @relation(fields: [roomCode], references: [roomCode], onDelete: Cascade)
+  isHost           Boolean   @default(false) @map("is_host")
+  leftAt           DateTime? @map("left_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  room             Room      @relation(fields: [roomCode], references: [roomCode], onDelete: Cascade)
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("participants")
+}
+
+model Schedule {
+  id           String           @id @default(uuid())
+  roomCode     String           @unique @map("room_code")
+  title        String
+  placeName    String           @map("place_name")
+  placeAddress String           @map("place_address")
+  lat          Float
+  lng          Float
+  scheduledAt  DateTime         @map("scheduled_at")
+  memo         String?
+  createdAt    DateTime         @default(now()) @map("created_at")
+  members      ScheduleMember[]
+  room         Room             @relation(fields: [roomCode], references: [roomCode], onDelete: Cascade)
+
+  @@map("schedules")
+}
+
+model ScheduleMember {
+  id         String   @id @default(uuid())
+  scheduleId String   @map("schedule_id")
+  userId     String   @map("user_id")
+  schedule   Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([scheduleId, userId])
+  @@map("schedule_members")
 }
