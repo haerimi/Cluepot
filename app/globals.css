@@ -1,26 +1,182 @@
 @import "tailwindcss";
 
+@theme {
+  /* ── Canvas / Surfaces ── */
+  --color-canvas: #F4F2EE;
+  --color-surface-1: #FFFFFF;
+  --color-surface-2: #FAF9F6;
+  --color-surface-3: #F0EDE7;
+
+  /* ── Accent — Warm Orange ── */
+  --color-accent: #FF5C00;
+  --color-accent-hover: #E65200;
+  --color-accent-muted: #FF8C4D;
+  --color-accent-light: #FFF0E8;
+
+  /* ── Ink / Text ── */
+  --color-ink: #1C1A17;
+  --color-ink-muted: #4A4740;
+  --color-ink-subtle: #908D87;
+  --color-ink-tertiary: #C4C1BC;
+
+  /* ── Borders ── */
+  --color-hairline: #E5E1D9;
+  --color-hairline-strong: #D0CCC4;
+
+  /* ── Semantic ── */
+  --color-success: #27A644;
+  --color-success-bg: #E8F5EC;
+  --color-warning: #D97706;
+  --color-warning-bg: #FEF3C7;
+
+  /* ── Shadows ── */
+  --shadow-xs: 0px 1px 2px 0px rgba(28, 26, 23, 0.06);
+  --shadow-sm: 0px 1px 3px 0px rgba(28, 26, 23, 0.08), 0px 1px 2px -1px rgba(28, 26, 23, 0.05);
+  --shadow-md: 0px 4px 12px -2px rgba(28, 26, 23, 0.10), 0px 2px 4px -2px rgba(28, 26, 23, 0.06);
+  --shadow-lg: 0px 10px 32px -4px rgba(28, 26, 23, 0.12), 0px 4px 8px -4px rgba(28, 26, 23, 0.08);
+  --shadow-xl: 0px 20px 48px -8px rgba(28, 26, 23, 0.15), 0px 8px 16px -6px rgba(28, 26, 23, 0.10);
+
+  /* ── Border Radius ── */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-xxl: 24px;
+  --radius-full: 9999px;
+
+  /* ── Spacing ── */
+  --spacing-xxs: 0.25rem;
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 0.75rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-xxl: 3rem;
+  --spacing-section: 6rem;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #F4F2EE;
+  --foreground: #1C1A17;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family:
+    "Apple SD Gothic Neo",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Noto Sans KR",
+    "Malgun Gothic",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100dvh;
+}
+
+/* ── Scrollbar ── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #D0CCC4 transparent;
+}
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: #D0CCC4;
+  border-radius: 9999px;
+}
+
+/* ── Transition defaults ── */
+a,
+button {
+  transition: all 0.15s ease;
+}
+
+/* ── Safe area support for mobile ── */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* ── Ambient motion keyframes ── */
+
+/* Gentle vertical float for hero elements */
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-5px); }
+}
+@keyframes float-med {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-4px); }
+}
+
+/* Expanding ring pulse — radiates outward then fades */
+@keyframes ring-pulse {
+  0%   { transform: scale(1);   opacity: 0.5; }
+  100% { transform: scale(2.8); opacity: 0; }
+}
+
+/* Sherlock radar sweep rotation */
+@keyframes sherlock-scan {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Cardinal-point node dots on the radar */
+@keyframes node-pulse {
+  0%, 40%, 100% { opacity: 0.25; box-shadow: none; }
+  70%           { opacity: 1;    box-shadow: 0 0 8px rgba(255, 92, 0, 0.5); }
+}
+
+/* Thinking-dot bounce for "분석 중" chips */
+@keyframes dot-bounce {
+  0%, 80%, 100% { transform: translateY(0);   opacity: 0.5; }
+  40%           { transform: translateY(-3px); opacity: 1; }
+}
+
+/* Card / element entrance — fades up from 10px below */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Pending participant status dot — breathing glow */
+@keyframes waiting-dot {
+  0%, 100% { opacity: 0.35; transform: scale(0.8); }
+  50%      { opacity: 0.9;  transform: scale(1.3); }
+}
+
+/* CTA glow when Sherlock is ready to fire */
+@keyframes cta-glow {
+  0%, 100% { box-shadow: 0 1px 3px rgba(255, 92, 0, 0.3); }
+  50%      { box-shadow: 0 0 0 6px rgba(255, 92, 0, 0.12), 0 4px 16px rgba(255, 92, 0, 0.4); }
+}
+
+/* Smooth text shimmer for loading labels */
+@keyframes text-shimmer {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
+}
+
+/* Step-text cross-fade */
+@keyframes step-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
