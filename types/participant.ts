@@ -2,6 +2,8 @@ import { Room } from '@/types/room'
 import { User } from '@/types/user'
 
 export type Transport = 'walk' | 'transit' | 'car' | 'bike'
+export type DistanceTolerance = 'short' | 'medium' | 'far'
+export type AtmospherePreference = 'quiet' | 'lively' | 'cozy' | 'trendy'
 
 export interface Participant {
   id: string
@@ -10,7 +12,9 @@ export interface Participant {
   abstractLocation: string
   lat: number
   lng: number
-  transport: Transport
+  transports: Transport[]
+  distanceTolerance: DistanceTolerance
+  atmospherePreference: AtmospherePreference
   isHost: boolean
   leftAt: Date
   createdAt: Date
