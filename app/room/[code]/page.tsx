@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Transport, DistanceTolerance, AtmospherePreference } from "@/types/participant";
 import { Category } from "@/types/room";
@@ -248,6 +248,7 @@ function ScheduleView({
 /* ── Main Room Page ── */
 export default function RoomPage() {
   const params = useParams();
+  const router = useRouter();
   const roomCode = (params?.code as string ?? "").toUpperCase();
 
   const [myLocation, setMyLocation] = useState("");
@@ -333,12 +334,7 @@ export default function RoomPage() {
           placeName={confirmedPlace.placeName}
           placeAddress={confirmedPlace.placeAddress}
           roomCode={roomCode}
-          onReset={() => {
-            setView("waiting");
-            setConfirmedPlace(null);
-            setSelectedPlaceId(null);
-            setSherlockPlaces([]);
-          }}
+          onReset={() => router.push("/room/create")}
         />
       </div>
     );
