@@ -8,29 +8,29 @@ function SherlockHeroViz() {
 
       {/* Ambient background glow */}
       <div
-        className="absolute w-28 h-28 rounded-full bg-[#FF5C00]/10 blur-3xl"
+        className="absolute w-28 h-28 rounded-full bg-[#7C5CFC]/10 blur-3xl"
         style={{ animation: "float-slow 5s ease-in-out infinite" }}
       />
 
       {/* Expanding pulse rings from center */}
       <div
-        className="absolute w-16 h-16 rounded-full border border-[#FF5C00]/40 pointer-events-none"
+        className="absolute w-16 h-16 rounded-full border border-[#7C5CFC]/40 pointer-events-none"
         style={{ animation: "ring-pulse 2.4s ease-out infinite" }}
       />
       <div
-        className="absolute w-16 h-16 rounded-full border border-[#FF5C00]/30 pointer-events-none"
+        className="absolute w-16 h-16 rounded-full border border-[#7C5CFC]/30 pointer-events-none"
         style={{ animation: "ring-pulse 2.4s ease-out 1.2s infinite" }}
       />
 
       {/* Orbit path rings */}
-      <div className="absolute w-36 h-36 rounded-full border border-dashed border-[#FF5C00]/10 pointer-events-none" />
+      <div className="absolute w-36 h-36 rounded-full border border-dashed border-[#7C5CFC]/10 pointer-events-none" />
       <div className="absolute w-52 h-52 rounded-full border border-dashed border-[#D0CCC4]/40 pointer-events-none" />
 
       {/* ── Center Sherlock orb ── */}
       <div
-        className="relative z-20 w-14 h-14 rounded-full bg-[#FF5C00] flex items-center justify-center"
+        className="relative z-20 w-14 h-14 rounded-full bg-[#7C5CFC] flex items-center justify-center"
         style={{
-          boxShadow: "0 4px 24px rgba(255,92,0,0.38), 0 1px 4px rgba(255,92,0,0.2)",
+          boxShadow: "0 4px 24px rgba(124,92,252,0.38), 0 1px 4px rgba(124,92,252,0.2)",
           animation: "float-slow 3s ease-in-out infinite",
         }}
       >
@@ -45,7 +45,7 @@ function SherlockHeroViz() {
         style={{ animation: "float-slow 4.2s ease-in-out 0.5s infinite" }}
       >
         <div className="w-10 h-10 rounded-full bg-white border-2 border-[#E5E1D9] shadow-[0_2px_8px_rgba(28,26,23,0.10)] flex items-center justify-center">
-          <span className="text-[13px] font-black text-[#1C1A17]">박</span>
+          <span className="text-[16px] leading-none select-none">🐻</span>
         </div>
         <div className="px-2 py-0.5 bg-white rounded-full border border-[#E5E1D9] shadow-sm">
           <span className="text-[9px] font-medium text-[#908D87]">강남구</span>
@@ -58,7 +58,7 @@ function SherlockHeroViz() {
         style={{ animation: "float-slow 3.6s ease-in-out 1.1s infinite" }}
       >
         <div className="w-10 h-10 rounded-full bg-white border-2 border-[#E5E1D9] shadow-[0_2px_8px_rgba(28,26,23,0.10)] flex items-center justify-center">
-          <span className="text-[13px] font-black text-[#1C1A17]">김</span>
+          <span className="text-[16px] leading-none select-none">🦊</span>
         </div>
         <div className="px-2 py-0.5 bg-white rounded-full border border-[#E5E1D9] shadow-sm">
           <span className="text-[9px] font-medium text-[#908D87]">마포구</span>
@@ -71,7 +71,7 @@ function SherlockHeroViz() {
         style={{ animation: "float-slow 4.8s ease-in-out 0.3s infinite" }}
       >
         <div className="w-10 h-10 rounded-full bg-white border-2 border-[#E5E1D9] shadow-[0_2px_8px_rgba(28,26,23,0.10)] flex items-center justify-center">
-          <span className="text-[13px] font-black text-[#1C1A17]">이</span>
+          <span className="text-[16px] leading-none select-none">🐧</span>
         </div>
         <div className="px-2 py-0.5 bg-white rounded-full border border-[#E5E1D9] shadow-sm">
           <span className="text-[9px] font-medium text-[#908D87]">잠실</span>
@@ -83,17 +83,17 @@ function SherlockHeroViz() {
         className="absolute z-10 bottom-5 right-[7%]"
         style={{ animation: "float-slow 5s ease-in-out 2s infinite" }}
       >
-        <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white rounded-full border border-[#FF5C00]/25 shadow-sm">
+        <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white rounded-full border border-[#7C5CFC]/25 shadow-sm">
           <div className="flex gap-[3px]">
             {([0, 0.15, 0.3] as const).map((d) => (
               <div
                 key={d}
-                className="w-[5px] h-[5px] rounded-full bg-[#FF5C00]"
+                className="w-[5px] h-[5px] rounded-full bg-[#7C5CFC]"
                 style={{ animation: `dot-bounce 1.2s ease-in-out ${d}s infinite` }}
               />
             ))}
           </div>
-          <span className="text-[10px] font-semibold text-[#FF5C00]">분석 중</span>
+          <span className="text-[10px] font-semibold text-[#7C5CFC]">분석 중</span>
         </div>
       </div>
 
@@ -117,8 +117,8 @@ const FEATURES = [
     emoji: "🔍",
     title: "Sherlock Mode",
     desc: "AI가 참가자 위치를 분석해 최적 장소를 추천",
-    bg: "#FFF0E8",
-    textColor: "#FF5C00",
+    bg: "#F0ECFF",
+    textColor: "#7C5CFC",
   },
   {
     emoji: "📍",
@@ -138,8 +138,8 @@ const FEATURES = [
     emoji: "⚡",
     title: "실시간 추천",
     desc: "취향과 분위기까지 고려한 맞춤 장소 제안",
-    bg: "#FFF0E8",
-    textColor: "#FF5C00",
+    bg: "#F0ECFF",
+    textColor: "#7C5CFC",
   },
 ];
 
@@ -150,7 +150,7 @@ export default function HomePage() {
       {/* Top nav */}
       <header className="flex items-center justify-between px-5 pt-safe pt-4 pb-2">
         <span className="text-[20px] font-black text-[#1C1A17] tracking-tight">
-          Meet<span className="text-[#FF5C00]">Spot</span>
+          Meet<span className="text-[#7C5CFC]">Spot</span>
         </span>
         <button className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-[#E5E1D9] text-[#908D87] text-[13px] shadow-sm">
           ?
@@ -168,8 +168,8 @@ export default function HomePage() {
         <div className="px-5" style={{ animation: "fade-up 0.5s ease-out both" }}>
           {/* Eyebrow */}
           <div className="inline-flex items-center gap-2 mb-4">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#FF5C00]" style={{ animation: "waiting-dot 2s ease-in-out infinite" }} />
-            <span className="text-[11px] font-bold text-[#FF5C00] tracking-[2px] uppercase">
+            <div className="w-1.5 h-1.5 rounded-full bg-[#7C5CFC]" style={{ animation: "waiting-dot 2s ease-in-out infinite" }} />
+            <span className="text-[11px] font-bold text-[#7C5CFC] tracking-[2px] uppercase">
               AI 모임 장소 추천
             </span>
           </div>
@@ -178,7 +178,7 @@ export default function HomePage() {
           <h1 className="text-[34px] font-black text-[#1C1A17] leading-[1.08] tracking-[-1.5px] mb-3">
             모임의 중심을
             <br />
-            <span className="text-[#FF5C00]">찾아드립니다</span>
+            <span className="text-[#7C5CFC]">찾아드립니다</span>
           </h1>
 
           {/* Subhead */}

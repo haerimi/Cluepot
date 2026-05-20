@@ -2,18 +2,21 @@
 
 import { useEffect, useState } from "react";
 import { Category } from "@/types/room";
-import { PlaceCard } from "@/app/components/PlaceCard";
+import { PlaceCard, BalanceTag, PerParticipantTime } from "@/app/components/PlaceCard";
 
-interface RecommendedPlace {
+export interface RecommendedPlace {
   readonly placeId: string;
   readonly placeName: string;
   readonly placeAddress: string;
   readonly category: Category;
   readonly rating?: number;
-  readonly avgMinutes?: number;
-  readonly distance?: string;
   readonly lat: number;
   readonly lng: number;
+  readonly fairnessScore: number;
+  readonly balanceTag: BalanceTag;
+  readonly reasoning: string;
+  readonly perParticipantTime: PerParticipantTime[];
+  readonly atmosphereMatch: string;
 }
 
 type PanelState = "loading" | "done";
@@ -26,14 +29,15 @@ interface SherlockPanelProps {
   readonly onSelectPlace: (place: RecommendedPlace) => void;
   readonly onRegenerate: () => void;
   readonly isLoading?: boolean;
+  readonly participantCount?: number;
 }
 
 const ANALYSIS_STEPS = [
-  "참가자 위치 불러오는 중…",
-  "이동 경로 계산 중…",
-  "중간 지점 탐색 중…",
-  "주변 장소 평가 중…",
-  "추천 목록 생성 중…",
+  "각 참가자 이동 패턴 분석 중…",
+  "공정한 중간 지점 탐색 중…",
+  "분위기 선호도 조율 중…",
+  "이동 부담 최소화 경로 산출 중…",
+  "공정성 기반 추천 목록 생성 중…",
 ] as const;
 
 const RADAR_NODES = [
@@ -43,8 +47,14 @@ const RADAR_NODES = [
   { style: { left: "4px", top: "50%", transform: "translateY(-50%)" }, delay: "1.5s" },
 ] as const;
 
+const SUMMARY_CHIPS = [
+  { emoji: "⚖️", label: "이동 균형화" },
+  { emoji: "🎭", label: "분위기 조율" },
+  { emoji: "📍", label: "경로 최적화" },
+] as const;
+
 function getProgressDotColor(index: number, current: number): string {
-  return index <= current ? "#FF5C00" : "#E5E1D9";
+  return index <= current ? "#7C5CFC" : "#E5E1D9";
 }
 
 function getProgressDotWidth(index: number, current: number): string {
@@ -58,22 +68,20 @@ function RadarScanner() {
       <div className="absolute inset-5 rounded-full border border-accent/15" />
       <div className="absolute inset-10 rounded-full border border-accent/10" />
 
-      {/* Rotating conic sweep */}
       <div
         className="absolute inset-0 rounded-full"
         style={{
           background:
-            "conic-gradient(from 0deg, transparent 0%, transparent 72%, rgba(255,92,0,0.18) 88%, rgba(255,92,0,0.05) 100%)",
+            "conic-gradient(from 0deg, transparent 0%, transparent 72%, rgba(124,92,252,0.18) 88%, rgba(124,92,252,0.05) 100%)",
           animation: "sherlock-scan 2s linear infinite",
         }}
       />
 
-      {/* Center orb */}
       <div className="absolute inset-0 flex items-center justify-center">
         <div
           className="w-14 h-14 rounded-full bg-accent flex items-center justify-center"
           style={{
-            boxShadow: "0 0 24px rgba(255,92,0,0.45), 0 2px 8px rgba(255,92,0,0.3)",
+            boxShadow: "0 0 24px rgba(124,92,252,0.45), 0 2px 8px rgba(124,92,252,0.3)",
             animation: "float-slow 3s ease-in-out infinite",
           }}
         >
@@ -81,7 +89,6 @@ function RadarScanner() {
         </div>
       </div>
 
-      {/* Cardinal-point node dots */}
       {RADAR_NODES.map((node) => (
         <div
           key={node.delay}
@@ -96,6 +103,37 @@ function RadarScanner() {
   );
 }
 
+function AnalysisSummaryStrip({ count }: { count: number }) {
+  return (
+    <div
+      className="rounded-xl p-4 mb-4"
+      style={{
+        background: "linear-gradient(135deg, #FFF8F4 0%, #F0ECFF 100%)",
+        border: "1px solid rgba(124,92,252,0.15)",
+        animation: "fade-up 0.4s ease-out both",
+      }}
+    >
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-[14px]">✓</span>
+        <p className="text-[14px] font-bold text-[#1C1A17]">분석 완료</p>
+      </div>
+      <p className="text-[12px] text-[#908D87] leading-relaxed mb-3">
+        {count}명의 이동 패턴·분위기 선호를 함께 고려해 추천했어요
+      </p>
+      <div className="flex gap-2 flex-wrap">
+        {SUMMARY_CHIPS.map((chip) => (
+          <span
+            key={chip.label}
+            className="inline-flex items-center gap-1 px-2.5 py-1 bg-white rounded-full border border-[#7C5CFC]/20 text-[11px] font-medium text-[#7C5CFC]"
+          >
+            {chip.emoji} {chip.label}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function SherlockPanel({
   open,
   onClose,
@@ -104,6 +142,7 @@ export function SherlockPanel({
   onSelectPlace,
   onRegenerate,
   isLoading = false,
+  participantCount = 3,
 }: SherlockPanelProps) {
   const [stepIndex, setStepIndex] = useState(0);
   const [panelState, setPanelState] = useState<PanelState>("loading");
@@ -144,7 +183,7 @@ export function SherlockPanel({
 
       {/* Bottom sheet */}
       <div
-        className="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 w-full max-w-107.5
+        className="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 w-full max-w-[430px]
           bg-canvas rounded-t-[24px] flex flex-col max-h-[88dvh]"
         style={{ boxShadow: "0 -12px 48px rgba(28,26,23,0.18), 0 -2px 8px rgba(28,26,23,0.08)" }}
       >
@@ -162,7 +201,7 @@ export function SherlockPanel({
                 Sherlock Mode
               </h2>
               {panelState === "loading" && (
-                <div className="flex gap-0.75 ml-1">
+                <div className="flex gap-[3px] ml-1">
                   {([0, 0.15, 0.3] as const).map((d) => (
                     <div
                       key={d}
@@ -178,7 +217,7 @@ export function SherlockPanel({
                 className="text-[12px] text-ink-subtle mt-0.5"
                 style={{ animation: "fade-up 0.3s ease-out both" }}
               >
-                {places.length}개의 장소를 추천해드려요
+                {places.length}개 장소 — 모두를 위한 추천
               </p>
             )}
           </div>
@@ -217,7 +256,7 @@ export function SherlockPanel({
                   className="text-[12px] text-ink-subtle mt-1"
                   style={{ animation: "text-shimmer 1.8s ease-in-out infinite" }}
                 >
-                  AI가 최적 장소를 탐색하고 있어요
+                  참가자 모두를 위한 균형점을 찾고 있어요
                 </p>
               </div>
 
@@ -239,36 +278,44 @@ export function SherlockPanel({
             </div>
           )}
 
-          {/* ── Done: Place list ── */}
+          {/* ── Done: Summary + Place list ── */}
           {panelState === "done" && (
-            <div className="space-y-3">
-              {places.map((place, i) => (
-                <div
-                  key={place.placeId}
-                  style={{ animation: `fade-up 0.35s ease-out ${i * 0.08}s both` }}
-                >
-                  <PlaceCard
-                    placeName={place.placeName}
-                    placeAddress={place.placeAddress}
-                    category={place.category}
-                    rating={place.rating}
-                    avgMinutes={place.avgMinutes}
-                    distance={place.distance}
-                    isSelected={selectedPlaceId === place.placeId}
-                    onSelect={() => onSelectPlace(place)}
-                    rank={i + 1}
-                  />
-                </div>
-              ))}
+            <div>
+              <AnalysisSummaryStrip count={participantCount} />
 
-              <button
-                onClick={onRegenerate}
-                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border border-dashed border-hairline-strong text-[13px] font-medium text-ink-subtle hover:border-accent hover:text-accent hover:bg-accent-light transition-all duration-200 mt-1"
-                style={{ animation: `fade-up 0.35s ease-out ${places.length * 0.08 + 0.05}s both` }}
-              >
-                <span>🔄</span>
-                다른 추천 보기
-              </button>
+              <div className="space-y-3">
+                {places.map((place, i) => (
+                  <div
+                    key={place.placeId}
+                    style={{ animation: `fade-up 0.35s ease-out ${i * 0.09}s both` }}
+                  >
+                    <PlaceCard
+                      placeName={place.placeName}
+                      placeAddress={place.placeAddress}
+                      category={place.category}
+                      rating={place.rating}
+                      fairnessScore={place.fairnessScore}
+                      balanceTag={place.balanceTag}
+                      reasoning={place.reasoning}
+                      perParticipantTime={[...place.perParticipantTime]}
+                      atmosphereMatch={place.atmosphereMatch}
+                      isSelected={selectedPlaceId === place.placeId}
+                      onSelect={() => onSelectPlace(place)}
+                    />
+                  </div>
+                ))}
+
+                <button
+                  onClick={onRegenerate}
+                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border border-dashed border-hairline-strong text-[13px] font-medium text-ink-subtle hover:border-accent hover:text-accent hover:bg-accent-light transition-all duration-200 mt-1"
+                  style={{
+                    animation: `fade-up 0.35s ease-out ${places.length * 0.09 + 0.06}s both`,
+                  }}
+                >
+                  <span>🔄</span>
+                  다른 추천 보기
+                </button>
+              </div>
             </div>
           )}
         </div>

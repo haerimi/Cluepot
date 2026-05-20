@@ -6,59 +6,36 @@ import { Category } from "@/types/room";
 import { Button } from "@/app/components/ui/Button";
 import { CategoryPicker } from "@/app/components/CategoryPicker";
 
-type SherlockPreference =
-  | "nearest"
-  | "midpoint"
-  | "vibe"
-  | "distance_no_matter";
-
-interface PreferenceOption {
-  value: SherlockPreference;
-  label: string;
-  desc: string;
-  emoji: string;
-}
-
-const PREFERENCES: PreferenceOption[] = [
-  {
-    value: "nearest",
-    label: "가까운 곳 선호",
-    desc: "참가자와 가장 가까운 장소를 추천해요",
-    emoji: "📌",
-  },
-  {
-    value: "midpoint",
-    label: "중간 지점 선호",
-    desc: "모든 참가자에게 공평한 위치를 찾아요",
-    emoji: "⚖️",
-  },
-  {
-    value: "vibe",
-    label: "분위기 우선",
-    desc: "거리보다 장소의 분위기를 더 중시해요",
-    emoji: "✨",
-  },
-  {
-    value: "distance_no_matter",
-    label: "이동 거리 상관없음",
-    desc: "최고의 장소라면 멀어도 괜찮아요",
-    emoji: "🗺",
-  },
-];
-
 type Step = 1 | 2 | 3;
+
+const SHERLOCK_FEATURES = [
+  {
+    emoji: "⚖️",
+    title: "이동 부담을 균등하게",
+    desc: "한 명에게만 불리한 장소는 추천하지 않아요",
+  },
+  {
+    emoji: "🎭",
+    title: "분위기 선호도 조율",
+    desc: "각자의 취향을 반영해 모두가 좋아할 곳을 찾아요",
+  },
+  {
+    emoji: "🔍",
+    title: "이유를 설명해드려요",
+    desc: "왜 이 장소인지 Sherlock이 직접 설명해줘요",
+  },
+] as const;
 
 export default function CreateRoomPage() {
   const router = useRouter();
   const [step, setStep] = useState<Step>(1);
   const [category, setCategory] = useState<Category | null>(null);
-  const [preference, setPreference] = useState<SherlockPreference | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [roomCode, setRoomCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   async function handleCreate() {
-    if (!category || !preference) return;
+    if (!category) return;
     setIsCreating(true);
     // TODO: POST /api/room
     await new Promise((r) => setTimeout(r, 800));
@@ -96,7 +73,7 @@ export default function CreateRoomPage() {
           </button>
         )}
         <span className="text-[20px] font-black text-[#1C1A17] tracking-tight">
-          Meet<span className="text-[#FF5C00]">Spot</span>
+          Meet<span className="text-[#7C5CFC]">Spot</span>
         </span>
       </header>
 
@@ -108,7 +85,7 @@ export default function CreateRoomPage() {
               key={s}
               className={[
                 "h-1 rounded-full flex-1 transition-all duration-300",
-                s <= step ? "bg-[#FF5C00]" : "bg-[#E5E1D9]",
+                s <= step ? "bg-[#7C5CFC]" : "bg-[#E5E1D9]",
               ].join(" ")}
             />
           ))}
@@ -116,11 +93,12 @@ export default function CreateRoomPage() {
       )}
 
       <main className="flex-1 px-5 pb-8 flex flex-col">
+
         {/* ── Step 1: Category ── */}
         {step === 1 && (
           <div className="flex flex-col flex-1">
             <div className="mb-8">
-              <p className="text-[12px] font-semibold text-[#FF5C00] tracking-widest uppercase mb-2">
+              <p className="text-[12px] font-semibold text-[#7C5CFC] tracking-widest uppercase mb-2">
                 Step 1
               </p>
               <h1 className="text-[28px] font-black text-[#1C1A17] leading-tight tracking-[-0.8px] mb-2">
@@ -131,10 +109,7 @@ export default function CreateRoomPage() {
               </p>
             </div>
 
-            <CategoryPicker
-              value={category}
-              onChange={(c) => setCategory(c)}
-            />
+            <CategoryPicker value={category} onChange={setCategory} />
 
             <div className="mt-auto pt-8">
               <Button
@@ -159,75 +134,56 @@ export default function CreateRoomPage() {
           </div>
         )}
 
-        {/* ── Step 2: Sherlock Preferences ── */}
+        {/* ── Step 2: Sherlock intro ── */}
         {step === 2 && (
-          <div className="flex flex-col flex-1">
+          <div className="flex flex-col flex-1" style={{ animation: "fade-up 0.35s ease-out both" }}>
             <div className="mb-8">
-              <p className="text-[12px] font-semibold text-[#FF5C00] tracking-widest uppercase mb-2">
+              <p className="text-[12px] font-semibold text-[#7C5CFC] tracking-widest uppercase mb-2">
                 Step 2 · Sherlock Mode
               </p>
               <h1 className="text-[28px] font-black text-[#1C1A17] leading-tight tracking-[-0.8px] mb-2">
-                어떻게 추천받을까요?
+                Sherlock이<br />공정하게 조율해요
               </h1>
-              <p className="text-[14px] text-[#908D87]">
-                AI 추천 방식을 설정해주세요
+              <p className="text-[14px] text-[#908D87] leading-relaxed">
+                참가자가 각자 선호를 입력하면,
+                <br />
+                Sherlock이 모두를 위한 장소를 찾아줘요
               </p>
             </div>
 
-            <div className="space-y-3">
-              {PREFERENCES.map((pref) => {
-                const isSelected = preference === pref.value;
-                return (
-                  <button
-                    key={pref.value}
-                    type="button"
-                    onClick={() => setPreference(pref.value)}
-                    className={[
-                      "w-full flex items-start gap-4 p-4 rounded-xl border text-left transition-all duration-150",
-                      isSelected
-                        ? "bg-[#FFF0E8] border-[#FF5C00] shadow-[0_0_0_1px_#FF5C00]"
-                        : "bg-white border-[#E5E1D9] hover:border-[#D0CCC4] hover:bg-[#FAF9F6]",
-                    ].join(" ")}
-                  >
-                    <span className="text-2xl leading-none mt-0.5 flex-shrink-0">
-                      {pref.emoji}
-                    </span>
-                    <div className="flex-1">
-                      <p
-                        className={[
-                          "text-[15px] font-semibold leading-snug",
-                          isSelected ? "text-[#FF5C00]" : "text-[#1C1A17]",
-                        ].join(" ")}
-                      >
-                        {pref.label}
-                      </p>
-                      <p className="text-[12px] text-[#908D87] mt-0.5 leading-relaxed">
-                        {pref.desc}
-                      </p>
-                    </div>
-                    <div
-                      className={[
-                        "w-5 h-5 rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center transition-colors",
-                        isSelected
-                          ? "border-[#FF5C00] bg-[#FF5C00]"
-                          : "border-[#D0CCC4]",
-                      ].join(" ")}
-                    >
-                      {isSelected && (
-                        <div className="w-2 h-2 rounded-full bg-white" />
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
+            {/* How it works */}
+            <div className="space-y-3 mb-8">
+              {SHERLOCK_FEATURES.map((f, i) => (
+                <div
+                  key={f.title}
+                  className="flex items-start gap-4 p-4 bg-white rounded-xl border border-[#E5E1D9]"
+                  style={{ animation: `fade-up 0.35s ease-out ${0.05 + i * 0.07}s both` }}
+                >
+                  <span className="text-[22px] leading-none mt-0.5 shrink-0">{f.emoji}</span>
+                  <div>
+                    <p className="text-[14px] font-semibold text-[#1C1A17] mb-0.5">{f.title}</p>
+                    <p className="text-[12px] text-[#908D87] leading-relaxed">{f.desc}</p>
+                  </div>
+                </div>
+              ))}
             </div>
 
-            <div className="mt-auto pt-8">
+            {/* Trust note */}
+            <div
+              className="flex items-center gap-2 px-4 py-3 bg-[#F0ECFF] rounded-xl border border-[#7C5CFC]/20 mb-8"
+              style={{ animation: "fade-up 0.35s ease-out 0.26s both" }}
+            >
+              <span className="text-[14px]">🤝</span>
+              <p className="text-[12px] text-[#7C5CFC] font-medium leading-relaxed">
+                다수결이 아닙니다. 모두의 상황을 고려해요.
+              </p>
+            </div>
+
+            <div className="mt-auto">
               <Button
                 variant="primary"
                 size="lg"
                 fullWidth
-                disabled={!preference}
                 loading={isCreating}
                 onClick={handleCreate}
               >
@@ -240,8 +196,7 @@ export default function CreateRoomPage() {
         {/* ── Step 3: Room Code Reveal ── */}
         {step === 3 && roomCode && (
           <div className="flex flex-col items-center flex-1 pt-8">
-            {/* Celebration */}
-            <div className="w-20 h-20 rounded-full bg-[#FFF0E8] flex items-center justify-center text-[40px] mb-6">
+            <div className="w-20 h-20 rounded-full bg-[#F0ECFF] flex items-center justify-center text-[40px] mb-6">
               🎉
             </div>
 
@@ -275,7 +230,7 @@ export default function CreateRoomPage() {
               )}
             </div>
 
-            {/* Category badge */}
+            {/* Category + mode badge */}
             <div className="flex items-center gap-2 mb-10">
               <span className="text-[13px] text-[#908D87]">
                 {category === "restaurant" && "🍽 맛집"}
@@ -285,12 +240,7 @@ export default function CreateRoomPage() {
                 {category === "dessert" && "🍰 디저트"}
               </span>
               <span className="text-[#D0CCC4]">·</span>
-              <span className="text-[13px] text-[#908D87]">
-                {preference === "nearest" && "📌 가까운 곳 선호"}
-                {preference === "midpoint" && "⚖️ 중간 지점 선호"}
-                {preference === "vibe" && "✨ 분위기 우선"}
-                {preference === "distance_no_matter" && "🗺 거리 상관없음"}
-              </span>
+              <span className="text-[13px] text-[#7C5CFC] font-medium">🔍 Sherlock 협력 조율</span>
             </div>
 
             <div className="flex flex-col gap-3 w-full mt-auto">

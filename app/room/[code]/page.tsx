@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
-import { Transport } from "@/types/participant";
+import { Transport, DistanceTolerance, AtmospherePreference } from "@/types/participant";
 import { Category } from "@/types/room";
 import { Button } from "@/app/components/ui/Button";
 import { Badge } from "@/app/components/ui/Badge";
 import { ParticipantCard } from "@/app/components/ParticipantCard";
 import { TransportPicker } from "@/app/components/TransportPicker";
-import { SherlockPanel } from "@/app/components/SherlockPanel";
+import { SherlockPanel, RecommendedPlace } from "@/app/components/SherlockPanel";
 
 /* ── Mock data ── */
 interface MockParticipant {
@@ -46,17 +46,25 @@ const MOCK_PARTICIPANTS: MockParticipant[] = [
   },
 ];
 
-const MOCK_PLACES = [
+const MOCK_PLACES: RecommendedPlace[] = [
   {
     placeId: "p1",
     placeName: "홍콩반점0410 강남점",
     placeAddress: "서울 강남구 테헤란로 142",
     category: "restaurant" as Category,
     rating: 4.8,
-    avgMinutes: 17,
-    distance: "중간 지점",
     lat: 37.5012,
     lng: 127.039,
+    fairnessScore: 94,
+    balanceTag: "most_balanced",
+    reasoning:
+      "세 분의 이동 시간 차이가 4분 이내예요. 대중교통으로도 접근성이 좋고, 조용한 분위기 선호 2명과 일치해요.",
+    atmosphereMatch: "조용한 분위기 선호 2명 일치",
+    perParticipantTime: [
+      { nickname: "박해림", minutes: 17, transport: "transit" },
+      { nickname: "김철수", minutes: 19, transport: "walk" },
+      { nickname: "이영희", minutes: 21, transport: "transit" },
+    ],
   },
   {
     placeId: "p2",
@@ -64,10 +72,18 @@ const MOCK_PLACES = [
     placeAddress: "서울 종로구 삼청로 100",
     category: "cafe" as Category,
     rating: 4.6,
-    avgMinutes: 22,
-    distance: "중간 지점",
     lat: 37.5825,
     lng: 126.9822,
+    fairnessScore: 87,
+    balanceTag: "best_vibe",
+    reasoning:
+      "세 분 모두 조용하고 아늑한 분위기를 선호하셨어요. 감성적인 공간으로 평점도 높아요.",
+    atmosphereMatch: "분위기 선호 3명 모두 일치",
+    perParticipantTime: [
+      { nickname: "박해림", minutes: 24, transport: "transit" },
+      { nickname: "김철수", minutes: 22, transport: "walk" },
+      { nickname: "이영희", minutes: 20, transport: "transit" },
+    ],
   },
   {
     placeId: "p3",
@@ -75,11 +91,46 @@ const MOCK_PLACES = [
     placeAddress: "서울 서초구 서초대로 77",
     category: "bar" as Category,
     rating: 4.5,
-    avgMinutes: 19,
-    distance: "중간 지점",
     lat: 37.4967,
     lng: 127.0276,
+    fairnessScore: 79,
+    balanceTag: "closest_to_all",
+    reasoning:
+      "박해림님과 이영희님에게 가장 가까운 위치예요. 이동 부담이 가장 적은 선택지예요.",
+    atmosphereMatch: "활기찬 분위기 선호 1명 일치",
+    perParticipantTime: [
+      { nickname: "박해림", minutes: 14, transport: "transit" },
+      { nickname: "김철수", minutes: 28, transport: "walk" },
+      { nickname: "이영희", minutes: 15, transport: "transit" },
+    ],
   },
+];
+
+/* ── Picker option types ── */
+interface DistanceOption {
+  value: DistanceTolerance;
+  label: string;
+  emoji: string;
+  desc: string;
+}
+
+interface AtmosphereOption {
+  value: AtmospherePreference;
+  label: string;
+  emoji: string;
+}
+
+const DISTANCE_OPTIONS: DistanceOption[] = [
+  { value: "short", label: "짧게", emoji: "⚡", desc: "15분 이내" },
+  { value: "medium", label: "적당히", emoji: "🚶", desc: "30분 이내" },
+  { value: "far", label: "상관없어요", emoji: "🗺", desc: "멀어도 OK" },
+];
+
+const ATMOSPHERE_OPTIONS: AtmosphereOption[] = [
+  { value: "quiet", label: "조용한", emoji: "☕" },
+  { value: "lively", label: "활기찬", emoji: "🎵" },
+  { value: "cozy", label: "아늑한", emoji: "🕯" },
+  { value: "trendy", label: "트렌디한", emoji: "✨" },
 ];
 
 type RoomView = "waiting" | "done";
@@ -143,7 +194,7 @@ function ScheduleView({
               <div
                 className={[
                   "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold",
-                  p.isMe ? "bg-[#FF5C00] text-white" : "bg-[#F0EDE7] text-[#4A4740]",
+                  p.isMe ? "bg-[#7C5CFC] text-white" : "bg-[#F0EDE7] text-[#4A4740]",
                 ].join(" ")}
               >
                 {p.nickname.charAt(0)}
@@ -177,20 +228,21 @@ export default function RoomPage() {
 
   const [myLocation, setMyLocation] = useState("");
   const [myTransport, setMyTransport] = useState<Transport | null>(null);
+  const [myDistance, setMyDistance] = useState<DistanceTolerance | null>(null);
+  const [myAtmosphere, setMyAtmosphere] = useState<AtmospherePreference | null>(null);
   const [locationSaved, setLocationSaved] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
 
   const [sherlockOpen, setSherlockOpen] = useState(false);
   const [sherlockLoading, setSherlockLoading] = useState(false);
-  const [sherlockPlaces, setSherlockPlaces] = useState<typeof MOCK_PLACES>([]);
+  const [sherlockPlaces, setSherlockPlaces] = useState<RecommendedPlace[]>([]);
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
 
   const [view, setView] = useState<RoomView>("waiting");
-  const [confirmedPlace, setConfirmedPlace] = useState<(typeof MOCK_PLACES)[0] | null>(null);
-
+  const [confirmedPlace, setConfirmedPlace] = useState<RecommendedPlace | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const readyCount = locationSaved ? 3 : 2; // Me + 1 already ready in mock
+  const readyCount = locationSaved ? 3 : 2;
   const totalCount = MOCK_PARTICIPANTS.length;
   const allReady = readyCount === totalCount;
 
@@ -201,6 +253,14 @@ export default function RoomPage() {
     }
     if (!myTransport) {
       setLocationError("교통수단을 선택해주세요");
+      return;
+    }
+    if (!myDistance) {
+      setLocationError("이동 거리 선호를 선택해주세요");
+      return;
+    }
+    if (!myAtmosphere) {
+      setLocationError("분위기 선호를 선택해주세요");
       return;
     }
     setLocationError(null);
@@ -216,7 +276,7 @@ export default function RoomPage() {
     setSherlockLoading(false);
   }
 
-  function handleSelectPlace(place: (typeof MOCK_PLACES)[0]) {
+  function handleSelectPlace(place: RecommendedPlace) {
     setSelectedPlaceId(place.placeId);
   }
 
@@ -239,7 +299,7 @@ export default function RoomPage() {
       <div className="min-h-dvh bg-[#F4F2EE] flex flex-col">
         <header className="flex items-center justify-between px-5 pt-safe pt-4 pb-3">
           <span className="text-[20px] font-black text-[#1C1A17] tracking-tight">
-            Meet<span className="text-[#FF5C00]">Spot</span>
+            Meet<span className="text-[#7C5CFC]">Spot</span>
           </span>
           <Badge variant="success" dot>확정됨</Badge>
         </header>
@@ -264,7 +324,7 @@ export default function RoomPage() {
       <header className="flex items-center justify-between px-5 pt-safe pt-4 pb-3">
         <div>
           <Link href="/" className="text-[20px] font-black text-[#1C1A17] tracking-tight">
-            Meet<span className="text-[#FF5C00]">Spot</span>
+            Meet<span className="text-[#7C5CFC]">Spot</span>
           </Link>
         </div>
         <button
@@ -283,7 +343,7 @@ export default function RoomPage() {
             {allReady ? "모두 준비됨" : "대기 중"}
           </Badge>
           <span className="text-[13px] text-[#908D87]">
-            {readyCount}/{totalCount}명 위치 입력 완료
+            {readyCount}/{totalCount}명 정보 입력 완료
           </span>
         </div>
 
@@ -314,17 +374,18 @@ export default function RoomPage() {
           </div>
         </div>
 
-        {/* Section: My location input */}
+        {/* Section: My preference input */}
         {!locationSaved && (
           <div className="bg-white rounded-2xl border border-[#E5E1D9] shadow-[0_4px_12px_rgba(28,26,23,0.08)] p-5 mb-6">
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-5">
               <span className="text-[18px]">📍</span>
               <h3 className="text-[15px] font-bold text-[#1C1A17]">
-                내 위치 알려주기
+                내 정보 알려주기
               </h3>
             </div>
 
-            <div className="mb-4">
+            {/* Location input */}
+            <div className="mb-5">
               <label className="block text-[11px] font-semibold text-[#908D87] tracking-widest uppercase mb-2">
                 출발 지역
               </label>
@@ -340,7 +401,7 @@ export default function RoomPage() {
                   "w-full h-12 px-4 rounded-xl border text-[15px]",
                   "placeholder:text-[#D0CCC4]",
                   "outline-none transition-all duration-150",
-                  "focus:ring-2 focus:ring-[#FF5C00] focus:ring-offset-0 focus:border-[#FF5C00]",
+                  "focus:ring-2 focus:ring-[#7C5CFC] focus:ring-offset-0 focus:border-[#7C5CFC]",
                   locationError
                     ? "border-[#DC2626] bg-[#FEF2F2]"
                     : "border-[#E5E1D9] bg-[#F4F2EE] focus:bg-white",
@@ -348,14 +409,91 @@ export default function RoomPage() {
               />
             </div>
 
-            <div className="mb-4">
+            {/* Transport */}
+            <div className="mb-5">
               <label className="block text-[11px] font-semibold text-[#908D87] tracking-widest uppercase mb-2">
                 이동 수단
               </label>
-              <TransportPicker
-                value={myTransport}
-                onChange={setMyTransport}
-              />
+              <TransportPicker value={myTransport} onChange={setMyTransport} />
+            </div>
+
+            {/* Distance tolerance */}
+            <div className="mb-5">
+              <label className="block text-[11px] font-semibold text-[#908D87] tracking-widest uppercase mb-2">
+                이동 거리 선호
+              </label>
+              <div className="flex gap-2">
+                {DISTANCE_OPTIONS.map((opt) => {
+                  const isSelected = myDistance === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => {
+                        setMyDistance(opt.value);
+                        setLocationError(null);
+                      }}
+                      className={[
+                        "flex flex-col items-center gap-1 flex-1 py-3 rounded-[10px] border text-center transition-all duration-150",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C5CFC] focus-visible:ring-offset-1",
+                        isSelected
+                          ? "bg-[#F0ECFF] border-[#7C5CFC] shadow-[0_0_0_1px_#7C5CFC]"
+                          : "bg-[#F4F2EE] border-[#E5E1D9] hover:border-[#D0CCC4] hover:bg-[#FAF9F6]",
+                      ].join(" ")}
+                    >
+                      <span className="text-xl leading-none">{opt.emoji}</span>
+                      <span
+                        className={[
+                          "text-[11px] font-semibold leading-tight mt-0.5",
+                          isSelected ? "text-[#7C5CFC]" : "text-[#4A4740]",
+                        ].join(" ")}
+                      >
+                        {opt.label}
+                      </span>
+                      <span className="text-[10px] text-[#908D87] leading-none">{opt.desc}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Atmosphere preference */}
+            <div className="mb-5">
+              <label className="block text-[11px] font-semibold text-[#908D87] tracking-widest uppercase mb-2">
+                선호 분위기
+              </label>
+              <div className="flex gap-2">
+                {ATMOSPHERE_OPTIONS.map((opt) => {
+                  const isSelected = myAtmosphere === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => {
+                        setMyAtmosphere(opt.value);
+                        setLocationError(null);
+                      }}
+                      className={[
+                        "flex flex-col items-center gap-1 flex-1 py-3 rounded-[10px] border text-center transition-all duration-150",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C5CFC] focus-visible:ring-offset-1",
+                        isSelected
+                          ? "bg-[#F0ECFF] border-[#7C5CFC] shadow-[0_0_0_1px_#7C5CFC]"
+                          : "bg-[#F4F2EE] border-[#E5E1D9] hover:border-[#D0CCC4] hover:bg-[#FAF9F6]",
+                      ].join(" ")}
+                    >
+                      <span className="text-xl leading-none">{opt.emoji}</span>
+                      <span
+                        className={[
+                          "text-[11px] font-semibold leading-tight mt-0.5",
+                          isSelected ? "text-[#7C5CFC]" : "text-[#4A4740]",
+                        ].join(" ")}
+                      >
+                        {opt.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {locationError && (
@@ -371,7 +509,7 @@ export default function RoomPage() {
               fullWidth
               onClick={handleSaveLocation}
             >
-              위치 저장하기
+              선호 저장하기
             </Button>
           </div>
         )}
@@ -382,7 +520,7 @@ export default function RoomPage() {
             <span className="text-[20px]">✅</span>
             <div>
               <p className="text-[14px] font-semibold text-[#1A7A35]">
-                위치가 저장됐어요!
+                선호가 저장됐어요!
               </p>
               <p className="text-[12px] text-[#27A644]">
                 모든 참가자가 준비되면 Sherlock을 실행해요
@@ -391,7 +529,7 @@ export default function RoomPage() {
           </div>
         )}
 
-        {/* Sherlock status hint */}
+        {/* Waiting hint */}
         {!allReady && (
           <div className="flex items-center gap-3 p-4 bg-white rounded-xl border border-[#E5E1D9] mb-4">
             <span className="text-[20px]">⏳</span>
@@ -400,7 +538,7 @@ export default function RoomPage() {
                 참가자 대기 중
               </p>
               <p className="text-[12px] text-[#908D87]">
-                이영희님이 위치를 입력하면 Sherlock을 실행할 수 있어요
+                이영희님이 정보를 입력하면 Sherlock을 실행할 수 있어요
               </p>
             </div>
           </div>
@@ -433,7 +571,7 @@ export default function RoomPage() {
               fullWidth
               onClick={() => setSherlockOpen(true)}
             >
-              선택한 장소 확정하기
+              선택한 장소 다시 보기
             </Button>
           </div>
         )}
@@ -445,12 +583,13 @@ export default function RoomPage() {
         onClose={() => setSherlockOpen(false)}
         places={sherlockPlaces}
         selectedPlaceId={selectedPlaceId}
-        onSelectPlace={(place) => handleSelectPlace(place as (typeof MOCK_PLACES)[0])}
+        onSelectPlace={handleSelectPlace}
         onRegenerate={handleRunSherlock}
         isLoading={sherlockLoading}
+        participantCount={MOCK_PARTICIPANTS.length}
       />
 
-      {/* Confirm floating action (when place selected) */}
+      {/* Confirm floating action (when place selected inside panel) */}
       {selectedPlaceId && sherlockOpen && (
         <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] px-5 pb-safe pb-5 z-[60] bg-gradient-to-t from-[#F4F2EE] from-80% to-transparent pt-4">
           <Button
@@ -459,7 +598,7 @@ export default function RoomPage() {
             fullWidth
             onClick={handleConfirmPlace}
           >
-            ✓ 이 장소로 확정하기
+            ✓ 이 장소로 정하기
           </Button>
         </div>
       )}

@@ -34,9 +34,9 @@ export function CategoryPicker({ value, onChange }: CategoryPickerProps) {
             onClick={() => onChange(cat.value)}
             className={[
               "relative flex flex-col items-start gap-1 p-4 rounded-xl border text-left transition-all duration-150",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00] focus-visible:ring-offset-1",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C5CFC] focus-visible:ring-offset-1",
               isSelected
-                ? "bg-[#FFF0E8] border-[#FF5C00] shadow-[0_0_0_1px_#FF5C00]"
+                ? "bg-[#F0ECFF] border-[#7C5CFC] shadow-[0_0_0_1px_#7C5CFC]"
                 : "bg-white border-[#E5E1D9] hover:border-[#D0CCC4] hover:bg-[#FAF9F6]",
             ]
               .filter(Boolean)
@@ -46,7 +46,7 @@ export function CategoryPicker({ value, onChange }: CategoryPickerProps) {
             <span
               className={[
                 "text-[15px] font-semibold leading-tight mt-1",
-                isSelected ? "text-[#FF5C00]" : "text-[#1C1A17]",
+                isSelected ? "text-[#7C5CFC]" : "text-[#1C1A17]",
               ].join(" ")}
             >
               {cat.label}
@@ -55,7 +55,7 @@ export function CategoryPicker({ value, onChange }: CategoryPickerProps) {
               {cat.desc}
             </span>
             {isSelected && (
-              <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-[#FF5C00] flex items-center justify-center">
+              <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-[#7C5CFC] flex items-center justify-center">
                 <svg
                   width="10"
                   height="8"

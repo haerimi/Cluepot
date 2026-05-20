@@ -7,11 +7,11 @@
   --color-surface-2: #FAF9F6;
   --color-surface-3: #F0EDE7;
 
-  /* ── Accent — Warm Orange ── */
-  --color-accent: #FF5C00;
-  --color-accent-hover: #E65200;
-  --color-accent-muted: #FF8C4D;
-  --color-accent-light: #FFF0E8;
+  /* ── Accent — Dusty Plum ── */
+  --color-accent: #7C5CFC;
+  --color-accent-hover: #6B4AEF;
+  --color-accent-muted: #A98BFD;
+  --color-accent-light: #F0ECFF;
 
   /* ── Ink / Text ── */
   --color-ink: #1C1A17;
@@ -142,7 +142,7 @@ button {
 /* Cardinal-point node dots on the radar */
 @keyframes node-pulse {
   0%, 40%, 100% { opacity: 0.25; box-shadow: none; }
-  70%           { opacity: 1;    box-shadow: 0 0 8px rgba(255, 92, 0, 0.5); }
+  70%           { opacity: 1;    box-shadow: 0 0 8px rgba(124, 92, 252, 0.5); }
 }
 
 /* Thinking-dot bounce for "분석 중" chips */
@@ -165,8 +165,8 @@ button {
 
 /* CTA glow when Sherlock is ready to fire */
 @keyframes cta-glow {
-  0%, 100% { box-shadow: 0 1px 3px rgba(255, 92, 0, 0.3); }
-  50%      { box-shadow: 0 0 0 6px rgba(255, 92, 0, 0.12), 0 4px 16px rgba(255, 92, 0, 0.4); }
+  0%, 100% { box-shadow: 0 1px 3px rgba(124, 92, 252, 0.3); }
+  50%      { box-shadow: 0 0 0 6px rgba(124, 92, 252, 0.12), 0 4px 16px rgba(124, 92, 252, 0.4); }
 }
 
 /* Smooth text shimmer for loading labels */
@@ -179,4 +179,16 @@ button {
 @keyframes step-in {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Sherlock reasoning chip entrance — slides in from left */
+@keyframes reason-in {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Fairness score count-up shimmer */
+@keyframes score-appear {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
 }

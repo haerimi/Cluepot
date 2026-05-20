@@ -48,7 +48,7 @@ export default function JoinRoomPage() {
           </button>
         </Link>
         <span className="text-[20px] font-black text-[#1C1A17] tracking-tight">
-          Meet<span className="text-[#FF5C00]">Spot</span>
+          Meet<span className="text-[#7C5CFC]">Spot</span>
         </span>
       </header>
 
@@ -92,10 +92,10 @@ export default function JoinRoomPage() {
                 "w-full h-14 px-4 rounded-xl border text-[22px] font-black tracking-[4px] text-center",
                 "placeholder:text-[#D0CCC4] placeholder:text-[16px] placeholder:tracking-normal placeholder:font-medium",
                 "outline-none transition-all duration-150",
-                "focus:ring-2 focus:ring-[#FF5C00] focus:ring-offset-0",
+                "focus:ring-2 focus:ring-[#7C5CFC] focus:ring-offset-0",
                 error
                   ? "border-[#DC2626] bg-[#FEF2F2] text-[#DC2626]"
-                  : "border-[#E5E1D9] bg-[#F4F2EE] text-[#1C1A17] focus:border-[#FF5C00] focus:bg-white",
+                  : "border-[#E5E1D9] bg-[#F4F2EE] text-[#1C1A17] focus:border-[#7C5CFC] focus:bg-white",
               ].join(" ")}
             />
           </div>
@@ -132,7 +132,7 @@ export default function JoinRoomPage() {
             <span className="text-[13px] text-[#908D87]">모임이 없나요? </span>
             <Link
               href="/room/create"
-              className="text-[13px] font-semibold text-[#FF5C00] underline-offset-2 hover:underline"
+              className="text-[13px] font-semibold text-[#7C5CFC] underline-offset-2 hover:underline"
             >
               새로 만들기
             </Link>

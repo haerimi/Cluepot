@@ -33,9 +33,9 @@ export function TransportPicker({ value, onChange }: TransportPickerProps) {
             title={t.label}
             className={[
               "flex flex-col items-center gap-1 flex-1 py-3 rounded-[10px] border text-center transition-all duration-150",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5C00] focus-visible:ring-offset-1",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C5CFC] focus-visible:ring-offset-1",
               isSelected
-                ? "bg-[#FFF0E8] border-[#FF5C00] shadow-[0_0_0_1px_#FF5C00]"
+                ? "bg-[#F0ECFF] border-[#7C5CFC] shadow-[0_0_0_1px_#7C5CFC]"
                 : "bg-white border-[#E5E1D9] hover:border-[#D0CCC4] hover:bg-[#FAF9F6]",
             ]
               .filter(Boolean)
@@ -45,7 +45,7 @@ export function TransportPicker({ value, onChange }: TransportPickerProps) {
             <span
               className={[
                 "text-[11px] font-medium leading-tight mt-0.5",
-                isSelected ? "text-[#FF5C00]" : "text-[#908D87]",
+                isSelected ? "text-[#7C5CFC]" : "text-[#908D87]",
               ].join(" ")}
             >
               {t.label}
