@@ -1,13 +1,6 @@
 import { Transport } from "@/types/participant";
 import { Badge } from "@/app/components/ui/Badge";
 
-const TRANSPORT_LABELS: Record<Transport, string> = {
-  walk: "도보",
-  transit: "대중교통",
-  car: "자가용",
-  bike: "자전거",
-};
-
 const TRANSPORT_EMOJI: Record<Transport, string> = {
   walk: "🚶",
   transit: "🚇",
@@ -19,7 +12,7 @@ interface ParticipantCardProps {
   readonly nickname: string;
   readonly isHost: boolean;
   readonly abstractLocation?: string;
-  readonly transport?: Transport | null;
+  readonly transports?: Transport[];
   readonly isReady: boolean;
   readonly isMe?: boolean;
   readonly animationDelay?: string;
@@ -29,7 +22,7 @@ export function ParticipantCard({
   nickname,
   isHost,
   abstractLocation,
-  transport,
+  transports = [],
   isReady,
   isMe = false,
   animationDelay = "0s",
@@ -67,16 +60,16 @@ export function ParticipantCard({
         </div>
 
         {isReady && abstractLocation ? (
-          <div className="flex items-center gap-2 mt-0.5">
+          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
             <span className="text-[12px] text-ink-subtle flex items-center gap-1">
               <span>📍</span>
               <span className="truncate">{abstractLocation}</span>
             </span>
-            {transport && (
+            {transports.length > 0 && (
               <>
                 <span className="text-ink-tertiary">·</span>
-                <span className="text-[12px] text-ink-subtle">
-                  {TRANSPORT_EMOJI[transport]} {TRANSPORT_LABELS[transport]}
+                <span className="text-[12px] text-ink-subtle tracking-wide">
+                  {transports.map((t) => TRANSPORT_EMOJI[t]).join(" ")}
                 </span>
               </>
             )}

@@ -37,10 +37,12 @@ model Participant {
   roomCode         String    @map("room_code")
   userId           String    @map("user_id")
   abstractLocation String    @map("abstract_location")
-  lat              Float
-  lng              Float
-  transport        String?
-  isHost           Boolean   @default(false) @map("is_host")
+  lat                  Float
+  lng                  Float
+  transports           String[]  @default([])
+  distanceTolerance    String?   @map("distance_tolerance")
+  atmospherePreference String?   @map("atmosphere_preference")
+  isHost               Boolean   @default(false) @map("is_host")
   leftAt           DateTime? @map("left_at")
   createdAt        DateTime  @default(now()) @map("created_at")
   room             Room      @relation(fields: [roomCode], references: [roomCode], onDelete: Cascade)

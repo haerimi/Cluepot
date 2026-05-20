@@ -10,11 +10,11 @@ interface CategoryOption {
 }
 
 const CATEGORIES: CategoryOption[] = [
-  { value: "restaurant", label: "맛집", emoji: "🍽", desc: "식사 모임" },
-  { value: "cafe", label: "카페", emoji: "☕", desc: "가볍게 차 한잔" },
-  { value: "bar", label: "술집", emoji: "🍺", desc: "술 한잔 하는 자리" },
-  { value: "brunch", label: "브런치", emoji: "🥂", desc: "여유로운 낮 모임" },
-  { value: "dessert", label: "디저트", emoji: "🍰", desc: "달콤한 시간" },
+  { value: "restaurant", label: "맛집",   emoji: "🍽", desc: "식사 모임" },
+  { value: "cafe",       label: "카페",   emoji: "☕", desc: "가볍게 차 한잔" },
+  { value: "bar",        label: "술집",   emoji: "🍺", desc: "술 한잔 하는 자리" },
+  { value: "brunch",     label: "브런치", emoji: "🥂", desc: "여유로운 낮 모임" },
+  { value: "dessert",    label: "디저트", emoji: "🍰", desc: "달콤한 시간" },
 ];
 
 interface CategoryPickerProps {
@@ -34,9 +34,9 @@ export function CategoryPicker({ value, onChange }: CategoryPickerProps) {
             onClick={() => onChange(cat.value)}
             className={[
               "relative flex flex-col items-start gap-1 p-4 rounded-xl border text-left transition-all duration-150",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C5CFC] focus-visible:ring-offset-1",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
               isSelected
-                ? "bg-[#F0ECFF] border-[#7C5CFC] shadow-[0_0_0_1px_#7C5CFC]"
+                ? "bg-accent-light border-accent shadow-[0_0_0_1px_#7C5CFC]"
                 : "bg-white border-[#E5E1D9] hover:border-[#D0CCC4] hover:bg-[#FAF9F6]",
             ]
               .filter(Boolean)
@@ -46,7 +46,7 @@ export function CategoryPicker({ value, onChange }: CategoryPickerProps) {
             <span
               className={[
                 "text-[15px] font-semibold leading-tight mt-1",
-                isSelected ? "text-[#7C5CFC]" : "text-[#1C1A17]",
+                isSelected ? "text-accent" : "text-[#1C1A17]",
               ].join(" ")}
             >
               {cat.label}
@@ -55,14 +55,8 @@ export function CategoryPicker({ value, onChange }: CategoryPickerProps) {
               {cat.desc}
             </span>
             {isSelected && (
-              <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-[#7C5CFC] flex items-center justify-center">
-                <svg
-                  width="10"
-                  height="8"
-                  viewBox="0 0 10 8"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
+              <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-accent flex items-center justify-center">
+                <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
                   <path
                     d="M1 3.5L3.8 6.5L9 1"
                     stroke="white"

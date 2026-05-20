@@ -1,23 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Category } from "@/types/room";
-import { PlaceCard, BalanceTag, PerParticipantTime } from "@/app/components/PlaceCard";
+import { RecommendedPlace } from "@/types/recommendation";
+import { PlaceCard } from "@/app/components/PlaceCard";
 
-export interface RecommendedPlace {
-  readonly placeId: string;
-  readonly placeName: string;
-  readonly placeAddress: string;
-  readonly category: Category;
-  readonly rating?: number;
-  readonly lat: number;
-  readonly lng: number;
-  readonly fairnessScore: number;
-  readonly balanceTag: BalanceTag;
-  readonly reasoning: string;
-  readonly perParticipantTime: PerParticipantTime[];
-  readonly atmosphereMatch: string;
-}
+export type { RecommendedPlace };
 
 type PanelState = "loading" | "done";
 
@@ -33,11 +20,11 @@ interface SherlockPanelProps {
 }
 
 const ANALYSIS_STEPS = [
-  "각 참가자 이동 패턴 분석 중…",
-  "공정한 중간 지점 탐색 중…",
-  "분위기 선호도 조율 중…",
-  "이동 부담 최소화 경로 산출 중…",
-  "공정성 기반 추천 목록 생성 중…",
+  "후보 장소 리뷰 수집 중…",
+  "광고성 후기 필터링 중…",
+  "실제 방문자 경험 추출 중…",
+  "참가자 이동 균형 계산 중…",
+  "신뢰도 기반 추천 목록 완성 중…",
 ] as const;
 
 const RADAR_NODES = [
@@ -48,9 +35,9 @@ const RADAR_NODES = [
 ] as const;
 
 const SUMMARY_CHIPS = [
+  { emoji: "🔍", label: "리뷰 신뢰도 검증" },
+  { emoji: "🚫", label: "광고 후기 필터" },
   { emoji: "⚖️", label: "이동 균형화" },
-  { emoji: "🎭", label: "분위기 조율" },
-  { emoji: "📍", label: "경로 최적화" },
 ] as const;
 
 function getProgressDotColor(index: number, current: number): string {
@@ -118,7 +105,7 @@ function AnalysisSummaryStrip({ count }: { count: number }) {
         <p className="text-[14px] font-bold text-[#1C1A17]">분석 완료</p>
       </div>
       <p className="text-[12px] text-[#908D87] leading-relaxed mb-3">
-        {count}명의 이동 패턴·분위기 선호를 함께 고려해 추천했어요
+        실제 방문자 후기를 검증하고 {count}명의 이동 균형을 함께 고려했어요
       </p>
       <div className="flex gap-2 flex-wrap">
         {SUMMARY_CHIPS.map((chip) => (
@@ -256,7 +243,7 @@ export function SherlockPanel({
                   className="text-[12px] text-ink-subtle mt-1"
                   style={{ animation: "text-shimmer 1.8s ease-in-out infinite" }}
                 >
-                  참가자 모두를 위한 균형점을 찾고 있어요
+                  신뢰할 수 있는 장소만 추천해드릴게요
                 </p>
               </div>
 
@@ -299,6 +286,7 @@ export function SherlockPanel({
                       reasoning={place.reasoning}
                       perParticipantTime={[...place.perParticipantTime]}
                       atmosphereMatch={place.atmosphereMatch}
+                      reviewIntelligence={place.reviewIntelligence}
                       isSelected={selectedPlaceId === place.placeId}
                       onSelect={() => onSelectPlace(place)}
                     />

@@ -11,6 +11,6 @@ export interface Room {
   status: RoomStatus
   linkExpiresAt: Date
   createdAt: Date
-  participants: Participant
+  participants: Participant[]
   schedule: Schedule
 }
