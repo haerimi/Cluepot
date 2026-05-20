@@ -12,7 +12,7 @@ export interface Participant {
   abstractLocation: string
   lat: number
   lng: number
-  transport: Transport
+  transports: Transport[]
   distanceTolerance: DistanceTolerance
   atmospherePreference: AtmospherePreference
   isHost: boolean

@@ -1,48 +1,47 @@
 "use client";
 
-import { Transport } from "@/types/participant";
 import { Category } from "@/types/room";
+import {
+  BalanceTag,
+  PerParticipantTime,
+  ReviewIntelligence,
+} from "@/types/recommendation";
 
 const CATEGORY_LABELS: Record<Category, string> = {
   restaurant: "맛집",
-  cafe: "카페",
-  bar: "술집",
-  brunch: "브런치",
-  dessert: "디저트",
+  cafe:       "카페",
+  bar:        "술집",
+  brunch:     "브런치",
+  dessert:    "디저트",
 };
 
 const CATEGORY_EMOJI: Record<Category, string> = {
   restaurant: "🍽",
-  cafe: "☕",
-  bar: "🍺",
-  brunch: "🥂",
-  dessert: "🍰",
+  cafe:       "☕",
+  bar:        "🍺",
+  brunch:     "🥂",
+  dessert:    "🍰",
 };
+
+import { Transport } from "@/types/participant";
 
 const TRANSPORT_EMOJI: Record<Transport, string> = {
-  walk: "🚶",
+  walk:    "🚶",
   transit: "🚇",
-  car: "🚗",
-  bike: "🚲",
+  car:     "🚗",
+  bike:    "🚲",
 };
-
-export type BalanceTag = "most_balanced" | "closest_to_all" | "best_vibe" | "quickest";
 
 const BALANCE_TAG_CONFIG: Record<
   BalanceTag,
   { label: string; emoji: string; bg: string; text: string }
 > = {
-  most_balanced: { label: "가장 균형적", emoji: "⚖️", bg: "#F0ECFF", text: "#7C5CFC" },
+  most_balanced:  { label: "가장 균형적",    emoji: "⚖️", bg: "#F0ECFF", text: "#7C5CFC" },
+  review_pick:    { label: "후기 신뢰 높음", emoji: "🔍", bg: "#F0ECFF", text: "#7C5CFC" },
   closest_to_all: { label: "모두에게 가까운", emoji: "📍", bg: "#F0EDE7", text: "#4A4740" },
-  best_vibe: { label: "분위기 최적", emoji: "✨", bg: "#F0EDE7", text: "#4A4740" },
-  quickest: { label: "최단 이동", emoji: "⚡", bg: "#F0EDE7", text: "#4A4740" },
+  best_vibe:      { label: "분위기 최적",    emoji: "✨", bg: "#F0EDE7", text: "#4A4740" },
+  quickest:       { label: "최단 이동",      emoji: "⚡", bg: "#F0EDE7", text: "#4A4740" },
 };
-
-export interface PerParticipantTime {
-  nickname: string;
-  minutes: number;
-  transport: Transport;
-}
 
 interface PlaceCardProps {
   placeName: string;
@@ -56,6 +55,7 @@ interface PlaceCardProps {
   reasoning: string;
   perParticipantTime: PerParticipantTime[];
   atmosphereMatch: string;
+  reviewIntelligence: ReviewIntelligence;
   animationDelay?: string;
 }
 
@@ -72,6 +72,71 @@ function FairnessScore({ score }: { score: number }) {
   );
 }
 
+function ReviewSection({
+  intelligence,
+  isSelected,
+}: {
+  intelligence: ReviewIntelligence;
+  isSelected: boolean;
+}) {
+  return (
+    <div
+      className="rounded-[10px] p-3 mb-3"
+      style={{
+        backgroundColor: isSelected ? "rgba(124,92,252,0.04)" : "#F7F6F2",
+        border: "1px solid",
+        borderColor: isSelected ? "rgba(124,92,252,0.12)" : "#EAE7DF",
+        animation: "fade-up 0.3s ease-out both",
+      }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between mb-2.5">
+        <span className="text-[10px] font-bold text-[#7C5CFC] tracking-[1.5px] uppercase">
+          Sherlock 리뷰 분석
+        </span>
+        <span
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold"
+          style={{ backgroundColor: "#F0ECFF", color: "#7C5CFC" }}
+        >
+          검증 후기 {intelligence.authenticCount}개
+        </span>
+      </div>
+
+      {/* Pros */}
+      <div className={intelligence.cons.length > 0 ? "mb-2" : ""}>
+        <p className="text-[10px] font-semibold text-[#27A644] tracking-wide mb-1.5">
+          좋은 점
+        </p>
+        <ul className="space-y-1">
+          {intelligence.pros.map((pro) => (
+            <li key={pro} className="flex items-start gap-1.5">
+              <span className="text-[10px] text-[#27A644] mt-[3px] shrink-0 font-bold">✓</span>
+              <span className="text-[12px] text-[#4A4740] leading-relaxed">{pro}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Cons — framed as helpful notes, not warnings */}
+      {intelligence.cons.length > 0 && (
+        <div>
+          <p className="text-[10px] font-semibold text-[#D97706] tracking-wide mb-1.5">
+            참고할 점
+          </p>
+          <ul className="space-y-1">
+            {intelligence.cons.map((con) => (
+              <li key={con} className="flex items-start gap-1.5">
+                <span className="text-[10px] text-[#D97706] mt-[3px] shrink-0">△</span>
+                <span className="text-[12px] text-[#4A4740] leading-relaxed">{con}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function PlaceCard({
   placeName,
   placeAddress,
@@ -84,6 +149,7 @@ export function PlaceCard({
   reasoning,
   perParticipantTime,
   atmosphereMatch,
+  reviewIntelligence,
   animationDelay = "0s",
 }: PlaceCardProps) {
   const tagConfig = BALANCE_TAG_CONFIG[balanceTag];
@@ -125,7 +191,10 @@ export function PlaceCard({
       </h3>
       <p className="text-[12px] text-[#908D87] mb-3 truncate">{placeAddress}</p>
 
-      {/* ── Sherlock reasoning chip ── */}
+      {/* ── Review intelligence (primary Sherlock value) ── */}
+      <ReviewSection intelligence={reviewIntelligence} isSelected={isSelected} />
+
+      {/* ── Sherlock coordination reasoning ── */}
       <div
         className="flex gap-3 p-3 rounded-[10px] mb-3"
         style={{
@@ -135,11 +204,10 @@ export function PlaceCard({
           animation: `reason-in 0.4s ease-out ${animationDelay} both`,
         }}
       >
-        {/* Accent left bar */}
         <div className="w-[3px] rounded-full bg-[#7C5CFC] shrink-0 self-stretch" />
         <div className="flex-1 min-w-0">
           <p className="text-[10px] font-bold text-[#7C5CFC] tracking-[1.5px] uppercase mb-1">
-            Sherlock 분석
+            조율 이유
           </p>
           <p className="text-[12px] text-[#4A4740] leading-relaxed">{reasoning}</p>
         </div>

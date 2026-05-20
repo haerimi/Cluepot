@@ -9,7 +9,8 @@ import { Button } from "@/app/components/ui/Button";
 import { Badge } from "@/app/components/ui/Badge";
 import { ParticipantCard } from "@/app/components/ParticipantCard";
 import { TransportPicker } from "@/app/components/TransportPicker";
-import { SherlockPanel, RecommendedPlace } from "@/app/components/SherlockPanel";
+import { RecommendedPlace } from "@/types/recommendation";
+import { SherlockPanel } from "@/app/components/SherlockPanel";
 
 /* ── Mock data ── */
 interface MockParticipant {
@@ -17,7 +18,7 @@ interface MockParticipant {
   nickname: string;
   isHost: boolean;
   abstractLocation: string | null;
-  transport: Transport | null;
+  transports: Transport[];
   isMe?: boolean;
 }
 
@@ -27,7 +28,7 @@ const MOCK_PARTICIPANTS: MockParticipant[] = [
     nickname: "박해림",
     isHost: true,
     abstractLocation: "강남구",
-    transport: "transit",
+    transports: ["transit"],
     isMe: true,
   },
   {
@@ -35,14 +36,14 @@ const MOCK_PARTICIPANTS: MockParticipant[] = [
     nickname: "김철수",
     isHost: false,
     abstractLocation: "마포구",
-    transport: "walk",
+    transports: ["walk", "transit"],
   },
   {
     id: "3",
     nickname: "이영희",
     isHost: false,
     abstractLocation: null,
-    transport: null,
+    transports: [],
   },
 ];
 
@@ -65,6 +66,15 @@ const MOCK_PLACES: RecommendedPlace[] = [
       { nickname: "김철수", minutes: 19, transport: "walk" },
       { nickname: "이영희", minutes: 21, transport: "transit" },
     ],
+    reviewIntelligence: {
+      authenticCount: 124,
+      pros: [
+        "조용해서 대화하기 좋아요",
+        "음식이 일관되게 맛있어요",
+        "자리 여유가 있는 편이에요",
+      ],
+      cons: ["점심 시간대는 기다릴 수 있어요"],
+    },
   },
   {
     placeId: "p2",
@@ -75,15 +85,24 @@ const MOCK_PLACES: RecommendedPlace[] = [
     lat: 37.5825,
     lng: 126.9822,
     fairnessScore: 87,
-    balanceTag: "best_vibe",
+    balanceTag: "review_pick",
     reasoning:
-      "세 분 모두 조용하고 아늑한 분위기를 선호하셨어요. 감성적인 공간으로 평점도 높아요.",
+      "세 분 모두 조용하고 아늑한 분위기를 선호하셨어요. 실제 방문자 후기도 일관되게 긍정적이에요.",
     atmosphereMatch: "분위기 선호 3명 모두 일치",
     perParticipantTime: [
       { nickname: "박해림", minutes: 24, transport: "transit" },
       { nickname: "김철수", minutes: 22, transport: "walk" },
       { nickname: "이영희", minutes: 20, transport: "transit" },
     ],
+    reviewIntelligence: {
+      authenticCount: 87,
+      pros: [
+        "감성적인 공간으로 오래 있기 좋아요",
+        "커피 퀄리티가 뛰어나요",
+        "직원이 친절하고 조용해요",
+      ],
+      cons: ["음료 가격이 다소 높아요", "주말 오후에는 자리 경쟁이 있어요"],
+    },
   },
   {
     placeId: "p3",
@@ -96,13 +115,18 @@ const MOCK_PLACES: RecommendedPlace[] = [
     fairnessScore: 79,
     balanceTag: "closest_to_all",
     reasoning:
-      "박해림님과 이영희님에게 가장 가까운 위치예요. 이동 부담이 가장 적은 선택지예요.",
-    atmosphereMatch: "활기찬 분위기 선호 1명 일치",
+      "박해림님과 이영희님에게 가장 가까운 위치예요. 두 분의 이동 부담이 가장 적은 선택지예요.",
+    atmosphereMatch: "아늑한 분위기 선호 1명 일치",
     perParticipantTime: [
       { nickname: "박해림", minutes: 14, transport: "transit" },
       { nickname: "김철수", minutes: 28, transport: "walk" },
       { nickname: "이영희", minutes: 15, transport: "transit" },
     ],
+    reviewIntelligence: {
+      authenticCount: 56,
+      pros: ["분위기가 아늑하고 편안해요", "음식 퀄리티가 기대 이상이에요"],
+      cons: ["공간이 좁아서 소규모 모임에 적합해요", "미리 예약하는 게 좋아요"],
+    },
   },
 ];
 
@@ -227,7 +251,7 @@ export default function RoomPage() {
   const roomCode = (params?.code as string ?? "").toUpperCase();
 
   const [myLocation, setMyLocation] = useState("");
-  const [myTransport, setMyTransport] = useState<Transport | null>(null);
+  const [myTransports, setMyTransports] = useState<Transport[]>([]);
   const [myDistance, setMyDistance] = useState<DistanceTolerance | null>(null);
   const [myAtmosphere, setMyAtmosphere] = useState<AtmospherePreference | null>(null);
   const [locationSaved, setLocationSaved] = useState(false);
@@ -245,14 +269,15 @@ export default function RoomPage() {
   const readyCount = locationSaved ? 3 : 2;
   const totalCount = MOCK_PARTICIPANTS.length;
   const allReady = readyCount === totalCount;
+  const isCurrentUserHost = MOCK_PARTICIPANTS.find((p) => p.isMe)?.isHost ?? false;
 
   function handleSaveLocation() {
     if (!myLocation.trim()) {
       setLocationError("지역명을 입력해주세요");
       return;
     }
-    if (!myTransport) {
-      setLocationError("교통수단을 선택해주세요");
+    if (myTransports.length === 0) {
+      setLocationError("이동 가능한 교통수단을 하나 이상 선택해주세요");
       return;
     }
     if (!myDistance) {
@@ -271,6 +296,7 @@ export default function RoomPage() {
     setSherlockOpen(true);
     setSherlockLoading(true);
     setSherlockPlaces([]);
+    setSelectedPlaceId(null);
     await new Promise((r) => setTimeout(r, 3500));
     setSherlockPlaces(MOCK_PLACES);
     setSherlockLoading(false);
@@ -363,8 +389,8 @@ export default function RoomPage() {
                     ? (locationSaved ? myLocation : undefined)
                     : (p.abstractLocation ?? undefined)
                 }
-                transport={
-                  p.isMe ? (locationSaved ? myTransport : null) : p.transport
+                transports={
+                  p.isMe ? (locationSaved ? myTransports : []) : p.transports
                 }
                 isReady={p.isMe ? locationSaved : p.abstractLocation !== null}
                 isMe={p.isMe}
@@ -409,12 +435,15 @@ export default function RoomPage() {
               />
             </div>
 
-            {/* Transport */}
+            {/* Transport — multi-select */}
             <div className="mb-5">
-              <label className="block text-[11px] font-semibold text-[#908D87] tracking-widest uppercase mb-2">
-                이동 수단
-              </label>
-              <TransportPicker value={myTransport} onChange={setMyTransport} />
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-[11px] font-semibold text-[#908D87] tracking-widest uppercase">
+                  이동 가능한 교통수단
+                </label>
+                <span className="text-[10px] text-[#C4C1BC]">여러 개 선택 가능</span>
+              </div>
+              <TransportPicker value={myTransports} onChange={setMyTransports} />
             </div>
 
             {/* Distance tolerance */}
@@ -547,32 +576,54 @@ export default function RoomPage() {
 
       {/* Sticky bottom CTA */}
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] px-5 pb-safe pb-5 bg-gradient-to-t from-[#F4F2EE] from-80% to-transparent pt-4">
-        <div
-          className="rounded-[10px] overflow-hidden"
-          style={allReady ? { animation: "cta-glow 2.4s ease-in-out infinite" } : undefined}
-        >
-          <Button
-            variant="primary"
-            size="lg"
-            fullWidth
-            disabled={!allReady}
-            onClick={handleRunSherlock}
-          >
-            <span className="text-[18px]">🔍</span>
-            {allReady ? "Sherlock 실행하기" : `참가자 대기 중 (${readyCount}/${totalCount})`}
-          </Button>
-        </div>
-
-        {selectedPlaceId && sherlockPlaces.length > 0 && (
-          <div className="mt-2" style={{ animation: "fade-up 0.3s ease-out both" }}>
-            <Button
-              variant="secondary"
-              size="md"
-              fullWidth
-              onClick={() => setSherlockOpen(true)}
+        {isCurrentUserHost ? (
+          <>
+            <div
+              className="rounded-[10px] overflow-hidden"
+              style={allReady ? { animation: "cta-glow 2.4s ease-in-out infinite" } : undefined}
             >
-              선택한 장소 다시 보기
-            </Button>
+              <Button
+                variant="primary"
+                size="lg"
+                fullWidth
+                disabled={!allReady}
+                onClick={handleRunSherlock}
+              >
+                <span className="text-[18px]">🔍</span>
+                {allReady ? "Sherlock 실행하기" : `참가자 대기 중 (${readyCount}/${totalCount})`}
+              </Button>
+            </div>
+
+            {selectedPlaceId && sherlockPlaces.length > 0 && !sherlockOpen && (
+              <div className="mt-2" style={{ animation: "fade-up 0.3s ease-out both" }}>
+                <Button
+                  variant="secondary"
+                  size="md"
+                  fullWidth
+                  onClick={() => setSherlockOpen(true)}
+                >
+                  선택한 장소 다시 보기
+                </Button>
+              </div>
+            )}
+          </>
+        ) : (
+          <div
+            className="flex items-center gap-3 py-3.5 px-4 bg-white rounded-xl border border-[#E5E1D9]"
+            style={{ animation: "fade-up 0.3s ease-out both" }}
+          >
+            <div className="flex gap-[3px] shrink-0">
+              {([0, 0.15, 0.3] as const).map((d) => (
+                <div
+                  key={d}
+                  className="w-1.5 h-1.5 rounded-full bg-[#7C5CFC]"
+                  style={{ animation: `dot-bounce 1.2s ease-in-out ${d}s infinite` }}
+                />
+              ))}
+            </div>
+            <p className="text-[13px] font-medium text-[#4A4740]">
+              호스트가 장소 추천을 준비하고 있어요
+            </p>
           </div>
         )}
       </div>
@@ -589,9 +640,15 @@ export default function RoomPage() {
         participantCount={MOCK_PARTICIPANTS.length}
       />
 
-      {/* Confirm floating action (when place selected inside panel) */}
+      {/* Confirm CTA — inside panel's z-layer, shown when place selected */}
       {selectedPlaceId && sherlockOpen && (
-        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] px-5 pb-safe pb-5 z-[60] bg-gradient-to-t from-[#F4F2EE] from-80% to-transparent pt-4">
+        <div
+          className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] px-5 pb-safe pb-5 z-[60]"
+          style={{
+            background:
+              "linear-gradient(to top, rgba(240,236,255,0.97) 70%, transparent)",
+          }}
+        >
           <Button
             variant="primary"
             size="lg"
