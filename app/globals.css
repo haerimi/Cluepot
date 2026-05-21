@@ -252,3 +252,15 @@ button {
   from { width: 0; opacity: 0; }
   to   { opacity: 1; }
 }
+
+/* Sherlock typographic loader — scanning bar sweeps left→right */
+@keyframes sherlock-progress {
+  0%   { transform: translateX(-200%); }
+  100% { transform: translateX(600%); }
+}
+
+/* Editorial place card expand — height reveal */
+@keyframes card-expand {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
