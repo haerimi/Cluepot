@@ -183,7 +183,7 @@ function DetailDrawer({
 
             {intelligence.pros.length > 0 && (
               <div className={intelligence.cons.length > 0 ? "mb-3" : ""}>
-                <p className="text-[10px] font-bold text-success tracking-wide mb-2">좋은 점</p>
+                <p className="text-[10px] font-bold text-[#27A644] tracking-wide mb-2">좋은 점</p>
                 <ul className="space-y-1.5">
                   {intelligence.pros.map((pro) => (
                     <li key={pro} className="flex items-start gap-2">
@@ -197,7 +197,7 @@ function DetailDrawer({
 
             {intelligence.cons.length > 0 && (
               <div>
-                <p className="text-[10px] font-bold text-warning tracking-wide mb-2">참고할 점</p>
+                <p className="text-[10px] font-bold text-[#D97706] tracking-wide mb-2">참고할 점</p>
                 <ul className="space-y-1.5">
                   {intelligence.cons.map((con) => (
                     <li key={con} className="flex items-start gap-2">
@@ -244,11 +244,12 @@ export function PlaceCard({
   atmosphereMatch,
   reviewIntelligence,
   animationDelay = "0s",
-}: Readonly<PlaceCardProps>) {
+}: PlaceCardProps) {
   return (
     <div
       className={[
         "rounded-2xl border transition-all duration-200 overflow-hidden",
+        "flex flex-col h-full justify-between",
         isSelected
           ? "bg-accent-light border-accent shadow-[0_0_0_1px_#7C5CFC,0_4px_16px_rgba(124,92,252,0.12)]"
           : "bg-white border-hairline shadow-[0_1px_4px_rgba(28,26,23,0.06)] hover:border-hairline-strong hover:shadow-[0_4px_16px_rgba(28,26,23,0.08)]",
@@ -317,7 +318,7 @@ export function PlaceCard({
           "flex items-center justify-center gap-2",
           isSelected
             ? "bg-accent text-white"
-            : "bg-canvas text-ink-muted hover:bg-[#EEECE6]",
+            : "bg-[#F4F2EE] text-ink-muted hover:bg-[#EEECE6]",
         ].join(" ")}
       >
         {isSelected ? "✓ 선택됨" : "이 장소 선택하기"}

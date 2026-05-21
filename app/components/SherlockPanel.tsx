@@ -153,7 +153,7 @@ function PanelContent({
         <div className="px-5 lg:px-8 py-6">
           <AnalysisSummary count={participantCount} />
 
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 w-ful">
             {places.map((place, i) => (
               <div
                 key={place.placeId}
