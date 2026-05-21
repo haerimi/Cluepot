@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Category } from "@/types/room";
 import { Button } from "@/app/components/ui/Button";
 import { CategoryPicker } from "@/app/components/CategoryPicker";
+import { useRoomStore } from "@/store/room";
 
 type Step = 1 | 2 | 3;
 
@@ -26,13 +27,20 @@ const SHERLOCK_FEATURES = [
   },
 ] as const;
 
+const STEP_LABELS: Record<Step, string> = {
+  1: "카테고리",
+  2: "Sherlock 소개",
+  3: "완료",
+};
+
 export default function CreateRoomPage() {
   const router = useRouter();
   const [step, setStep] = useState<Step>(1);
   const [category, setCategory] = useState<Category | null>(null);
   const [isCreating, setIsCreating] = useState(false);
-  const [roomCode, setRoomCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const roomCode = useRoomStore((s) => s.roomInfo?.roomCode);
+  const setRoom = useRoomStore((s) => s.setRoom);
 
   async function handleCreate() {
     if (!category) return;
@@ -40,9 +48,15 @@ export default function CreateRoomPage() {
     // TODO: POST /api/room
     await new Promise((r) => setTimeout(r, 800));
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-    setRoomCode(code);
-    setStep(3);
+    setRoom({
+      roomId: crypto.randomUUID(),
+      roomCode: code,
+      roomCategory: category,
+      roomStatus: "waiting",
+      linkExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    });
     setIsCreating(false);
+    setStep(3);
   }
 
   function handleCopy() {
@@ -54,224 +68,256 @@ export default function CreateRoomPage() {
 
   return (
     <div className="min-h-dvh bg-[#F4F2EE] flex flex-col">
-      {/* Header */}
-      <header className="flex items-center gap-3 px-5 pt-safe pt-4 pb-3">
+
+      {/* ── Editorial header ── */}
+      <header className="flex items-center gap-4 px-6 lg:px-16 h-14 border-b border-[#E5E1D9] shrink-0">
         {step < 3 && (
           <button
-            onClick={() => (step === 1 ? router.back() : setStep((s) => (s - 1) as Step))}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-[#E5E1D9] text-[#4A4740] hover:bg-[#F0EDE7] transition-colors"
+            onClick={() =>
+              step === 1 ? router.back() : setStep((s) => (s - 1) as Step)
+            }
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-[#E5E1D9] text-[#4A4740] hover:bg-[#F0EDE7] transition-colors shrink-0"
+            aria-label="뒤로 가기"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path
-                d="M10 3L5 8L10 13"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+              <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
         )}
-        <span className="text-[20px] font-black text-[#1C1A17] tracking-tight">
+        <span className="text-[18px] font-black text-[#1C1A17] tracking-tight">
           Meet<span className="text-[#7C5CFC]">Spot</span>
         </span>
       </header>
 
-      {/* Step indicator */}
+      {/* ── Editorial step indicator ── */}
       {step < 3 && (
-        <div className="flex items-center gap-2 px-5 pb-4">
-          {([1, 2] as const).map((s) => (
-            <div
-              key={s}
-              className={[
-                "h-1 rounded-full flex-1 transition-all duration-300",
-                s <= step ? "bg-[#7C5CFC]" : "bg-[#E5E1D9]",
-              ].join(" ")}
-            />
+        <div className="flex items-center px-6 lg:px-16 h-12 border-b border-[#E5E1D9] gap-0 shrink-0">
+          {([1, 2] as const).map((s, i) => (
+            <div key={s} className="flex items-center gap-0">
+              {i > 0 && (
+                <div className={[
+                  "w-12 lg:w-20 h-px mx-3 transition-colors duration-300",
+                  s <= step ? "bg-[#7C5CFC]" : "bg-[#E5E1D9]",
+                ].join(" ")} />
+              )}
+              <div className="flex items-center gap-2">
+                <div className={[
+                  "w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold transition-all duration-300 shrink-0",
+                  s < step
+                    ? "bg-[#7C5CFC] text-white"
+                    : s === step
+                    ? "bg-[#1C1A17] text-white"
+                    : "bg-[#E5E1D9] text-[#908D87]",
+                ].join(" ")}>
+                  {s < step ? "✓" : s}
+                </div>
+                <span className={[
+                  "text-[12px] font-medium transition-colors duration-200 hidden sm:block",
+                  s === step ? "text-[#1C1A17]" : "text-[#908D87]",
+                ].join(" ")}>
+                  {STEP_LABELS[s]}
+                </span>
+              </div>
+            </div>
           ))}
         </div>
       )}
 
-      <main className="flex-1 px-5 pb-8 flex flex-col">
+      {/* ── Main content area ── */}
+      <main className="flex-1 flex flex-col">
+        <div className="w-full max-w-2xl mx-auto px-6 lg:px-0 py-10 lg:py-16 flex flex-col flex-1">
 
-        {/* ── Step 1: Category ── */}
-        {step === 1 && (
-          <div className="flex flex-col flex-1">
-            <div className="mb-8">
-              <p className="text-[12px] font-semibold text-[#7C5CFC] tracking-widest uppercase mb-2">
-                Step 1
-              </p>
-              <h1 className="text-[28px] font-black text-[#1C1A17] leading-tight tracking-[-0.8px] mb-2">
-                어떤 만남인가요?
-              </h1>
-              <p className="text-[14px] text-[#908D87]">
-                장소 카테고리를 선택해주세요
-              </p>
-            </div>
-
-            <CategoryPicker value={category} onChange={setCategory} />
-
-            <div className="mt-auto pt-8">
-              <Button
-                variant="primary"
-                size="lg"
-                fullWidth
-                disabled={!category}
-                onClick={() => setStep(2)}
-              >
-                다음
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path
-                    d="M6 3L11 8L6 13"
-                    stroke="white"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* ── Step 2: Sherlock intro ── */}
-        {step === 2 && (
-          <div className="flex flex-col flex-1" style={{ animation: "fade-up 0.35s ease-out both" }}>
-            <div className="mb-8">
-              <p className="text-[12px] font-semibold text-[#7C5CFC] tracking-widest uppercase mb-2">
-                Step 2 · Sherlock Mode
-              </p>
-              <h1 className="text-[28px] font-black text-[#1C1A17] leading-tight tracking-[-0.8px] mb-2">
-                Sherlock이<br />공정하게 조율해요
-              </h1>
-              <p className="text-[14px] text-[#908D87] leading-relaxed">
-                참가자가 각자 선호를 입력하면,
-                <br />
-                Sherlock이 모두를 위한 장소를 찾아줘요
-              </p>
-            </div>
-
-            {/* How it works */}
-            <div className="space-y-3 mb-8">
-              {SHERLOCK_FEATURES.map((f, i) => (
-                <div
-                  key={f.title}
-                  className="flex items-start gap-4 p-4 bg-white rounded-xl border border-[#E5E1D9]"
-                  style={{ animation: `fade-up 0.35s ease-out ${0.05 + i * 0.07}s both` }}
-                >
-                  <span className="text-[22px] leading-none mt-0.5 shrink-0">{f.emoji}</span>
-                  <div>
-                    <p className="text-[14px] font-semibold text-[#1C1A17] mb-0.5">{f.title}</p>
-                    <p className="text-[12px] text-[#908D87] leading-relaxed">{f.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Trust note */}
-            <div
-              className="flex items-center gap-2 px-4 py-3 bg-[#F0ECFF] rounded-xl border border-[#7C5CFC]/20 mb-8"
-              style={{ animation: "fade-up 0.35s ease-out 0.26s both" }}
-            >
-              <span className="text-[14px]">🤝</span>
-              <p className="text-[12px] text-[#7C5CFC] font-medium leading-relaxed">
-                다수결이 아닙니다. 모두의 상황을 고려해요.
-              </p>
-            </div>
-
-            <div className="mt-auto">
-              <Button
-                variant="primary"
-                size="lg"
-                fullWidth
-                loading={isCreating}
-                onClick={handleCreate}
-              >
-                {isCreating ? "모임 만드는 중…" : "모임 만들기 🎉"}
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* ── Step 3: Room Code Reveal ── */}
-        {step === 3 && roomCode && (
-          <div className="flex flex-col items-center flex-1 pt-8">
-            <div className="w-20 h-20 rounded-full bg-[#F0ECFF] flex items-center justify-center text-[40px] mb-6">
-              🎉
-            </div>
-
-            <h1 className="text-[26px] font-black text-[#1C1A17] tracking-tight text-center mb-2">
-              모임이 만들어졌어요!
-            </h1>
-            <p className="text-[14px] text-[#908D87] text-center mb-10">
-              아래 코드를 참가자들에게 공유해주세요
-            </p>
-
-            {/* Room code card */}
-            <div className="w-full bg-white rounded-2xl border border-[#E5E1D9] shadow-[0_4px_12px_rgba(28,26,23,0.08)] p-6 mb-4">
-              <p className="text-[11px] font-semibold text-[#C4C1BC] tracking-[2px] uppercase text-center mb-3">
-                모임 코드
-              </p>
-              <div className="flex items-center justify-center gap-3">
-                <span className="text-[40px] font-black text-[#1C1A17] tracking-[4px] font-mono">
-                  {roomCode}
-                </span>
-                <button
-                  onClick={handleCopy}
-                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#F0EDE7] hover:bg-[#E5E1D9] text-[#4A4740] transition-colors text-[18px]"
-                >
-                  {copied ? "✓" : "📋"}
-                </button>
-              </div>
-              {copied && (
-                <p className="text-[12px] text-[#27A644] text-center mt-2">
-                  클립보드에 복사됐어요!
+          {/* ── Step 1: Category ── */}
+          {step === 1 && (
+            <div className="flex flex-col flex-1" style={{ animation: "cinematic-up 0.5s ease-out both" }}>
+              <div className="mb-10">
+                <p className="text-[11px] font-bold text-[#7C5CFC] tracking-[3px] uppercase mb-4">
+                  Step 01
                 </p>
-              )}
-            </div>
+                <h1 className="text-[36px] lg:text-[48px] font-black text-[#1C1A17] leading-[1.0] tracking-[-1.5px] mb-3">
+                  어떤 만남인가요?
+                </h1>
+                <p className="text-[14px] lg:text-[15px] text-[#908D87] leading-relaxed">
+                  장소 카테고리를 선택해주세요
+                </p>
+              </div>
 
-            {/* Category + mode badge */}
-            <div className="flex items-center gap-2 mb-10">
-              <span className="text-[13px] text-[#908D87]">
-                {category === "restaurant" && "🍽 맛집"}
-                {category === "cafe" && "☕ 카페"}
-                {category === "bar" && "🍺 술집"}
-                {category === "brunch" && "🥂 브런치"}
-                {category === "dessert" && "🍰 디저트"}
-              </span>
-              <span className="text-[#D0CCC4]">·</span>
-              <span className="text-[13px] text-[#7C5CFC] font-medium">🔍 Sherlock 협력 조율</span>
-            </div>
+              <CategoryPicker value={category} onChange={setCategory} />
 
-            <div className="flex flex-col gap-3 w-full mt-auto">
-              <Button
-                variant="primary"
-                size="lg"
-                fullWidth
-                onClick={() => router.push(`/room/${roomCode}`)}
-              >
-                모임 입장하기
-              </Button>
-              <Button
-                variant="secondary"
-                size="md"
-                fullWidth
-                onClick={() => {
-                  if (navigator.share) {
-                    navigator.share({
-                      title: "MeetSpot 모임에 참가해요",
-                      text: `모임 코드: ${roomCode}`,
-                    });
-                  } else {
-                    handleCopy();
-                  }
-                }}
-              >
-                링크 공유하기
-              </Button>
+              <div className="mt-auto pt-10">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="h-px flex-1 bg-[#E5E1D9]" />
+                </div>
+                <Button
+                  variant="primary"
+                  size="lg"
+                  fullWidth
+                  disabled={!category}
+                  onClick={() => setStep(2)}
+                >
+                  다음
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="M6 3L11 8L6 13" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </Button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+
+          {/* ── Step 2: Sherlock intro ── */}
+          {step === 2 && (
+            <div
+              className="flex flex-col flex-1"
+              style={{ animation: "cinematic-up 0.5s ease-out both" }}
+            >
+              <div className="mb-10">
+                <p className="text-[11px] font-bold text-[#7C5CFC] tracking-[3px] uppercase mb-4">
+                  Step 02 · Sherlock Mode
+                </p>
+                <h1 className="text-[36px] lg:text-[48px] font-black text-[#1C1A17] leading-[1.0] tracking-[-1.5px] mb-4">
+                  Sherlock이
+                  <br />
+                  공정하게 조율해요
+                </h1>
+                <p className="text-[14px] lg:text-[15px] text-[#908D87] leading-[1.75]">
+                  참가자가 각자 선호를 입력하면,
+                  <br />
+                  Sherlock이 모두를 위한 장소를 찾아줘요
+                </p>
+              </div>
+
+              {/* How it works — editorial card list */}
+              <div className="space-y-3 mb-8">
+                {SHERLOCK_FEATURES.map((f, i) => (
+                  <div
+                    key={f.title}
+                    className="flex items-start gap-5 p-5 bg-white rounded-2xl border border-[#E5E1D9] hover:border-[#D0CCC4] transition-colors"
+                    style={{ animation: `fade-up 0.4s ease-out ${0.06 + i * 0.09}s both` }}
+                  >
+                    <span className="text-[24px] leading-none mt-0.5 shrink-0">{f.emoji}</span>
+                    <div>
+                      <p className="text-[14px] font-bold text-[#1C1A17] mb-1">{f.title}</p>
+                      <p className="text-[13px] text-[#908D87] leading-[1.6]">{f.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Trust note */}
+              <div
+                className="flex items-center gap-3 px-5 py-4 bg-[#F0ECFF] rounded-xl border border-[#7C5CFC]/20 mb-10"
+                style={{ animation: "fade-up 0.4s ease-out 0.33s both" }}
+              >
+                <span className="text-[16px] shrink-0">🤝</span>
+                <p className="text-[13px] text-[#7C5CFC] font-medium leading-[1.6]">
+                  다수결이 아닙니다. 모두의 상황을 고려해요.
+                </p>
+              </div>
+
+              <div className="mt-auto">
+                <div className="h-px bg-[#E5E1D9] mb-6" />
+                <Button
+                  variant="primary"
+                  size="lg"
+                  fullWidth
+                  loading={isCreating}
+                  onClick={handleCreate}
+                >
+                  {isCreating ? "모임 만드는 중…" : "모임 만들기"}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* ── Step 3: Room Code Reveal ── */}
+          {step === 3 && roomCode && (
+            <div
+              className="flex flex-col items-center flex-1 pt-4 lg:pt-8"
+              style={{ animation: "cinematic-up 0.6s ease-out both" }}
+            >
+              {/* Success icon */}
+              <div className="w-20 h-20 rounded-full bg-[#F0ECFF] flex items-center justify-center text-[40px] mb-8">
+                🎉
+              </div>
+
+              <h1 className="text-[32px] lg:text-[40px] font-black text-[#1C1A17] tracking-tight text-center mb-3">
+                모임이 만들어졌어요!
+              </h1>
+              <p className="text-[14px] lg:text-[15px] text-[#908D87] text-center mb-12 leading-relaxed">
+                아래 코드를 참가자들에게 공유해주세요
+              </p>
+
+              {/* Room code card — editorial */}
+              <div className="w-full bg-white rounded-2xl border border-[#E5E1D9] shadow-[0_4px_24px_rgba(28,26,23,0.08)] p-8 mb-5">
+                <p className="text-[11px] font-bold text-[#C4C1BC] tracking-[3px] uppercase text-center mb-5">
+                  모임 코드
+                </p>
+                <div className="flex items-center justify-center gap-4">
+                  <span className="text-[48px] lg:text-[56px] font-black text-[#1C1A17] tracking-[6px] font-mono">
+                    {roomCode}
+                  </span>
+                  <button
+                    onClick={handleCopy}
+                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-[#F0EDE7] hover:bg-[#E5E1D9] text-[#4A4740] transition-colors text-[18px]"
+                    aria-label="코드 복사"
+                  >
+                    {copied ? "✓" : "📋"}
+                  </button>
+                </div>
+                {copied && (
+                  <p className="text-[12px] text-[#27A644] text-center mt-3 font-medium">
+                    클립보드에 복사됐어요!
+                  </p>
+                )}
+              </div>
+
+              {/* Category + mode badges */}
+              <div className="flex items-center gap-3 mb-12">
+                <span className="text-[13px] text-[#908D87]">
+                  {category === "restaurant" && "🍽 맛집"}
+                  {category === "cafe" && "☕ 카페"}
+                  {category === "bar" && "🍺 술집"}
+                  {category === "brunch" && "🥂 브런치"}
+                  {category === "dessert" && "🍰 디저트"}
+                </span>
+                <div className="w-px h-3 bg-[#D0CCC4]" />
+                <span className="text-[13px] text-[#7C5CFC] font-semibold">
+                  🔍 Sherlock 협력 조율
+                </span>
+              </div>
+
+              <div className="h-px w-full bg-[#E5E1D9] mb-8" />
+
+              <div className="flex flex-col gap-3 w-full mt-auto">
+                <Button
+                  variant="primary"
+                  size="lg"
+                  fullWidth
+                  onClick={() => router.push(`/room/${roomCode}`)}
+                >
+                  모임 입장하기
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="md"
+                  fullWidth
+                  onClick={() => {
+                    if (navigator.share) {
+                      navigator.share({
+                        title: "MeetSpot 모임에 참가해요",
+                        text: `모임 코드: ${roomCode}`,
+                      });
+                    } else {
+                      handleCopy();
+                    }
+                  }}
+                >
+                  링크 공유하기
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );

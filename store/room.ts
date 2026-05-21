@@ -31,17 +31,16 @@ export const useRoomStore = create<RoomState & RoomActions>((set) => ({
   setRoom: (roomInfo) => set({ roomInfo }),
   setRoomStatus: (status) =>
     set((state) => ({
-      roomInfo: state.roomInfo 
-      ? { ...state.roomInfo, roomStatus: status } 
-      : null
+      roomInfo: state.roomInfo
+        ? { ...state.roomInfo, roomStatus: status }
+        : null,
     })),
 
-    /** 기존 roomInfo가 있을 때만 기존 데이터를 복사(...state.roomInfo)하고
+  /** 기존 roomInfo가 있을 때만 기존 데이터를 복사(...state.roomInfo)하고
      roomCategory만 쏙 바꾸도록 삼항 연산자 사용 **/
-    setRoomCategory: (roomCategory) => set((state) => ({
-      roomInfo: state.roomInfo
-      ? { ...state.roomInfo, roomCategory}
-      : null
+  setRoomCategory: (roomCategory) =>
+    set((state) => ({
+      roomInfo: state.roomInfo ? { ...state.roomInfo, roomCategory } : null,
     })),
   clearRoom: () => set(initialState),
 }));

@@ -16,8 +16,6 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: "cover",
 };
 
@@ -31,11 +29,9 @@ export default function RootLayout({
       <body>
         <Script
           src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_KEY}&libraries=services&autoload=false`}
-          strategy="beforeInteractive"
+          strategy="afterInteractive"
         />
-        <div className="mx-auto max-w-[430px] min-h-dvh relative">
-          {children}
-        </div>
+        {children}
       </body>
     </html>
   );
