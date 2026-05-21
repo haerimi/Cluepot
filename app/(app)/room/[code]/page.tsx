@@ -518,7 +518,7 @@ function SherlockAmbientSidebar({
 export default function RoomPage() {
   const params = useParams();
   const router = useRouter();
-  const roomCode = ((params?.code as string) ?? "").toUpperCase();
+  const roomCode = decodeURIComponent((params?.code as string) ?? "").toUpperCase();
 
   /* ── Local form state ── */
   const [myLocation,   setMyLocation]   = useState("");
@@ -712,7 +712,7 @@ export default function RoomPage() {
           ) : (
             /* ── Participant preferences (before results) ── */
             <div className="px-6 lg:px-10 py-8 lg:py-10">
-              <div className="max-w-xl lg:max-w-none">
+              <div className="w-full max-w-xl lg:max-w-2xl mx-auto">
 
                 {/* Participants */}
                 <div className="mb-8">

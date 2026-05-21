@@ -47,7 +47,7 @@ export function AppSidebar() {
 
   /* Extract room code from path if we're inside /room/[code] */
   const roomCodeMatch = pathname.match(/^\/room\/([^/]+)/i);
-  const currentRoomCode = roomCodeMatch?.[1]?.toUpperCase() ?? null;
+  const currentRoomCode = roomCodeMatch?.[1] ? decodeURIComponent(roomCodeMatch[1]).toUpperCase() : null;
 
   const phase: SessionPhase = scheduleInfo
     ? "confirmed"

@@ -31,31 +31,18 @@ export default function JoinRoomPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-[#F4F2EE] flex flex-col">
+    <div className="min-h-dvh bg-[#F4F2EE] flex flex-col lg:justify-center lg:items-center">
       {/* Header */}
-      <header className="flex items-center gap-3 px-5 pt-safe pt-4 pb-3">
-        <Link href="/">
-          <button className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-[#E5E1D9] text-[#4A4740] hover:bg-[#F0EDE7] transition-colors">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path
-                d="M10 3L5 8L10 13"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-        </Link>
+      <header className="flex items-center gap-3 px-5 pt-safe pt-4 pb-3 w-full max-w-[480px] lg:px-0 lg:mb-4">
         <Link href="/" className="text-[20px] font-black text-[#1C1A17] tracking-tight">
           Meet<span className="text-[#7C5CFC]">Spot</span>
         </Link>
       </header>
 
-      <main className="flex-1 px-5 pt-10 pb-8 flex flex-col">
+      <main className="flex-1 w-full max-w-[480px] px-5 pt-10 pb-8 flex flex-col lg:flex-none lg:bg-white lg:rounded-3xl lg:border lg:border-[#E5E1D9] lg:shadow-[0_12px_40px_rgba(28,26,23,0.04)] lg:p-10">
         {/* Headline */}
-        <div className="mb-10">
-          <h1 className="text-[28px] font-black text-[#1C1A17] leading-tight tracking-[-0.8px] mb-2">
+        <div className="mb-8">
+          <h1 className="text-[26px] font-black text-[#1C1A17] leading-tight tracking-[-0.8px] mb-2">
             모임에 참가하기
           </h1>
           <p className="text-[14px] text-[#908D87]">
@@ -63,11 +50,11 @@ export default function JoinRoomPage() {
           </p>
         </div>
 
-        {/* Code input card */}
-        <div className="bg-white rounded-2xl border border-[#E5E1D9] shadow-[0_4px_12px_rgba(28,26,23,0.08)] p-6 mb-4">
+        {/* Code input card — 💡 데스크톱에서는 부모가 이미 카드가 되므로 내부 테두리와 패딩을 조절합니다 */}
+        <div className="bg-white rounded-2xl border border-[#E5E1D9] shadow-[0_4px_12px_rgba(28,26,23,0.04)] p-6 mb-4 lg:border-none lg:shadow-none lg:p-0">
           <label
             htmlFor="room-code"
-            className="block text-[12px] font-semibold text-[#908D87] tracking-[1px] uppercase mb-3"
+            className="block text-[11px] font-bold text-[#908D87] tracking-[1.5px] uppercase mb-3"
           >
             모임 코드
           </label>
@@ -109,7 +96,7 @@ export default function JoinRoomPage() {
         </div>
 
         {/* Hint */}
-        <div className="flex items-center gap-2 px-1 mb-10">
+        <div className="flex items-center gap-2 px-1 mb-8">
           <span className="text-[13px]">💡</span>
           <p className="text-[12px] text-[#C4C1BC]">
             코드는 대소문자 구분 없이 입력할 수 있어요
@@ -117,7 +104,7 @@ export default function JoinRoomPage() {
         </div>
 
         {/* Actions */}
-        <div className="mt-auto flex flex-col gap-3">
+        <div className="mt-auto lg:mt-0 flex flex-col gap-4">
           <Button
             variant="primary"
             size="lg"
