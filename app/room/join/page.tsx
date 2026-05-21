@@ -47,9 +47,9 @@ export default function JoinRoomPage() {
             </svg>
           </button>
         </Link>
-        <span className="text-[20px] font-black text-[#1C1A17] tracking-tight">
+        <Link href="/" className="text-[20px] font-black text-[#1C1A17] tracking-tight">
           Meet<span className="text-[#7C5CFC]">Spot</span>
-        </span>
+        </Link>
       </header>
 
       <main className="flex-1 px-5 pt-10 pb-8 flex flex-col">

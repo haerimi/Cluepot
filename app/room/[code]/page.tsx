@@ -1,9 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Transport, DistanceTolerance, AtmospherePreference } from "@/types/participant";
+import {
+  Transport,
+  DistanceTolerance,
+  AtmospherePreference,
+} from "@/types/participant";
 import { Category } from "@/types/room";
 import { Button } from "@/app/components/ui/Button";
 import { Badge } from "@/app/components/ui/Badge";
@@ -11,6 +15,8 @@ import { ParticipantCard } from "@/app/components/ParticipantCard";
 import { TransportPicker } from "@/app/components/TransportPicker";
 import { RecommendedPlace } from "@/types/recommendation";
 import { SherlockPanel } from "@/app/components/SherlockPanel";
+import { useMapStore } from "@/store/map";
+import { useScheduleStore } from "@/store/schedule";
 
 /* ── Mock data ── */
 interface MockParticipant {
@@ -157,8 +163,6 @@ const ATMOSPHERE_OPTIONS: AtmosphereOption[] = [
   { value: "trendy", label: "트렌디한", emoji: "✨" },
 ];
 
-type RoomView = "waiting" | "done";
-
 /* ── Schedule Confirmed View ── */
 function ScheduleView({
   placeName,
@@ -172,74 +176,86 @@ function ScheduleView({
   onReset: () => void;
 }) {
   return (
-    <div className="flex flex-col items-center px-5 pt-12 pb-8 flex-1">
-      <div className="w-20 h-20 rounded-full bg-[#E8F5EC] flex items-center justify-center text-[40px] mb-6">
-        ✅
-      </div>
-      <h2 className="text-[24px] font-black text-[#1C1A17] tracking-tight text-center mb-2">
-        모임 장소가 확정됐어요!
-      </h2>
-      <p className="text-[14px] text-[#908D87] text-center mb-10">
-        참가자들에게 장소를 공유해드릴게요
-      </p>
-
-      {/* Confirmed place card */}
-      <div className="w-full bg-white rounded-2xl border border-[#E5E1D9] shadow-[0_4px_12px_rgba(28,26,23,0.08)] p-5 mb-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Badge variant="success" dot>확정</Badge>
-          <Badge variant="muted">모임 {roomCode}</Badge>
+    <div className="w-full flex-1">
+      <div className="mx-auto flex min-h-[calc(100dvh-56px)] max-w-[576px] flex-col px-6 py-12">
+        <div className="flex justify-center mb-8">
+          <div className="w-20 h-20 rounded-full bg-[#E8F5EC] flex items-center justify-center text-[40px]">
+            ✅
+          </div>
         </div>
-        <h3 className="text-[20px] font-black text-[#1C1A17] tracking-tight mb-1">
-          {placeName}
-        </h3>
-        <p className="text-[13px] text-[#908D87] mb-4">{placeAddress}</p>
-
-        <div className="flex gap-2">
-          <button className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl bg-[#F0EDE7] text-[#4A4740] text-[13px] font-semibold hover:bg-[#E5E1D9] transition-colors">
-            🗺 지도 보기
-          </button>
-          <button className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl bg-[#F0EDE7] text-[#4A4740] text-[13px] font-semibold hover:bg-[#E5E1D9] transition-colors">
-            📋 복사
-          </button>
-        </div>
-      </div>
-
-      {/* Participants confirmed */}
-      <div className="w-full mb-10">
-        <p className="text-[12px] font-semibold text-[#908D87] tracking-widest uppercase mb-3">
-          참가자 확인
+        <h2 className="text-[28px] lg:text-[36px] font-black text-[#1C1A17] tracking-tight text-center mb-3">
+          모임 장소가 확정됐어요!
+        </h2>
+        <p className="text-[14px] text-[#908D87] text-center mb-12 leading-relaxed">
+          참가자들에게 장소를 공유해드릴게요
         </p>
-        <div className="flex gap-2 flex-wrap">
-          {MOCK_PARTICIPANTS.map((p) => (
-            <div
-              key={p.id}
-              className="flex items-center gap-2 bg-white border border-[#E5E1D9] rounded-full px-3 py-1.5"
-            >
-              <div
-                className={[
-                  "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold",
-                  p.isMe ? "bg-[#7C5CFC] text-white" : "bg-[#F0EDE7] text-[#4A4740]",
-                ].join(" ")}
-              >
-                {p.nickname.charAt(0)}
-              </div>
-              <span className="text-[12px] font-medium text-[#1C1A17]">
-                {p.nickname}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
 
-      <div className="mt-auto flex flex-col gap-3 w-full">
-        <Link href="/">
-          <Button variant="primary" size="lg" fullWidth>
-            홈으로 돌아가기
+        {/* Confirmed place card */}
+        <div className="bg-white rounded-2xl border border-[#E5E1D9] shadow-[0_4px_24px_rgba(28,26,23,0.08)] p-6 mb-6">
+          <div className="flex items-center gap-2 mb-5">
+            <Badge variant="success" dot>
+              확정
+            </Badge>
+            <Badge variant="muted">모임 {roomCode}</Badge>
+          </div>
+          <h3 className="text-[22px] font-black text-[#1C1A17] tracking-tight mb-1">
+            {placeName}
+          </h3>
+          <p className="text-[13px] text-[#908D87] mb-5">{placeAddress}</p>
+
+          <div className="h-px bg-[#F0EDE7] mb-5" />
+
+          <div className="flex gap-2">
+            <button className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl bg-[#F0EDE7] text-[#4A4740] text-[13px] font-semibold hover:bg-[#E5E1D9] transition-colors">
+              🗺 지도 보기
+            </button>
+            <button className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl bg-[#F0EDE7] text-[#4A4740] text-[13px] font-semibold hover:bg-[#E5E1D9] transition-colors">
+              📋 복사
+            </button>
+          </div>
+        </div>
+
+        {/* Participants confirmed */}
+        <div className="w-full mb-12">
+          <p className="text-[11px] font-bold text-[#908D87] tracking-[2px] uppercase mb-4">
+            참가자 확인
+          </p>
+          <div className="flex gap-2 flex-wrap">
+            {MOCK_PARTICIPANTS.map((p) => (
+              <div
+                key={p.id}
+                className="flex items-center gap-2 bg-white border border-[#E5E1D9] rounded-full px-3 py-1.5"
+              >
+                <div
+                  className={[
+                    "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold",
+                    p.isMe
+                      ? "bg-[#7C5CFC] text-white"
+                      : "bg-[#F0EDE7] text-[#4A4740]",
+                  ].join(" ")}
+                >
+                  {p.nickname.charAt(0)}
+                </div>
+                <span className="text-[12px] font-medium text-[#1C1A17]">
+                  {p.nickname}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="h-px w-full bg-[#E5E1D9] mb-8" />
+
+        <div className="flex flex-col gap-3 w-full mt-auto">
+          <Link href="/">
+            <Button variant="primary" size="lg" fullWidth>
+              홈으로 돌아가기
+            </Button>
+          </Link>
+          <Button variant="ghost" size="md" fullWidth onClick={onReset}>
+            새 모임 만들기
           </Button>
-        </Link>
-        <Button variant="ghost" size="md" fullWidth onClick={onReset}>
-          새 모임 만들기
-        </Button>
+        </div>
       </div>
     </div>
   );
@@ -249,28 +265,47 @@ function ScheduleView({
 export default function RoomPage() {
   const params = useParams();
   const router = useRouter();
-  const roomCode = (params?.code as string ?? "").toUpperCase();
+  const roomCode = ((params?.code as string) ?? "").toUpperCase();
 
   const [myLocation, setMyLocation] = useState("");
   const [myTransports, setMyTransports] = useState<Transport[]>([]);
   const [myDistance, setMyDistance] = useState<DistanceTolerance | null>(null);
-  const [myAtmosphere, setMyAtmosphere] = useState<AtmospherePreference | null>(null);
+  const [myAtmosphere, setMyAtmosphere] = useState<AtmospherePreference | null>(
+    null,
+  );
   const [locationSaved, setLocationSaved] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
 
   const [sherlockOpen, setSherlockOpen] = useState(false);
   const [sherlockLoading, setSherlockLoading] = useState(false);
-  const [sherlockPlaces, setSherlockPlaces] = useState<RecommendedPlace[]>([]);
-  const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
 
-  const [view, setView] = useState<RoomView>("waiting");
-  const [confirmedPlace, setConfirmedPlace] = useState<RecommendedPlace | null>(null);
+  const sherlockPlaces = useMapStore((s) => s.recommendedPlaces);
+  const selectedPlace = useMapStore((s) => s.selectedPlace);
+  const setSelectPlace = useMapStore((s) => s.selectPlace);
+  const setPlace = useMapStore((s) => s.setPlaces);
+  const clearMap = useMapStore((s) => s.clearMap);
+
+  const isDone = useScheduleStore(
+    (s) => s.scheduleInfo !== null && s.scheduleInfo.roomCode === roomCode,
+  );
   const [copied, setCopied] = useState(false);
+  const scheduleInfo = useScheduleStore((s) => s.scheduleInfo);
+  const setSchedule = useScheduleStore((s) => s.setSchedule);
+  const clearSchedule = useScheduleStore((s) => s.clearSchedule);
+
+  useEffect(() => {
+    return () => {
+      clearSchedule();
+      clearMap();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const readyCount = locationSaved ? 3 : 2;
   const totalCount = MOCK_PARTICIPANTS.length;
   const allReady = readyCount === totalCount;
-  const isCurrentUserHost = MOCK_PARTICIPANTS.find((p) => p.isMe)?.isHost ?? false;
+  const isCurrentUserHost =
+    MOCK_PARTICIPANTS.find((p) => p.isMe)?.isHost ?? false;
 
   function handleSaveLocation() {
     if (!myLocation.trim()) {
@@ -296,23 +331,30 @@ export default function RoomPage() {
   async function handleRunSherlock() {
     setSherlockOpen(true);
     setSherlockLoading(true);
-    setSherlockPlaces([]);
-    setSelectedPlaceId(null);
+    clearMap();
     await new Promise((r) => setTimeout(r, 3500));
-    setSherlockPlaces(MOCK_PLACES);
+    setPlace(MOCK_PLACES);
     setSherlockLoading(false);
   }
 
   function handleSelectPlace(place: RecommendedPlace) {
-    setSelectedPlaceId(place.placeId);
+    setSelectPlace(place);
   }
 
   function handleConfirmPlace() {
-    const place = sherlockPlaces.find((p) => p.placeId === selectedPlaceId);
-    if (!place) return;
-    setConfirmedPlace(place);
+    if (!selectedPlace.placeId) return;
+    setSchedule({
+      scheduleId: crypto.randomUUID(),
+      roomCode,
+      placeName: selectedPlace.placeName,
+      placeAddress: selectedPlace.placeAddress,
+      lat: selectedPlace.lat,
+      lng: selectedPlace.lng,
+      title: selectedPlace.placeName,
+      scheduledAt: "",
+      memo: "",
+    });
     setSherlockOpen(false);
-    setView("done");
   }
 
   function handleCopyCode() {
@@ -321,262 +363,447 @@ export default function RoomPage() {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  if (view === "done" && confirmedPlace) {
+  if (isDone && scheduleInfo) {
     return (
       <div className="min-h-dvh bg-[#F4F2EE] flex flex-col">
-        <header className="flex items-center justify-between px-5 pt-safe pt-4 pb-3">
-          <span className="text-[20px] font-black text-[#1C1A17] tracking-tight">
+        <header className="flex items-center justify-between px-6 lg:px-16 h-14 border-b border-[#E5E1D9] shrink-0">
+          <Link
+            href="/"
+            className="text-[18px] font-black text-[#1C1A17] tracking-tight"
+          >
             Meet<span className="text-[#7C5CFC]">Spot</span>
-          </span>
-          <Badge variant="success" dot>확정됨</Badge>
+          </Link>
+          <Badge variant="success" dot>
+            확정됨
+          </Badge>
         </header>
-        <ScheduleView
-          placeName={confirmedPlace.placeName}
-          placeAddress={confirmedPlace.placeAddress}
-          roomCode={roomCode}
-          onReset={() => router.push("/room/create")}
-        />
+        <div className="flex-1 overflow-y-auto">
+          <ScheduleView
+            placeName={scheduleInfo.placeName}
+            placeAddress={scheduleInfo.placeAddress}
+            roomCode={roomCode}
+            onReset={() => router.push("/room/create")}
+          />
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-dvh bg-[#F4F2EE] flex flex-col">
-      {/* Header */}
-      <header className="flex items-center justify-between px-5 pt-safe pt-4 pb-3">
-        <div>
-          <Link href="/" className="text-[20px] font-black text-[#1C1A17] tracking-tight">
+      {/* ── Editorial header ── */}
+      <header className="flex items-center justify-between px-6 lg:px-16 h-14 border-b border-[#E5E1D9] shrink-0">
+        <div className="flex items-center gap-4">
+          <Link
+            href="/"
+            className="text-[18px] font-black text-[#1C1A17] tracking-tight"
+          >
             Meet<span className="text-[#7C5CFC]">Spot</span>
           </Link>
+          <div className="hidden sm:block w-px h-4 bg-[#E5E1D9]" />
+          <span className="hidden sm:block text-[12px] font-medium text-[#908D87]">
+            모임 대기실
+          </span>
         </div>
-        <button
-          onClick={handleCopyCode}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#E5E1D9] rounded-full text-[13px] font-semibold text-[#4A4740] hover:border-[#D0CCC4] hover:bg-[#F0EDE7] transition-colors"
-        >
-          <span className="font-mono tracking-wider text-[#1C1A17]">{roomCode}</span>
-          <span className="text-[#908D87]">{copied ? "✓" : "📋"}</span>
-        </button>
-      </header>
-
-      <main className="flex-1 px-5 pb-32 overflow-y-auto">
-        {/* Status row */}
-        <div className="flex items-center gap-2 mb-6">
+        <div className="flex items-center gap-3">
           <Badge variant={allReady ? "success" : "warning"} dot>
             {allReady ? "모두 준비됨" : "대기 중"}
           </Badge>
-          <span className="text-[13px] text-[#908D87]">
-            {readyCount}/{totalCount}명 정보 입력 완료
-          </span>
+          <button
+            onClick={handleCopyCode}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#E5E1D9] rounded-full text-[13px] font-semibold text-[#4A4740] hover:border-[#D0CCC4] hover:bg-[#F0EDE7] transition-colors"
+          >
+            <span className="font-mono tracking-wider text-[#1C1A17]">
+              {roomCode}
+            </span>
+            <span className="text-[#908D87]">{copied ? "✓" : "📋"}</span>
+          </button>
         </div>
+      </header>
 
-        {/* Section: Participants */}
-        <div className="mb-6">
-          <p className="text-[12px] font-semibold text-[#908D87] tracking-widest uppercase mb-3">
-            참가자
-          </p>
-          <div className="space-y-2">
-            {MOCK_PARTICIPANTS.map((p, idx) => (
-              <ParticipantCard
-                key={p.id}
-                nickname={p.nickname}
-                isHost={p.isHost}
-                abstractLocation={
-                  p.isMe
-                    ? (locationSaved ? myLocation : undefined)
-                    : (p.abstractLocation ?? undefined)
-                }
-                transports={
-                  p.isMe ? (locationSaved ? myTransports : []) : p.transports
-                }
-                isReady={p.isMe ? locationSaved : p.abstractLocation !== null}
-                isMe={p.isMe}
-                animationDelay={`${idx * 0.06}s`}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Section: My preference input */}
-        {!locationSaved && (
-          <div className="bg-white rounded-2xl border border-[#E5E1D9] shadow-[0_4px_12px_rgba(28,26,23,0.08)] p-5 mb-6">
-            <div className="flex items-center gap-2 mb-5">
-              <span className="text-[18px]">📍</span>
-              <h3 className="text-[15px] font-bold text-[#1C1A17]">
-                내 정보 알려주기
-              </h3>
-            </div>
-
-            {/* Location input */}
-            <div className="mb-5">
-              <label className="block text-[11px] font-semibold text-[#908D87] tracking-widest uppercase mb-2">
-                출발 지역
-              </label>
-              <input
-                type="text"
-                value={myLocation}
-                onChange={(e) => {
-                  setMyLocation(e.target.value);
-                  setLocationError(null);
-                }}
-                placeholder="예: 강남구, 홍대, 잠실"
-                className={[
-                  "w-full h-12 px-4 rounded-xl border text-[15px]",
-                  "placeholder:text-[#D0CCC4]",
-                  "outline-none transition-all duration-150",
-                  "focus:ring-2 focus:ring-[#7C5CFC] focus:ring-offset-0 focus:border-[#7C5CFC]",
-                  locationError
-                    ? "border-[#DC2626] bg-[#FEF2F2]"
-                    : "border-[#E5E1D9] bg-[#F4F2EE] focus:bg-white",
-                ].join(" ")}
-              />
-            </div>
-
-            {/* Transport — multi-select */}
-            <div className="mb-5">
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-[11px] font-semibold text-[#908D87] tracking-widest uppercase">
-                  이동 가능한 교통수단
-                </label>
-                <span className="text-[10px] text-[#C4C1BC]">여러 개 선택 가능</span>
+      {/* ── 2-column desktop layout ── */}
+      <div className="flex-1 flex flex-col lg:grid lg:grid-cols-[1fr_400px]">
+        {/* ── Left: main content ── */}
+        <main className="flex-1 px-6 lg:px-12 py-8 lg:py-10 lg:border-r lg:border-[#E5E1D9] pb-36 lg:pb-10 overflow-y-auto">
+          <div className="max-w-xl lg:max-w-none">
+            {/* Section: Participants */}
+            <div className="mb-8">
+              <div className="flex items-center gap-3 mb-5">
+                <p className="text-[11px] font-bold text-[#908D87] tracking-[2px] uppercase">
+                  참가자
+                </p>
+                <span className="text-[11px] font-medium text-[#908D87]">
+                  {readyCount}/{totalCount}명 준비 완료
+                </span>
               </div>
-              <TransportPicker value={myTransports} onChange={setMyTransports} />
-            </div>
-
-            {/* Distance tolerance */}
-            <div className="mb-5">
-              <label className="block text-[11px] font-semibold text-[#908D87] tracking-widest uppercase mb-2">
-                이동 거리 선호
-              </label>
-              <div className="flex gap-2">
-                {DISTANCE_OPTIONS.map((opt) => {
-                  const isSelected = myDistance === opt.value;
-                  return (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => {
-                        setMyDistance(opt.value);
-                        setLocationError(null);
-                      }}
-                      className={[
-                        "flex flex-col items-center gap-1 flex-1 py-3 rounded-[10px] border text-center transition-all duration-150",
-                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C5CFC] focus-visible:ring-offset-1",
-                        isSelected
-                          ? "bg-[#F0ECFF] border-[#7C5CFC] shadow-[0_0_0_1px_#7C5CFC]"
-                          : "bg-[#F4F2EE] border-[#E5E1D9] hover:border-[#D0CCC4] hover:bg-[#FAF9F6]",
-                      ].join(" ")}
-                    >
-                      <span className="text-xl leading-none">{opt.emoji}</span>
-                      <span
-                        className={[
-                          "text-[11px] font-semibold leading-tight mt-0.5",
-                          isSelected ? "text-[#7C5CFC]" : "text-[#4A4740]",
-                        ].join(" ")}
-                      >
-                        {opt.label}
-                      </span>
-                      <span className="text-[10px] text-[#908D87] leading-none">{opt.desc}</span>
-                    </button>
-                  );
-                })}
+              <div className="space-y-2">
+                {MOCK_PARTICIPANTS.map((p, idx) => (
+                  <ParticipantCard
+                    key={p.id}
+                    nickname={p.nickname}
+                    isHost={p.isHost}
+                    abstractLocation={
+                      p.isMe
+                        ? locationSaved
+                          ? myLocation
+                          : undefined
+                        : (p.abstractLocation ?? undefined)
+                    }
+                    transports={
+                      p.isMe
+                        ? locationSaved
+                          ? myTransports
+                          : []
+                        : p.transports
+                    }
+                    isReady={
+                      p.isMe ? locationSaved : p.abstractLocation !== null
+                    }
+                    isMe={p.isMe}
+                    animationDelay={`${idx * 0.06}s`}
+                  />
+                ))}
               </div>
             </div>
 
-            {/* Atmosphere preference */}
-            <div className="mb-5">
-              <label className="block text-[11px] font-semibold text-[#908D87] tracking-widest uppercase mb-2">
-                선호 분위기
-              </label>
-              <div className="flex gap-2">
-                {ATMOSPHERE_OPTIONS.map((opt) => {
-                  const isSelected = myAtmosphere === opt.value;
-                  return (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => {
-                        setMyAtmosphere(opt.value);
-                        setLocationError(null);
-                      }}
-                      className={[
-                        "flex flex-col items-center gap-1 flex-1 py-3 rounded-[10px] border text-center transition-all duration-150",
-                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C5CFC] focus-visible:ring-offset-1",
-                        isSelected
-                          ? "bg-[#F0ECFF] border-[#7C5CFC] shadow-[0_0_0_1px_#7C5CFC]"
-                          : "bg-[#F4F2EE] border-[#E5E1D9] hover:border-[#D0CCC4] hover:bg-[#FAF9F6]",
-                      ].join(" ")}
-                    >
-                      <span className="text-xl leading-none">{opt.emoji}</span>
-                      <span
-                        className={[
-                          "text-[11px] font-semibold leading-tight mt-0.5",
-                          isSelected ? "text-[#7C5CFC]" : "text-[#4A4740]",
-                        ].join(" ")}
-                      >
-                        {opt.label}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+            {/* Thin divider */}
+            <div className="h-px bg-[#E5E1D9] mb-8" />
 
-            {locationError && (
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-[#DC2626] text-[13px]">⚠️</span>
-                <p className="text-[12px] text-[#DC2626]">{locationError}</p>
+            {/* Section: My preference input */}
+            {!locationSaved && (
+              <div
+                className="mb-6"
+                style={{ animation: "fade-up 0.4s ease-out both" }}
+              >
+                <div className="flex items-center gap-2 mb-6">
+                  <span className="text-[11px] font-bold text-[#908D87] tracking-[2px] uppercase">
+                    내 정보 알려주기
+                  </span>
+                </div>
+
+                {/* Location input */}
+                <div className="mb-6">
+                  <label className="block text-[11px] font-bold text-[#908D87] tracking-[2px] uppercase mb-3">
+                    출발 지역
+                  </label>
+                  <input
+                    type="text"
+                    value={myLocation}
+                    onChange={(e) => {
+                      setMyLocation(e.target.value);
+                      setLocationError(null);
+                    }}
+                    placeholder="예: 강남구, 홍대, 잠실"
+                    className={[
+                      "w-full h-12 px-4 rounded-xl border text-[15px]",
+                      "placeholder:text-[#D0CCC4]",
+                      "outline-none transition-all duration-150",
+                      "focus:ring-2 focus:ring-[#7C5CFC] focus:ring-offset-0 focus:border-[#7C5CFC]",
+                      locationError
+                        ? "border-[#DC2626] bg-[#FEF2F2]"
+                        : "border-[#E5E1D9] bg-[#F4F2EE] focus:bg-white",
+                    ].join(" ")}
+                  />
+                </div>
+
+                {/* Transport — multi-select */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-[11px] font-bold text-[#908D87] tracking-[2px] uppercase">
+                      이동 가능한 교통수단
+                    </label>
+                    <span className="text-[10px] text-[#C4C1BC]">
+                      여러 개 선택 가능
+                    </span>
+                  </div>
+                  <TransportPicker
+                    value={myTransports}
+                    onChange={setMyTransports}
+                  />
+                </div>
+
+                {/* Distance tolerance */}
+                <div className="mb-6">
+                  <label className="block text-[11px] font-bold text-[#908D87] tracking-[2px] uppercase mb-3">
+                    이동 거리 선호
+                  </label>
+                  <div className="flex gap-2">
+                    {DISTANCE_OPTIONS.map((opt) => {
+                      const isSelected = myDistance === opt.value;
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => {
+                            setMyDistance(opt.value);
+                            setLocationError(null);
+                          }}
+                          className={[
+                            "flex flex-col items-center gap-1 flex-1 py-3 rounded-[10px] border text-center transition-all duration-150",
+                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C5CFC] focus-visible:ring-offset-1",
+                            isSelected
+                              ? "bg-[#F0ECFF] border-[#7C5CFC] shadow-[0_0_0_1px_#7C5CFC]"
+                              : "bg-[#F4F2EE] border-[#E5E1D9] hover:border-[#D0CCC4] hover:bg-[#FAF9F6]",
+                          ].join(" ")}
+                        >
+                          <span className="text-xl leading-none">
+                            {opt.emoji}
+                          </span>
+                          <span
+                            className={[
+                              "text-[11px] font-semibold leading-tight mt-0.5",
+                              isSelected ? "text-[#7C5CFC]" : "text-[#4A4740]",
+                            ].join(" ")}
+                          >
+                            {opt.label}
+                          </span>
+                          <span className="text-[10px] text-[#908D87] leading-none">
+                            {opt.desc}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Atmosphere preference */}
+                <div className="mb-6">
+                  <label className="block text-[11px] font-bold text-[#908D87] tracking-[2px] uppercase mb-3">
+                    선호 분위기
+                  </label>
+                  <div className="flex gap-2">
+                    {ATMOSPHERE_OPTIONS.map((opt) => {
+                      const isSelected = myAtmosphere === opt.value;
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => {
+                            setMyAtmosphere(opt.value);
+                            setLocationError(null);
+                          }}
+                          className={[
+                            "flex flex-col items-center gap-1 flex-1 py-3 rounded-[10px] border text-center transition-all duration-150",
+                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C5CFC] focus-visible:ring-offset-1",
+                            isSelected
+                              ? "bg-[#F0ECFF] border-[#7C5CFC] shadow-[0_0_0_1px_#7C5CFC]"
+                              : "bg-[#F4F2EE] border-[#E5E1D9] hover:border-[#D0CCC4] hover:bg-[#FAF9F6]",
+                          ].join(" ")}
+                        >
+                          <span className="text-xl leading-none">
+                            {opt.emoji}
+                          </span>
+                          <span
+                            className={[
+                              "text-[11px] font-semibold leading-tight mt-0.5",
+                              isSelected ? "text-[#7C5CFC]" : "text-[#4A4740]",
+                            ].join(" ")}
+                          >
+                            {opt.label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {locationError && (
+                  <div className="flex items-center gap-2 mb-5">
+                    <span className="text-[#DC2626] text-[13px]">⚠️</span>
+                    <p className="text-[12px] text-[#DC2626]">
+                      {locationError}
+                    </p>
+                  </div>
+                )}
+
+                <Button
+                  variant="secondary"
+                  size="md"
+                  fullWidth
+                  onClick={handleSaveLocation}
+                >
+                  선호 저장하기
+                </Button>
               </div>
             )}
 
-            <Button
-              variant="secondary"
-              size="md"
-              fullWidth
-              onClick={handleSaveLocation}
-            >
-              선호 저장하기
-            </Button>
-          </div>
-        )}
+            {/* Location saved confirmation */}
+            {locationSaved && (
+              <div
+                className="flex items-center gap-3 p-4 bg-[#E8F5EC] rounded-xl border border-[#27A644]/20 mb-6"
+                style={{ animation: "fade-up 0.3s ease-out both" }}
+              >
+                <span className="text-[20px]">✅</span>
+                <div>
+                  <p className="text-[14px] font-semibold text-[#1A7A35]">
+                    선호가 저장됐어요!
+                  </p>
+                  <p className="text-[12px] text-[#27A644]">
+                    모든 참가자가 준비되면 Sherlock을 실행해요
+                  </p>
+                </div>
+              </div>
+            )}
 
-        {/* Location saved confirmation */}
-        {locationSaved && (
-          <div className="flex items-center gap-3 p-4 bg-[#E8F5EC] rounded-xl border border-[#27A644]/20 mb-6">
-            <span className="text-[20px]">✅</span>
-            <div>
-              <p className="text-[14px] font-semibold text-[#1A7A35]">
-                선호가 저장됐어요!
-              </p>
-              <p className="text-[12px] text-[#27A644]">
-                모든 참가자가 준비되면 Sherlock을 실행해요
-              </p>
+            {/* Waiting hint */}
+            {!allReady && (
+              <div className="flex items-center gap-3 p-4 bg-white rounded-xl border border-[#E5E1D9]">
+                <span className="text-[20px]">⏳</span>
+                <div>
+                  <p className="text-[13px] font-semibold text-[#4A4740]">
+                    참가자 대기 중
+                  </p>
+                  <p className="text-[12px] text-[#908D87]">
+                    이영희님이 정보를 입력하면 Sherlock을 실행할 수 있어요
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </main>
+
+        {/* ── Right: coordination sidebar (desktop only) ── */}
+        <aside className="hidden lg:flex flex-col px-8 py-10 bg-[#FAF9F6] border-t-0 sticky top-0 h-screen overflow-y-auto">
+          {/* Sidebar header */}
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-[20px]">🔍</span>
+              <h2 className="text-[16px] font-black text-[#1C1A17] tracking-tight">
+                Sherlock 조율
+              </h2>
+            </div>
+            <p className="text-[12px] text-[#908D87] leading-relaxed">
+              모든 참가자가 준비되면 AI가 공정한 장소를 찾아드려요
+            </p>
+          </div>
+
+          {/* Thin divider */}
+          <div className="h-px bg-[#E5E1D9] mb-8" />
+
+          {/* Status breakdown */}
+          <div className="space-y-3 mb-8">
+            {MOCK_PARTICIPANTS.map((p) => {
+              const isReady = p.isMe
+                ? locationSaved
+                : p.abstractLocation !== null;
+              return (
+                <div key={p.id} className="flex items-center gap-3">
+                  <div
+                    className={[
+                      "w-2 h-2 rounded-full shrink-0",
+                      isReady ? "bg-[#27A644]" : "bg-[#D0CCC4]",
+                    ].join(" ")}
+                  />
+                  <span className="text-[13px] text-[#4A4740] font-medium">
+                    {p.nickname}
+                  </span>
+                  {p.isHost && (
+                    <span className="text-[10px] font-bold text-[#7C5CFC] bg-[#F0ECFF] px-2 py-0.5 rounded-full">
+                      호스트
+                    </span>
+                  )}
+                  <span className="ml-auto text-[11px] text-[#908D87]">
+                    {isReady ? "준비 완료" : "대기 중"}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Progress indicator */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-bold text-[#908D87] tracking-wide uppercase">
+                준비 현황
+              </span>
+              <span className="text-[12px] font-semibold text-[#1C1A17]">
+                {readyCount}/{totalCount}
+              </span>
+            </div>
+            <div className="h-1.5 rounded-full bg-[#E5E1D9] overflow-hidden">
+              <div
+                className="h-full rounded-full bg-[#7C5CFC] transition-all duration-700"
+                style={{ width: `${(readyCount / totalCount) * 100}%` }}
+              />
             </div>
           </div>
-        )}
 
-        {/* Waiting hint */}
-        {!allReady && (
-          <div className="flex items-center gap-3 p-4 bg-white rounded-xl border border-[#E5E1D9] mb-4">
-            <span className="text-[20px]">⏳</span>
-            <div>
-              <p className="text-[13px] font-semibold text-[#4A4740]">
-                참가자 대기 중
-              </p>
-              <p className="text-[12px] text-[#908D87]">
-                이영희님이 정보를 입력하면 Sherlock을 실행할 수 있어요
-              </p>
-            </div>
+          <div className="mt-auto">
+            {isCurrentUserHost ? (
+              <>
+                <div
+                  className="rounded-[10px] overflow-hidden"
+                  style={
+                    allReady
+                      ? { animation: "cta-glow 2.4s ease-in-out infinite" }
+                      : undefined
+                  }
+                >
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    fullWidth
+                    disabled={!allReady}
+                    onClick={handleRunSherlock}
+                  >
+                    <span className="text-[18px]">🔍</span>
+                    {allReady
+                      ? "Sherlock 실행하기"
+                      : `참가자 대기 중 (${readyCount}/${totalCount})`}
+                  </Button>
+                </div>
+
+                {selectedPlace.placeId &&
+                  sherlockPlaces.length > 0 &&
+                  !sherlockOpen && (
+                    <div
+                      className="mt-3"
+                      style={{ animation: "fade-up 0.3s ease-out both" }}
+                    >
+                      <Button
+                        variant="secondary"
+                        size="md"
+                        fullWidth
+                        onClick={() => setSherlockOpen(true)}
+                      >
+                        선택한 장소 다시 보기
+                      </Button>
+                    </div>
+                  )}
+              </>
+            ) : (
+              <div className="flex items-center gap-3 py-3.5 px-4 bg-white rounded-xl border border-[#E5E1D9]">
+                <div className="flex gap-[3px] shrink-0">
+                  {([0, 0.15, 0.3] as const).map((d) => (
+                    <div
+                      key={d}
+                      className="w-1.5 h-1.5 rounded-full bg-[#7C5CFC]"
+                      style={{
+                        animation: `dot-bounce 1.2s ease-in-out ${d}s infinite`,
+                      }}
+                    />
+                  ))}
+                </div>
+                <p className="text-[13px] font-medium text-[#4A4740]">
+                  호스트가 장소 추천을 준비하고 있어요
+                </p>
+              </div>
+            )}
           </div>
-        )}
-      </main>
+        </aside>
+      </div>
 
-      {/* Sticky bottom CTA */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] px-5 pb-safe pb-5 bg-gradient-to-t from-[#F4F2EE] from-80% to-transparent pt-4">
+      {/* ── Mobile: sticky bottom CTA ── */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 px-5 pb-safe pb-5 bg-gradient-to-t from-[#F4F2EE] from-80% to-transparent pt-4">
         {isCurrentUserHost ? (
           <>
             <div
               className="rounded-[10px] overflow-hidden"
-              style={allReady ? { animation: "cta-glow 2.4s ease-in-out infinite" } : undefined}
+              style={
+                allReady
+                  ? { animation: "cta-glow 2.4s ease-in-out infinite" }
+                  : undefined
+              }
             >
               <Button
                 variant="primary"
@@ -586,22 +813,29 @@ export default function RoomPage() {
                 onClick={handleRunSherlock}
               >
                 <span className="text-[18px]">🔍</span>
-                {allReady ? "Sherlock 실행하기" : `참가자 대기 중 (${readyCount}/${totalCount})`}
+                {allReady
+                  ? "Sherlock 실행하기"
+                  : `참가자 대기 중 (${readyCount}/${totalCount})`}
               </Button>
             </div>
 
-            {selectedPlaceId && sherlockPlaces.length > 0 && !sherlockOpen && (
-              <div className="mt-2" style={{ animation: "fade-up 0.3s ease-out both" }}>
-                <Button
-                  variant="secondary"
-                  size="md"
-                  fullWidth
-                  onClick={() => setSherlockOpen(true)}
+            {selectedPlace.placeId &&
+              sherlockPlaces.length > 0 &&
+              !sherlockOpen && (
+                <div
+                  className="mt-2"
+                  style={{ animation: "fade-up 0.3s ease-out both" }}
                 >
-                  선택한 장소 다시 보기
-                </Button>
-              </div>
-            )}
+                  <Button
+                    variant="secondary"
+                    size="md"
+                    fullWidth
+                    onClick={() => setSherlockOpen(true)}
+                  >
+                    선택한 장소 다시 보기
+                  </Button>
+                </div>
+              )}
           </>
         ) : (
           <div
@@ -613,7 +847,9 @@ export default function RoomPage() {
                 <div
                   key={d}
                   className="w-1.5 h-1.5 rounded-full bg-[#7C5CFC]"
-                  style={{ animation: `dot-bounce 1.2s ease-in-out ${d}s infinite` }}
+                  style={{
+                    animation: `dot-bounce 1.2s ease-in-out ${d}s infinite`,
+                  }}
                 />
               ))}
             </div>
@@ -624,37 +860,18 @@ export default function RoomPage() {
         )}
       </div>
 
-      {/* Sherlock panel */}
+      {/* ── Sherlock panel ── */}
       <SherlockPanel
         open={sherlockOpen}
         onClose={() => setSherlockOpen(false)}
         places={sherlockPlaces}
-        selectedPlaceId={selectedPlaceId}
+        selectedPlaceId={selectedPlace.placeId}
         onSelectPlace={handleSelectPlace}
         onRegenerate={handleRunSherlock}
+        onConfirm={selectedPlace.placeId ? handleConfirmPlace : undefined}
         isLoading={sherlockLoading}
         participantCount={MOCK_PARTICIPANTS.length}
       />
-
-      {/* Confirm CTA — inside panel's z-layer, shown when place selected */}
-      {selectedPlaceId && sherlockOpen && (
-        <div
-          className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] px-5 pb-safe pb-5 z-[60]"
-          style={{
-            background:
-              "linear-gradient(to top, rgba(240,236,255,0.97) 70%, transparent)",
-          }}
-        >
-          <Button
-            variant="primary"
-            size="lg"
-            fullWidth
-            onClick={handleConfirmPlace}
-          >
-            ✓ 이 장소로 정하기
-          </Button>
-        </div>
-      )}
     </div>
   );
 }

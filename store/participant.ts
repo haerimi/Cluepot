@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Transport } from "@/types/participant";
+import { Transport, DistanceTolerance, AtmospherePreference } from "@/types/participant";
 
 // state
 interface Participant {
@@ -8,7 +8,9 @@ interface Participant {
   ppAbstractLocation: string;
   ppLat: number;
   ppLng: number;
-  ppTransport: Transport | null;
+  ppTransport: Transport[];
+  ppDistanceTolerance: DistanceTolerance;
+  ppAtmospherePreference: AtmospherePreference;
   ppIsHost: boolean;
 }
 
@@ -20,7 +22,7 @@ interface ParticipantState {
 interface ParticipantActions {
   addParticipant: (participant: Participant) => void;
   updateParticipant: (participant: Participant) => void;
-  removeParticipant: (ppId: string) => void;  // 특정 1명만 삭제 (누군가 방에서 나갔을 때)
+  removeParticipant: (ppId: string) => void; // 특정 1명만 삭제 (누군가 방에서 나갔을 때)
   clearParticipant: () => void; // 나가기
 }
 
@@ -43,8 +45,9 @@ export const useParticipantStore = create<
         p.ppId === participant.ppId ? participant : p,
       ),
     })),
-    removeParticipant: (ppId) => set((state) => ({
-      participants: state.participants.filter((p) => p.ppId !== ppId)
+  removeParticipant: (ppId) =>
+    set((state) => ({
+      participants: state.participants.filter((p) => p.ppId !== ppId),
     })),
   clearParticipant: () => set(initialState),
 }));

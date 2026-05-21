@@ -53,12 +53,14 @@
   --spacing-lg: 1.5rem;
   --spacing-xl: 2rem;
   --spacing-xxl: 3rem;
-  --spacing-section: 6rem;
+  --spacing-section: 10rem;
+  --spacing-hero: 8rem;
 }
 
 :root {
   --background: #F4F2EE;
   --foreground: #1C1A17;
+  --nav-height: 56px;
 }
 
 *,
@@ -115,6 +117,25 @@ button {
   padding-top: env(safe-area-inset-top);
 }
 
+/* ── Grain texture overlay ── */
+.grain-overlay {
+  position: relative;
+  overflow: hidden;
+}
+.grain-overlay::after {
+  content: '';
+  position: absolute;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  opacity: 0.028;
+  pointer-events: none;
+  z-index: 1;
+  animation: grain-drift 8s steps(1) infinite;
+}
+
 /* ── Ambient motion keyframes ── */
 
 /* Gentle vertical float for hero elements */
@@ -157,6 +178,24 @@ button {
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* Cinematic element entrance — slower, larger travel */
+@keyframes cinematic-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Horizontal reveal from left */
+@keyframes reveal-left {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Pure opacity reveal for section entrances */
+@keyframes section-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 /* Pending participant status dot — breathing glow */
 @keyframes waiting-dot {
   0%, 100% { opacity: 0.35; transform: scale(0.8); }
@@ -191,4 +230,25 @@ button {
 @keyframes score-appear {
   from { opacity: 0; transform: scale(0.9); }
   to   { opacity: 1; transform: scale(1); }
+}
+
+/* Grain texture drift — subtle animation to simulate film grain movement */
+@keyframes grain-drift {
+  0%   { transform: translate(0, 0); }
+  10%  { transform: translate(-2%, -3%); }
+  20%  { transform: translate(1%, -1%); }
+  30%  { transform: translate(3%, 2%); }
+  40%  { transform: translate(-1%, 3%); }
+  50%  { transform: translate(-3%, 1%); }
+  60%  { transform: translate(2%, -2%); }
+  70%  { transform: translate(1%, 3%); }
+  80%  { transform: translate(-2%, 1%); }
+  90%  { transform: translate(3%, -1%); }
+  100% { transform: translate(0, 0); }
+}
+
+/* Thin line draw — for decorative horizontal rules */
+@keyframes line-draw {
+  from { width: 0; opacity: 0; }
+  to   { opacity: 1; }
 }
