@@ -1,29 +1,32 @@
 import { create } from "zustand";
 
-// state
 interface UserInfo {
   myId: string;
   myEmail: string;
   myNickname: string;
   myProfileImage: string;
 }
+
 interface UserState {
   userInfo: UserInfo | null;
+  /** True between app mount and the first AuthHydrator useEffect run. */
+  isAuthLoading: boolean;
 }
 
-// action
 interface UserActions {
   setMy: (user: UserInfo) => void;
-  clearMy: () => void; // 로그아웃
+  clearMy: () => void;
+  setAuthLoading: (loading: boolean) => void;
 }
 
-// 초기값
 const initialState: UserState = {
   userInfo: null,
+  isAuthLoading: true,
 };
 
 export const useUserStore = create<UserState & UserActions>((set) => ({
   ...initialState,
-  setMy: (userInfo) => set({ userInfo }),
-  clearMy: () => set(initialState),
+  setMy: (userInfo) => set({ userInfo, isAuthLoading: false }),
+  clearMy: () => set({ userInfo: null, isAuthLoading: false }),
+  setAuthLoading: (isAuthLoading) => set({ isAuthLoading }),
 }));
