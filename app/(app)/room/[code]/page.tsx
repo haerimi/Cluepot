@@ -47,6 +47,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { ScheduleDateModal } from "./_components/ScheduleDateModal";
 import {
   Transport,
   DistanceTolerance,
@@ -534,6 +535,9 @@ export default function RoomPage() {
   const [sherlockOpen, setSherlockOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  /* ── Date modal state ── */
+  const [showDateModal, setShowDateModal] = useState(false);
+
   /* ── Zustand ── */
   const sherlockPlaces  = useMapStore((s) => s.recommendedPlaces);
   const selectedPlace   = useMapStore((s) => s.selectedPlace);
@@ -595,18 +599,30 @@ export default function RoomPage() {
 
   function handleConfirmPlace() {
     if (!selectedPlace.placeId) return;
+    setShowDateModal(true);
+  }
+
+  function handleScheduleCreate(data: {
+    title: string;
+    scheduledAt: string;
+    memo: string;
+  }) {
+    if (!selectedPlace.placeId) return;
+    const mockId = crypto.randomUUID();
     setSchedule({
-      scheduleId:   crypto.randomUUID(),
+      scheduleId:   mockId,
       roomCode,
       placeName:    selectedPlace.placeName,
       placeAddress: selectedPlace.placeAddress,
       lat:          selectedPlace.lat,
       lng:          selectedPlace.lng,
-      title:        selectedPlace.placeName,
-      scheduledAt:  "",
-      memo:         "",
+      title:        data.title,
+      scheduledAt:  data.scheduledAt,
+      memo:         data.memo,
     });
     setSherlockOpen(false);
+    setShowDateModal(false);
+    router.push(`/calendar/${mockId}`);
   }
 
   function handleCopyCode() {
@@ -984,6 +1000,16 @@ export default function RoomPage() {
           participantCount={MOCK_PARTICIPANTS.length}
         />
       </div>
+
+      {/* ── Date / time modal — shown after place selection ── */}
+      {showDateModal && selectedPlace.placeId && (
+        <ScheduleDateModal
+          placeName={selectedPlace.placeName}
+          placeAddress={selectedPlace.placeAddress}
+          onSubmit={handleScheduleCreate}
+          onCancel={() => setShowDateModal(false)}
+        />
+      )}
     </>
   );
 }

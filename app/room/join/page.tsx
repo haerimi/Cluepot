@@ -4,6 +4,9 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/app/components/ui/Button";
+import { createClient } from "@/util/supabase/client";
+
+
 
 export default function JoinRoomPage() {
   const router = useRouter();
@@ -27,6 +30,15 @@ export default function JoinRoomPage() {
       setIsJoining(false);
       return;
     }
+
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
     router.push(`/room/${normalizedCode}`);
   }
 
