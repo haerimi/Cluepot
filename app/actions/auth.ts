@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/util/supabase/server";
+import { prisma } from "@/lib/prisma";
 
 export interface AuthState {
   error: string | null;
@@ -50,7 +51,7 @@ export async function signup(
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: { data: { nickname } },
@@ -62,6 +63,15 @@ export async function signup(
     }
     return { error: "계정을 만들 수 없어요. 다시 시도해주세요." };
   }
+
+  // Supabase user ID를 그대로 Prisma users 테이블에 동기화
+  await prisma.user.create({
+    data: {
+      id: data.user!.id,   // Supabase UUID를 PK로 사용
+      email,
+      nickname,
+    },
+  });
 
   redirect("/");
 }
