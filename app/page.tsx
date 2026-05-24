@@ -43,7 +43,7 @@ function SherlockHeroViz() {
         style={{ animation: "float-slow 4.2s ease-in-out 0.5s infinite" }}
       >
         <div className="w-14 h-14 lg:w-18 lg:h-18 rounded-full bg-white border-2 border-[#E5E1D9] shadow-[0_4px_20px_rgba(28,26,23,0.12)] flex items-center justify-center">
-          <span className="text-2xl lg:text-3xl leading-none select-none">🐻</span>
+          <span className="text-2xl lg:text-3xl leading-none select-none">🐶</span>
         </div>
         <div className="px-3 py-1 bg-white rounded-full border border-[#E5E1D9] shadow-sm">
           <span className="text-[11px] lg:text-[13px] font-medium text-[#908D87]">강남구</span>
@@ -56,7 +56,7 @@ function SherlockHeroViz() {
         style={{ animation: "float-slow 3.6s ease-in-out 1.1s infinite" }}
       >
         <div className="w-14 h-14 lg:w-18 lg:h-18 rounded-full bg-white border-2 border-[#E5E1D9] shadow-[0_4px_20px_rgba(28,26,23,0.12)] flex items-center justify-center">
-          <span className="text-2xl lg:text-3xl leading-none select-none">🦊</span>
+          <span className="text-2xl lg:text-3xl leading-none select-none">🐧</span>
         </div>
         <div className="px-3 py-1 bg-white rounded-full border border-[#E5E1D9] shadow-sm">
           <span className="text-[11px] lg:text-[13px] font-medium text-[#908D87]">마포구</span>
@@ -69,7 +69,7 @@ function SherlockHeroViz() {
         style={{ animation: "float-slow 4.8s ease-in-out 0.3s infinite" }}
       >
         <div className="w-14 h-14 lg:w-18 lg:h-18 rounded-full bg-white border-2 border-[#E5E1D9] shadow-[0_4px_20px_rgba(28,26,23,0.12)] flex items-center justify-center">
-          <span className="text-2xl lg:text-3xl leading-none select-none">🐧</span>
+          <span className="text-2xl lg:text-3xl leading-none select-none">🐿️</span>
         </div>
         <div className="px-3 py-1 bg-white rounded-full border border-[#E5E1D9] shadow-sm">
           <span className="text-[11px] lg:text-[13px] font-medium text-[#908D87]">잠실</span>

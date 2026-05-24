@@ -6,6 +6,7 @@ import { Category } from "@/types/room";
 import { Button } from "@/app/components/ui/Button";
 import { CategoryPicker } from "@/app/components/CategoryPicker";
 import { useRoomStore } from "@/store/room";
+import { createRoom } from "@/app/actions/rooms";
 
 type Step = 1 | 2 | 3;
 
@@ -45,12 +46,12 @@ export default function CreateRoomPage() {
   async function handleCreate() {
     if (!category) return;
     setIsCreating(true);
-    // TODO: POST /api/room
-    await new Promise((r) => setTimeout(r, 800));
-    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    
+    const { roomCode, roomId } = await createRoom(category);
+
     setRoom({
-      roomId: crypto.randomUUID(),
-      roomCode: code,
+      roomId: roomId,
+      roomCode: roomCode,
       roomCategory: category,
       roomStatus: "waiting",
       linkExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),

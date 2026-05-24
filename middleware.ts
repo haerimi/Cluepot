@@ -3,7 +3,7 @@ import { updateSession } from "@/util/supabase/middleware";
 
 /**
  * Protected paths — unauthenticated visitors are redirected to /login.
- * /room/[code] is intentionally excluded: rooms are joinable without an account.
+ * /room/create is listed here; /room/[code] is handled separately via isRoomPage.
  */
 const PROTECTED_PREFIXES = ["/calendar", "/profile", "/settings", "/room/create"];
 
@@ -22,8 +22,10 @@ export async function middleware(request: NextRequest) {
 
   const { response, user } = await updateSession(request);
   const { pathname } = request.nextUrl;
-
-  const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
+  // /room/join is public (code entry before auth). /room/[code] requires login
+  // because the room page reads participant data tied to the authenticated user.
+  const isRoomPage = pathname.startsWith("/room/") && pathname !== "/room/join" && !pathname.startsWith("/room/create");
+  const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p)) || isRoomPage;
   const isAuthPage = AUTH_EXACT.has(pathname);
 
   if (isProtected && !user) {

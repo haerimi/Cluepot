@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/app/components/ui/Button";
 import { createClient } from "@/util/supabase/client";
-
+import { validateRoom } from "@/app/actions/rooms";
 
 
 export default function JoinRoomPage() {
@@ -22,11 +22,10 @@ export default function JoinRoomPage() {
     if (!isValid) return;
     setError(null);
     setIsJoining(true);
-    // TODO: GET /api/room/[code] to validate
-    await new Promise((r) => setTimeout(r, 600));
-    // Mock: code "000000" always fails
-    if (normalizedCode === "000000") {
-      setError("존재하지 않는 모임 코드예요. 다시 확인해주세요.");
+    const validate = await validateRoom(normalizedCode)
+    
+    if (!validate.valid) {
+      setError(validate.reason ?? "유효하지 않은 코드예요.");
       setIsJoining(false);
       return;
     }
