@@ -21,7 +21,6 @@ import { useMapStore } from "@/store/map";
 import { useScheduleStore } from "@/store/schedule";
 import { logout } from "@/app/actions/auth";
 import type { HydratedUser } from "./AuthHydrator";
-import { useRoomStore } from "@/store/room";
 
 const AMBIENT_LINES = [
   "장소에는 이야기가 있어요",

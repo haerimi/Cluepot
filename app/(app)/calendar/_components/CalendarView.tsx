@@ -225,7 +225,7 @@ export function CalendarView({ schedules }: CalendarViewProps) {
       style={{ animation: "section-fade 0.4s ease-out both" }}
     >
       {/* ── Left: Calendar grid panel ─────────────────────────────────── */}
-      <div className="lg:w-[400px] xl:w-[440px] shrink-0 flex flex-col border-r border-hairline">
+      <div className="lg:w-100 xl:w-110 shrink-0 flex flex-col border-r border-hairline">
 
         {/* Page header */}
         <div className="px-6 lg:px-8 pt-8 pb-6 border-b border-hairline">
@@ -353,7 +353,7 @@ export function CalendarView({ schedules }: CalendarViewProps) {
           </div>
         ) : monthHasSchedules ? (
           /* No date selected but month has schedules — show prompt */
-          <div className="flex items-center justify-center h-full min-h-[240px]">
+          <div className="flex items-center justify-center h-full min-h-60">
             <p className="text-[14px] text-ink-subtle">날짜를 선택하면 일정을 볼 수 있어요</p>
           </div>
         ) : (

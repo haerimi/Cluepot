@@ -37,9 +37,13 @@ export function AppTopNav({ user }: { user: HydratedUser | null }) {
 
       {user ? (
         <div className="flex items-center gap-2.5">
+          <Link href="/rooms" className="text-[12px] font-medium text-ink-muted hover:text-ink transition-colors">
+            내 모임
+          </Link>
+
           {/* User initial badge */}
           <div className="w-7 h-7 rounded-full bg-[#7C5CFC] flex items-center justify-center shrink-0">
-            <span className="text-[11px] font-bold text-white leading-none">
+            <span className="text-[11px] font-bold text-white leading-none ">
               {initial}
             </span>
           </div>

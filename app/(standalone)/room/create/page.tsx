@@ -80,7 +80,7 @@ export default function CreateRoomPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-[#F4F2EE] flex flex-col">
+    <div className="h-dvh overflow-y-auto bg-[#F4F2EE] flex flex-col">
 
       {/* ── Editorial header ── */}
       <header className="flex items-center gap-4 px-6 lg:px-16 h-14 border-b border-[#E5E1D9] shrink-0">

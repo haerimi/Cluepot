@@ -227,17 +227,19 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
   const [showEdit,   setShowEdit]   = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [isPending,  start]         = useTransition();
+  const router = useRouter();
 
   function handleAttendance(status: "accepted" | "declined") {
     if (myMember?.status === status) return;
     start(async () => {
       await updateMemberStatus(schedule.id, status);
+      router.refresh();
     });
   }
 
   return (
     <div
-      className="flex-1 overflow-y-auto"
+      className="flex-1 min-h-0 overflow-y-auto"
       style={{ animation: "section-fade 0.4s ease-out both" }}
     >
       {/* ── Cinematic header ── */}
