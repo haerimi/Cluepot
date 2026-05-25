@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { createClient } from "@/util/supabase/server";
+import { logout } from "@/app/actions/auth";
 import { Button } from "@/app/components/ui/Button";
 
 /* ── Enlarged cinematic hero visualization ───────────────────────────────── */
@@ -110,7 +113,16 @@ function SherlockHeroViz() {
 }
 
 /* ── Page ─────────────────────────────────────────────────────────────────── */
-export default function HomePage() {
+export default async function HomePage() {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const displayName = (user?.user_metadata?.nickname as string | undefined)
+    || user?.email?.split("@")[0]
+    || "";
+  const initial = displayName[0]?.toUpperCase() ?? "?";
+
   return (
     <div className="min-h-dvh bg-[#F4F2EE] overflow-x-hidden">
 
@@ -126,6 +138,43 @@ export default function HomePage() {
           >
             코드로 참가
           </Link>
+
+          {user ? (
+            <>
+              {/* 내 일정 바로가기 */}
+              <Link
+                href="/calendar"
+                className="hidden sm:block text-[13px] font-medium text-[#908D87] hover:text-[#1C1A17] transition-colors"
+              >
+                내 일정
+              </Link>
+
+              {/* 유저 뱃지 + 로그아웃 */}
+              <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2 px-3 h-9 bg-white border border-[#E5E1D9] rounded-full">
+                  <div className="w-5 h-5 rounded-full bg-[#7C5CFC] flex items-center justify-center shrink-0">
+                    <span className="text-[10px] font-bold text-white leading-none">{initial}</span>
+                  </div>
+                  <span className="text-[13px] font-medium text-[#1C1A17] hidden sm:block">{displayName}</span>
+                </div>
+                <form action={logout}>
+                  <button
+                    type="submit"
+                    className="h-9 px-3 text-[12px] font-medium text-[#908D87] border border-[#E5E1D9] rounded-full hover:text-[#1C1A17] hover:border-[#D0CCC4] bg-white transition-colors cursor-pointer"
+                  >
+                    로그아웃
+                  </button>
+                </form>
+              </div>
+            </>
+          ) : (
+            <Link href="/login">
+              <span className="inline-flex items-center h-9 px-4 border border-[#E5E1D9] text-[#1C1A17] text-[13px] font-medium rounded-full hover:border-[#D0CCC4] bg-white transition-colors cursor-pointer">
+                로그인
+              </span>
+            </Link>
+          )}
+
           <Link href="/room/create">
             <span className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#1C1A17] text-white text-[13px] font-semibold rounded-full hover:bg-[#2D2B28] transition-colors cursor-pointer">
               새 모임 만들기
