@@ -29,7 +29,7 @@ export async function login(
     return { error: "이메일 또는 비밀번호가 올바르지 않아요." };
   }
 
-  redirect("/room/create");
+  redirect("/calendar");
 }
 
 export async function signup(
