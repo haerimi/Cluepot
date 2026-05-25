@@ -1,5 +1,7 @@
+import { getMySchedules } from "@/app/actions/schedule";
 import { CalendarView } from "./_components/CalendarView";
 
-export default function CalendarPage() {
-  return <CalendarView schedules={[]} />;
+export default async function CalendarPage() {
+  const schedules = await getMySchedules();
+  return <CalendarView schedules={schedules} />;
 }

@@ -28,7 +28,7 @@ export async function createRoom(
 
 export async function validateRoom(
     roomCode: string
-): Promise<{ valid: boolean; reason?: string }> {
+): Promise<{ valid: boolean; reason?: string; expiresAt?: string}> {
     const room = await prisma.room.findUnique({
         where: { roomCode }
     })
@@ -38,7 +38,7 @@ export async function validateRoom(
     if (room.linkExpiresAt < new Date())
         return { valid: false, reason: "만료된 모임이에요." }
 
-    return { valid: true }
+    return { valid: true, expiresAt: room.linkExpiresAt.toISOString() }
 }
 
 export async function leaveRoom(roomCode: string): Promise<void> {

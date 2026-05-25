@@ -8,7 +8,16 @@ import { AtmospherePreference, DistanceTolerance, Transport } from "@/types/part
 import { Participant } from "@prisma/client";
 
 export async function joinRoom(roomCode: string)
-    : Promise<{ participantId: string; isHost: boolean }> {
+    : Promise<{
+        participantId: string;
+        isHost: boolean;
+        savedPreference: {
+            abstractLocation: string;
+            transports: string[];
+            distanceTolerance: string | null;
+            atmospherePreference: string | null;
+        } | null;
+    }> {
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
 
@@ -23,7 +32,7 @@ export async function joinRoom(roomCode: string)
     const count = await prisma.participant.count({
         where: { roomCode }
     })
-    const isHost = count === 0;
+    const isHostForCreate = count === 0;
 
     const participant = await prisma.participant.upsert({
         where: {
@@ -33,14 +42,28 @@ export async function joinRoom(roomCode: string)
         create: {
             roomCode,
             userId,
-            isHost,
+            isHost: isHostForCreate,
             abstractLocation: "",
             lat: 0,
             lng: 0
         }
     })
 
-    return { participantId: participant.id, isHost }
+    // isHost는 DB 컬럼을 기준으로 반환 (새로고침해도 정확함)
+    // savedPreference는 기존에 저장한 선호가 있으면 반환 (새로고침 시 복원용)
+    const hasSaved = participant.abstractLocation !== "";
+    return {
+        participantId: participant.id,
+        isHost: participant.isHost,
+        savedPreference: hasSaved
+            ? {
+                abstractLocation: participant.abstractLocation,
+                transports: participant.transports,
+                distanceTolerance: participant.distanceTolerance,
+                atmospherePreference: participant.atmospherePreference,
+            }
+            : null
+    }
 }
 
 type SavePreferenceParams = {
