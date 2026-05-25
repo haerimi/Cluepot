@@ -751,21 +751,29 @@ export default function RoomPage() {
         On mobile (< lg): grid collapses to a single column; the right
         pane is hidden, and the mobile bottom sheet handles Sherlock.
       */}
+      {/*
+        ── Two-pane layout ─────────────────────────────────────────────
+        Mobile: flex flex-col (single column). grid-cols only applies at lg+.
+        Using flex on mobile avoids CSS Grid's implicit track creation which
+        was producing a ~15 px left column on iOS when grid-cols was absent.
+
+        Desktop: switches to grid so grid-template-columns can be animated
+        between hasResults states (expo-out easing).
+      */}
       <div
         className={[
-          /* Mobile: stacked single column, full height scrollable */
-          "flex-1 grid overflow-hidden min-h-0",
-          /* Desktop: 2-column, transitions based on hasResults */
+          "flex-1 flex flex-col overflow-hidden min-h-0",
           hasResults
-            ? "lg:grid-cols-[360px_1fr]"
-            : "lg:grid-cols-[1fr_360px]",
+            ? "lg:grid lg:grid-cols-[360px_1fr]"
+            : "lg:grid lg:grid-cols-[1fr_360px]",
         ].join(" ")}
         style={{
           transition: "grid-template-columns 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
         }}
       >
         {/* ── Left pane ─────────────────────────────────────────────── */}
-        <div className="flex flex-col overflow-y-auto border-r border-hairline pb-36 lg:pb-0">
+        {/* flex-1 fills the flex-col parent on mobile; ignored by grid on desktop */}
+        <div className="flex-1  min-w-0  flex flex-col overflow-y-auto lg:border-r border-hairline pb-36 lg:pb-0">
 
           {/* Content changes based on whether results have arrived */}
           {hasResults ? (
@@ -1009,10 +1017,16 @@ export default function RoomPage() {
       </div>
 
       {/* ── Mobile: sticky bottom CTA ─────────────────────────────── */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 px-5 pb-safe pb-5 bg-gradient-to-t from-canvas from-80% to-transparent pt-4">
+      {/*
+        pointer-events-none on the outer gradient div prevents the
+        visually-transparent top portion of the gradient from blocking
+        touch events on form elements underneath (iOS Safari issue).
+        pointer-events-auto is restored on the actual interactive content.
+      */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 px-5 pb-5 bg-linear-to-t from-canvas from-80% to-transparent pt-4 pointer-events-none">
         {isHost ? (
           <div
-            className="rounded-[10px] overflow-hidden"
+            className="rounded-[10px] overflow-hidden pointer-events-auto"
             style={allReady ? { animation: "cta-glow 2.4s ease-in-out infinite" } : undefined}
           >
             <Button
@@ -1027,7 +1041,7 @@ export default function RoomPage() {
           </div>
         ) : (
           <div
-            className="flex items-center gap-3 py-3.5 px-4 bg-white rounded-xl border border-hairline"
+            className="flex items-center gap-3 py-3.5 px-4 bg-white rounded-xl border border-hairline pointer-events-auto"
             style={{ animation: "fade-up 0.3s ease-out both" }}
           >
             <div className="flex gap-[3px] shrink-0">

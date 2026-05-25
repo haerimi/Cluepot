@@ -141,12 +141,18 @@ export default async function HomePage() {
 
           {user ? (
             <>
-              {/* 내 일정 바로가기 */}
+              {/* 내 일정 · 내 모임 바로가기 */}
               <Link
                 href="/calendar"
-                className="hidden sm:block text-[13px] font-medium text-[#908D87] hover:text-[#1C1A17] transition-colors"
+                className="text-[13px] font-medium text-[#908D87] hover:text-[#1C1A17] transition-colors"
               >
                 내 일정
+              </Link>
+              <Link
+                href="/rooms"
+                className="text-[13px] font-medium text-[#908D87] hover:text-[#1C1A17] transition-colors"
+              >
+                내 모임
               </Link>
 
               {/* 유저 뱃지 + 로그아웃 */}
@@ -175,11 +181,13 @@ export default async function HomePage() {
             </Link>
           )}
 
-          <Link href="/room/create">
-            <span className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#1C1A17] text-white text-[13px] font-semibold rounded-full hover:bg-[#2D2B28] transition-colors cursor-pointer">
-              새 모임 만들기
-            </span>
-          </Link>
+          {!user && (
+            <Link href="/room/create">
+              <span className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#1C1A17] text-white text-[13px] font-semibold rounded-full hover:bg-[#2D2B28] transition-colors cursor-pointer">
+                새 모임 만들기
+              </span>
+            </Link>
+          )}
         </div>
       </nav>
 
