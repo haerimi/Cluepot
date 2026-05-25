@@ -21,6 +21,7 @@ import { useMapStore } from "@/store/map";
 import { useScheduleStore } from "@/store/schedule";
 import { logout } from "@/app/actions/auth";
 import type { HydratedUser } from "./AuthHydrator";
+import { useRoomStore } from "@/store/room";
 
 const AMBIENT_LINES = [
   "장소에는 이야기가 있어요",
@@ -63,7 +64,6 @@ export function AppSidebar({ user }: Readonly<{ user: HydratedUser | null }>) {
     recommendedPlaces.length > 0,
     !!currentRoomCode,
   );
-
   useEffect(() => {
     const id = setInterval(() => {
       setLineVisible(false);
@@ -162,6 +162,11 @@ export function AppSidebar({ user }: Readonly<{ user: HydratedUser | null }>) {
             active={pathname.startsWith("/profile")}
           />
         )}
+        <NavItem 
+          href="/rooms"
+          label="내 모임"
+          icon={<RoomsIcon />}
+          active={pathname.startsWith("/rooms")} />
       </nav>
 
       {/* ── Sherlock ambient text + user section — pinned to bottom ── */}
@@ -275,6 +280,17 @@ function ProfileIcon() {
     <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
       <circle cx="6.5" cy="4.5" r="2.5" stroke="currentColor" strokeWidth="1.4" />
       <path d="M1 12C1 9.79 3.52 8 6.5 8C9.48 8 12 9.79 12 12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function RoomsIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+      <rect x="1"   y="1"   width="4.5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.4" />
+      <rect x="7.5" y="1"   width="4.5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.4" />
+      <rect x="1"   y="7.5" width="4.5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.4" />
+      <rect x="7.5" y="7.5" width="4.5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.4" />
     </svg>
   );
 }

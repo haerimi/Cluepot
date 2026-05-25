@@ -62,6 +62,7 @@ import { RecommendedPlace } from "@/types/recommendation";
 import { SherlockPanel } from "@/app/components/SherlockPanel";
 import { useMapStore } from "@/store/map";
 import { useScheduleStore } from "@/store/schedule";
+import { useRoomStore } from "@/store/room";
 
 /* ── Mock data (replace with real API calls) ─────────────────────────── */
 
@@ -190,15 +191,15 @@ interface AtmosphereOption {
 }
 
 const DISTANCE_OPTIONS: DistanceOption[] = [
-  { value: "short",  label: "짧게",     emoji: "⚡", desc: "15분 이내" },
-  { value: "medium", label: "적당히",   emoji: "🚶", desc: "30분 이내" },
-  { value: "far",    label: "상관없어요", emoji: "🗺", desc: "멀어도 OK" },
+  { value: "short", label: "짧게", emoji: "⚡", desc: "15분 이내" },
+  { value: "medium", label: "적당히", emoji: "🚶", desc: "30분 이내" },
+  { value: "far", label: "상관없어요", emoji: "🗺", desc: "멀어도 OK" },
 ];
 
 const ATMOSPHERE_OPTIONS: AtmosphereOption[] = [
-  { value: "quiet",  label: "조용한",   emoji: "☕" },
-  { value: "lively", label: "활기찬",   emoji: "🎵" },
-  { value: "cozy",   label: "아늑한",   emoji: "🕯" },
+  { value: "quiet", label: "조용한", emoji: "☕" },
+  { value: "lively", label: "활기찬", emoji: "🎵" },
+  { value: "cozy", label: "아늑한", emoji: "🕯" },
   { value: "trendy", label: "트렌디한", emoji: "✨" },
 ];
 
@@ -522,9 +523,9 @@ export default function RoomPage() {
   const roomCode = decodeURIComponent((params?.code as string) ?? "").toUpperCase();
 
   /* ── Local form state ── */
-  const [myLocation,   setMyLocation]   = useState("");
+  const [myLocation, setMyLocation] = useState("");
   const [myTransports, setMyTransports] = useState<Transport[]>([]);
-  const [myDistance,   setMyDistance]   = useState<DistanceTolerance | null>(null);
+  const [myDistance, setMyDistance] = useState<DistanceTolerance | null>(null);
   const [myAtmosphere, setMyAtmosphere] = useState<AtmospherePreference | null>(null);
   const [locationSaved, setLocationSaved] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
@@ -539,31 +540,37 @@ export default function RoomPage() {
   const [showDateModal, setShowDateModal] = useState(false);
 
   /* ── Zustand ── */
-  const sherlockPlaces  = useMapStore((s) => s.recommendedPlaces);
-  const selectedPlace   = useMapStore((s) => s.selectedPlace);
-  const setSelectPlace  = useMapStore((s) => s.selectPlace);
-  const setPlace        = useMapStore((s) => s.setPlaces);
-  const clearMap        = useMapStore((s) => s.clearMap);
+  const sherlockPlaces = useMapStore((s) => s.recommendedPlaces);
+  const selectedPlace = useMapStore((s) => s.selectedPlace);
+  const setSelectPlace = useMapStore((s) => s.selectPlace);
+  const setPlace = useMapStore((s) => s.setPlaces);
+  const clearMap = useMapStore((s) => s.clearMap);
 
-  const isDone       = useScheduleStore(
+  const isDone = useScheduleStore(
     (s) => s.scheduleInfo !== null && s.scheduleInfo.roomCode === roomCode,
   );
-  const scheduleInfo  = useScheduleStore((s) => s.scheduleInfo);
-  const setSchedule   = useScheduleStore((s) => s.setSchedule);
+  const scheduleInfo = useScheduleStore((s) => s.scheduleInfo);
+  const setSchedule = useScheduleStore((s) => s.setSchedule);
   const clearSchedule = useScheduleStore((s) => s.clearSchedule);
 
+  const addActiveRoom = useRoomStore((s) => s.addActiveRoom)
+  const removeActiveRoom = useRoomStore((s) => s.removeActiveRoom)
+
   useEffect(() => {
+    addActiveRoom(roomCode)
+    // TODO: 방 만료 시 removeActiveRoom(roomCode) 호출
+
     return () => {
       clearSchedule();
       clearMap();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [roomCode]);
 
-  const readyCount         = locationSaved ? 3 : 2;
-  const totalCount         = MOCK_PARTICIPANTS.length;
-  const allReady           = readyCount === totalCount;
-  const isCurrentUserHost  = MOCK_PARTICIPANTS.find((p) => p.isMe)?.isHost ?? false;
+  const readyCount = locationSaved ? 3 : 2;
+  const totalCount = MOCK_PARTICIPANTS.length;
+  const allReady = readyCount === totalCount;
+  const isCurrentUserHost = MOCK_PARTICIPANTS.find((p) => p.isMe)?.isHost ?? false;
 
   /*
    * hasResults drives the grid transition.
@@ -575,10 +582,10 @@ export default function RoomPage() {
   /* ── Handlers ── */
 
   function handleSaveLocation() {
-    if (!myLocation.trim())        { setLocationError("지역명을 입력해주세요"); return; }
+    if (!myLocation.trim()) { setLocationError("지역명을 입력해주세요"); return; }
     if (myTransports.length === 0) { setLocationError("교통수단을 하나 이상 선택해주세요"); return; }
-    if (!myDistance)               { setLocationError("이동 거리 선호를 선택해주세요"); return; }
-    if (!myAtmosphere)             { setLocationError("분위기 선호를 선택해주세요"); return; }
+    if (!myDistance) { setLocationError("이동 거리 선호를 선택해주세요"); return; }
+    if (!myAtmosphere) { setLocationError("분위기 선호를 선택해주세요"); return; }
     setLocationError(null);
     setLocationSaved(true);
   }
@@ -610,15 +617,15 @@ export default function RoomPage() {
     if (!selectedPlace.placeId) return;
     const mockId = crypto.randomUUID();
     setSchedule({
-      scheduleId:   mockId,
+      scheduleId: mockId,
       roomCode,
-      placeName:    selectedPlace.placeName,
+      placeName: selectedPlace.placeName,
       placeAddress: selectedPlace.placeAddress,
-      lat:          selectedPlace.lat,
-      lng:          selectedPlace.lng,
-      title:        data.title,
-      scheduledAt:  data.scheduledAt,
-      memo:         data.memo,
+      lat: selectedPlace.lat,
+      lng: selectedPlace.lng,
+      title: data.title,
+      scheduledAt: data.scheduledAt,
+      memo: data.memo,
     });
     setSherlockOpen(false);
     setShowDateModal(false);
@@ -919,7 +926,7 @@ export default function RoomPage() {
             <SherlockPanel
               variant="inline"
               open
-              onClose={() => {}}
+              onClose={() => { }}
               places={sherlockPlaces}
               selectedPlaceId={selectedPlace.placeId}
               onSelectPlace={handleSelectPlace}

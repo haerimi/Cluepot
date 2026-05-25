@@ -7,8 +7,9 @@ import { Button } from "@/app/components/ui/Button";
 import { CategoryPicker } from "@/app/components/CategoryPicker";
 import { useRoomStore } from "@/store/room";
 import { createRoom } from "@/app/actions/rooms";
+import { joinRoom } from "@/app/actions/participant";
 
-type Step = 1 | 2 | 3;
+type Step = 1 | 2 | 3 | 4;
 
 const SHERLOCK_FEATURES = [
   {
@@ -28,16 +29,26 @@ const SHERLOCK_FEATURES = [
   },
 ] as const;
 
+const CATEGORY_PLACEHOLDER: Record<string, string> = {
+  restaurant: "팀 점심 식사",
+  cafe:       "스터디 카페 모임",
+  bar:        "금요일 뒷풀이",
+  brunch:     "주말 브런치",
+  dessert:    "디저트 탐방",
+};
+
 const STEP_LABELS: Record<Step, string> = {
   1: "카테고리",
-  2: "Sherlock 소개",
-  3: "완료",
+  2: "모임 이름",
+  3: "Sherlock 소개",
+  4: "완료",
 };
 
 export default function CreateRoomPage() {
   const router = useRouter();
   const [step, setStep] = useState<Step>(1);
   const [category, setCategory] = useState<Category | null>(null);
+  const [name, setName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [copied, setCopied] = useState(false);
   const roomCode = useRoomStore((s) => s.roomInfo?.roomCode);
@@ -47,7 +58,8 @@ export default function CreateRoomPage() {
     if (!category) return;
     setIsCreating(true);
     
-    const { roomCode, roomId } = await createRoom(category);
+    const { roomCode, roomId } = await createRoom(category, name);
+    await joinRoom(roomCode)
 
     setRoom({
       roomId: roomId,
@@ -57,7 +69,7 @@ export default function CreateRoomPage() {
       linkExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     });
     setIsCreating(false);
-    setStep(3);
+    setStep(4);
   }
 
   function handleCopy() {
@@ -72,7 +84,7 @@ export default function CreateRoomPage() {
 
       {/* ── Editorial header ── */}
       <header className="flex items-center gap-4 px-6 lg:px-16 h-14 border-b border-[#E5E1D9] shrink-0">
-        {step < 3 && (
+        {step < 4 && (
           <button
             onClick={() =>
               step === 1 ? router.back() : setStep((s) => (s - 1) as Step)
@@ -91,9 +103,9 @@ export default function CreateRoomPage() {
       </header>
 
       {/* ── Editorial step indicator ── */}
-      {step < 3 && (
+      {step < 4 && (
         <div className="flex items-center px-6 lg:px-16 h-12 border-b border-[#E5E1D9] gap-0 shrink-0">
-          {([1, 2] as const).map((s, i) => (
+          {([1, 2, 3] as const).map((s, i) => (
             <div key={s} className="flex items-center gap-0">
               {i > 0 && (
                 <div className={[
@@ -165,15 +177,78 @@ export default function CreateRoomPage() {
             </div>
           )}
 
-          {/* ── Step 2: Sherlock intro ── */}
+          {/* ── Step 2: 모임 이름 ── */}
           {step === 2 && (
+            <div className="flex flex-col flex-1" style={{ animation: "cinematic-up 0.5s ease-out both" }}>
+              <div className="mb-10">
+                <p className="text-[11px] font-bold text-[#7C5CFC] tracking-[3px] uppercase mb-4">
+                  Step 02
+                </p>
+                <h1 className="text-[36px] lg:text-[48px] font-black text-[#1C1A17] leading-[1.0] tracking-[-1.5px] mb-3">
+                  모임 이름을
+                  <br />
+                  지어주세요
+                </h1>
+                <p className="text-[14px] lg:text-[15px] text-[#908D87] leading-relaxed">
+                  참가자들에게 보여질 모임 이름이에요
+                </p>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="room-name"
+                  className="block text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase mb-3"
+                >
+                  모임 이름
+                </label>
+                <input
+                  id="room-name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder={`예: ${CATEGORY_PLACEHOLDER[category ?? ""] ?? "모임 이름 입력"}`}
+                  maxLength={30}
+                  className={[
+                    "w-full h-14 px-4 rounded-xl border text-[16px] font-medium",
+                    "placeholder:text-hairline-strong",
+                    "outline-none transition-all duration-150",
+                    "border-hairline bg-white",
+                    "focus:ring-2 focus:ring-accent focus:ring-offset-0 focus:border-accent",
+                  ].join(" ")}
+                  autoFocus
+                />
+                <p className="text-[11px] text-ink-tertiary mt-2 text-right">
+                  {name.length} / 30
+                </p>
+              </div>
+
+              <div className="mt-auto pt-10">
+                <div className="h-px bg-[#E5E1D9] mb-6" />
+                <Button
+                  variant="primary"
+                  size="lg"
+                  fullWidth
+                  disabled={!name.trim()}
+                  onClick={() => setStep(3)}
+                >
+                  다음
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="M6 3L11 8L6 13" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* ── Step 3: Sherlock intro ── */}
+          {step === 3 && (
             <div
               className="flex flex-col flex-1"
               style={{ animation: "cinematic-up 0.5s ease-out both" }}
             >
               <div className="mb-10">
                 <p className="text-[11px] font-bold text-[#7C5CFC] tracking-[3px] uppercase mb-4">
-                  Step 02 · Sherlock Mode
+                  Step 03 · Sherlock Mode
                 </p>
                 <h1 className="text-[36px] lg:text-[48px] font-black text-[#1C1A17] leading-[1.0] tracking-[-1.5px] mb-4">
                   Sherlock이
@@ -230,8 +305,8 @@ export default function CreateRoomPage() {
             </div>
           )}
 
-          {/* ── Step 3: Room Code Reveal ── */}
-          {step === 3 && roomCode && (
+          {/* ── Step 4: Room Code Reveal ── */}
+          {step === 4 && roomCode && (
             <div
               className="flex flex-col items-center flex-1 pt-4 lg:pt-8"
               style={{ animation: "cinematic-up 0.6s ease-out both" }}
