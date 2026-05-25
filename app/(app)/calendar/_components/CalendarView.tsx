@@ -201,6 +201,7 @@ export function CalendarView({ schedules }: CalendarViewProps) {
   const cells      = useMemo(() => getCalendarCells(year, month), [year, month]);
   const todayKey   = toDateKey(today);
 
+  // 캘린더 날짜 셀 렌더링 -> selectedSchedules이 있으면 해당 날짜에 점 표시
   const selectedSchedules = selectedKey ? (byDate.get(selectedKey) ?? []) : [];
   const monthHasSchedules = cells
     .filter((d) => d.getMonth() === month)

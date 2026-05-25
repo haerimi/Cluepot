@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Button } from "@/app/components/ui/Button";
 import { createClient } from "@/util/supabase/client";
 import { validateRoom } from "@/app/actions/rooms";
+import { joinRoom } from "@/app/actions/participant"
 
 
 export default function JoinRoomPage() {
@@ -38,6 +39,7 @@ export default function JoinRoomPage() {
       return;
     }
 
+    await joinRoom(normalizedCode)
     router.push(`/room/${normalizedCode}`);
   }
 

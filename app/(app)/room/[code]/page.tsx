@@ -63,42 +63,15 @@ import { SherlockPanel } from "@/app/components/SherlockPanel";
 import { useMapStore } from "@/store/map";
 import { useScheduleStore } from "@/store/schedule";
 import { useRoomStore } from "@/store/room";
+import { getParticipants, joinRoom, savePreference } from "@/app/actions/participant";
+import { createSchedule, getScheduleByRoomCode } from "@/app/actions/schedule";
+import { useUserStore } from "@/store/user";
 
-/* ── Mock data (replace with real API calls) ─────────────────────────── */
+/* ── Inferred type from server action ────────────────────────────────── */
 
-interface MockParticipant {
-  id: string;
-  nickname: string;
-  isHost: boolean;
-  abstractLocation: string | null;
-  transports: Transport[];
-  isMe?: boolean;
-}
-
-const MOCK_PARTICIPANTS: MockParticipant[] = [
-  {
-    id: "1",
-    nickname: "박해림",
-    isHost: true,
-    abstractLocation: "강남구",
-    transports: ["transit"],
-    isMe: true,
-  },
-  {
-    id: "2",
-    nickname: "김철수",
-    isHost: false,
-    abstractLocation: "마포구",
-    transports: ["walk", "transit"],
-  },
-  {
-    id: "3",
-    nickname: "이영희",
-    isHost: false,
-    abstractLocation: null,
-    transports: [],
-  },
-];
+type ParticipantWithUser = Awaited<
+  ReturnType<typeof getParticipants>
+>["participants"][number]
 
 const MOCK_PLACES: RecommendedPlace[] = [
   {
@@ -210,9 +183,11 @@ interface ScheduleViewProps {
   readonly placeAddress: string;
   readonly roomCode: string;
   readonly onReset: () => void;
+  readonly participants: ParticipantWithUser[];
+  readonly currentUserId: string | undefined;
 }
 
-function ScheduleView({ placeName, placeAddress, roomCode, onReset }: ScheduleViewProps) {
+function ScheduleView({ placeName, placeAddress, roomCode, onReset, participants, currentUserId }: ScheduleViewProps) {
   return (
     <div className="w-full flex-1">
       <div className="mx-auto flex min-h-[calc(100dvh-56px)] max-w-[576px] flex-col px-6 py-12 items-center">
@@ -254,7 +229,7 @@ function ScheduleView({ placeName, placeAddress, roomCode, onReset }: ScheduleVi
             참가자 확인
           </p>
           <div className="flex gap-2 flex-wrap">
-            {MOCK_PARTICIPANTS.map((p) => (
+            {participants.map((p) => (
               <div
                 key={p.id}
                 className="flex items-center gap-2 bg-white border border-hairline rounded-full px-3 py-1.5"
@@ -262,12 +237,12 @@ function ScheduleView({ placeName, placeAddress, roomCode, onReset }: ScheduleVi
                 <div
                   className={[
                     "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold",
-                    p.isMe ? "bg-accent text-white" : "bg-surface-3 text-ink-muted",
+                    p.userId === currentUserId ? "bg-accent text-white" : "bg-surface-3 text-ink-muted",
                   ].join(" ")}
                 >
-                  {p.nickname.charAt(0)}
+                  {p.user.nickname.charAt(0)}
                 </div>
-                <span className="text-[12px] font-medium text-ink">{p.nickname}</span>
+                <span className="text-[12px] font-medium text-ink">{p.user.nickname}</span>
               </div>
             ))}
           </div>
@@ -291,13 +266,14 @@ function ScheduleView({ placeName, placeAddress, roomCode, onReset }: ScheduleVi
 /* ── Room summary pane — left side after results arrive ──────────────── */
 
 interface RoomSummaryPaneProps {
-  readonly participants: MockParticipant[];
+  readonly participants: ParticipantWithUser[];
   readonly locationSaved: boolean;
   readonly readyCount: number;
   readonly totalCount: number;
   readonly selectedPlaceName: string | null;
   readonly onConfirm: (() => void) | undefined;
   readonly onRerun: () => void;
+  readonly currentUserId: string | undefined
 }
 
 function RoomSummaryPane({
@@ -308,7 +284,9 @@ function RoomSummaryPane({
   selectedPlaceName,
   onConfirm,
   onRerun,
+  currentUserId
 }: RoomSummaryPaneProps) {
+  
   return (
     <div className="h-full overflow-y-auto px-6 lg:px-8 py-8 bg-[#FAF9F6] border-r border-hairline">
 
@@ -319,19 +297,19 @@ function RoomSummaryPane({
         </p>
         <div className="space-y-2">
           {participants.map((p) => {
-            const isReady = p.isMe ? locationSaved : p.abstractLocation !== null;
+            const isReady = p.userId === currentUserId ? locationSaved : p.abstractLocation !== null;
             return (
               <div key={p.id} className="flex items-center gap-2.5">
                 <div
                   className={[
                     "w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0",
-                    p.isMe ? "bg-accent text-white" : "bg-surface-3 text-ink-muted",
+                    p.userId === currentUserId ? "bg-accent text-white" : "bg-surface-3 text-ink-muted",
                   ].join(" ")}
                 >
-                  {p.nickname.charAt(0)}
+                  {p.user.nickname.charAt(0)}
                 </div>
                 <span className="text-[13px] font-medium text-ink flex-1 truncate">
-                  {p.nickname}
+                  {p.user.nickname}
                 </span>
                 <span
                   className={[
@@ -398,11 +376,12 @@ function RoomSummaryPane({
 interface SherlockAmbientSidebarProps {
   readonly readyCount: number;
   readonly totalCount: number;
-  readonly participants: MockParticipant[];
+  readonly participants: ParticipantWithUser[];
   readonly locationSaved: boolean;
   readonly allReady: boolean;
   readonly isCurrentUserHost: boolean;
   readonly onRunSherlock: () => void;
+  readonly currentUserId: string | undefined;
 }
 
 function SherlockAmbientSidebar({
@@ -413,6 +392,7 @@ function SherlockAmbientSidebar({
   allReady,
   isCurrentUserHost,
   onRunSherlock,
+  currentUserId,
 }: SherlockAmbientSidebarProps) {
   return (
     <div className="h-full overflow-y-auto px-8 py-10 bg-[#FAF9F6] flex flex-col">
@@ -432,7 +412,7 @@ function SherlockAmbientSidebar({
       {/* Participant status */}
       <div className="space-y-3 mb-7">
         {participants.map((p) => {
-          const isReady = p.isMe ? locationSaved : p.abstractLocation !== null;
+          const isReady = p.userId === currentUserId ? locationSaved : p.abstractLocation !== null;
           return (
             <div key={p.id} className="flex items-center gap-3">
               <div
@@ -442,7 +422,7 @@ function SherlockAmbientSidebar({
                 ].join(" ")}
               />
               <span className="text-[13px] text-ink-muted font-medium flex-1">
-                {p.nickname}
+                {p.user.nickname}
               </span>
               {p.isHost && (
                 <span className="text-[10px] font-bold text-accent bg-accent-light px-2 py-0.5 rounded-full">
@@ -538,6 +518,7 @@ export default function RoomPage() {
 
   /* ── Date modal state ── */
   const [showDateModal, setShowDateModal] = useState(false);
+  const [isScheduleSubmitting, setIsScheduleSubmitting] = useState(false);
 
   /* ── Zustand ── */
   const sherlockPlaces = useMapStore((s) => s.recommendedPlaces);
@@ -553,11 +534,54 @@ export default function RoomPage() {
   const setSchedule = useScheduleStore((s) => s.setSchedule);
   const clearSchedule = useScheduleStore((s) => s.clearSchedule);
 
-  const addActiveRoom = useRoomStore((s) => s.addActiveRoom)
-  const removeActiveRoom = useRoomStore((s) => s.removeActiveRoom)
+  const addActiveRoom = useRoomStore((s) => s.addActiveRoom);
+  const [participants, setParticipants] = useState<ParticipantWithUser[]>([]);
+  const [isHost, setIsHost] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const currentUserId = useUserStore((s) => s.userInfo?.myId)
+  const isMe = (p: ParticipantWithUser) => p.userId === currentUserId;
 
   useEffect(() => {
-    addActiveRoom(roomCode)
+    async function participant() {
+      const { isHost: host, savedPreference } = await joinRoom(roomCode);
+      const { participants: fetchedParticipants } = await getParticipants(roomCode);
+
+      setIsHost(host);
+      setParticipants(fetchedParticipants);
+
+      // 새로고침해도 이전에 저장한 선호 복원
+      if (savedPreference) {
+        setMyLocation(savedPreference.abstractLocation);
+        setMyTransports(savedPreference.transports as Transport[]);
+        if (savedPreference.distanceTolerance)
+          setMyDistance(savedPreference.distanceTolerance as DistanceTolerance);
+        if (savedPreference.atmospherePreference)
+          setMyAtmosphere(savedPreference.atmospherePreference as AtmospherePreference);
+        setLocationSaved(true);
+      }
+
+      // 이 방에 이미 확정된 일정이 있으면 ScheduleView로 복원 (Zustand 리셋 대응)
+      const existing = await getScheduleByRoomCode(roomCode);
+      if (existing) {
+        setSchedule({
+          scheduleId: existing.id,
+          roomCode,
+          placeName: existing.placeName,
+          placeAddress: existing.placeAddress,
+          lat: existing.lat,
+          lng: existing.lng,
+          title: existing.title,
+          scheduledAt: existing.scheduledAt,
+          memo: existing.memo ?? "",
+        });
+      }
+
+      setIsLoading(false);
+    }
+
+    participant();
+    addActiveRoom(roomCode);
     // TODO: 방 만료 시 removeActiveRoom(roomCode) 호출
 
     return () => {
@@ -567,11 +591,9 @@ export default function RoomPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomCode]);
 
-  const readyCount = locationSaved ? 3 : 2;
-  const totalCount = MOCK_PARTICIPANTS.length;
-  const allReady = readyCount === totalCount;
-  const isCurrentUserHost = MOCK_PARTICIPANTS.find((p) => p.isMe)?.isHost ?? false;
-
+  const readyCount = participants.filter(p => p.abstractLocation).length;
+  const totalCount = participants.length;
+  const allReady = totalCount > 0 && readyCount === totalCount;
   /*
    * hasResults drives the grid transition.
    * True as soon as Sherlock fires (loading or done) so the pane expands
@@ -581,14 +603,25 @@ export default function RoomPage() {
 
   /* ── Handlers ── */
 
-  function handleSaveLocation() {
+  async function handleSaveLocation() {
     if (!myLocation.trim()) { setLocationError("지역명을 입력해주세요"); return; }
     if (myTransports.length === 0) { setLocationError("교통수단을 하나 이상 선택해주세요"); return; }
     if (!myDistance) { setLocationError("이동 거리 선호를 선택해주세요"); return; }
     if (!myAtmosphere) { setLocationError("분위기 선호를 선택해주세요"); return; }
     setLocationError(null);
-    setLocationSaved(true);
+
+    await savePreference({
+      roomCode,
+      abstractLocation: myLocation,
+      lat: 0,
+      lng: 0,
+      transports: myTransports,
+      distanceTolerance: myDistance ?? undefined,
+      atmospherePreference: myAtmosphere ?? undefined
+    })
+    setLocationSaved(true)
   }
+
 
   async function handleRunSherlock() {
     /* Open mobile sheet; desktop grid handles itself via hasResults */
@@ -609,15 +642,27 @@ export default function RoomPage() {
     setShowDateModal(true);
   }
 
-  function handleScheduleCreate(data: {
+  async function handleScheduleCreate(data: {
     title: string;
     scheduledAt: string;
     memo: string;
   }) {
     if (!selectedPlace.placeId) return;
-    const mockId = crypto.randomUUID();
+    setIsScheduleSubmitting(true);
+
+    const { id } = await createSchedule({
+      roomCode,
+      title: data.title,
+      placeName: selectedPlace.placeName,
+      placeAddress: selectedPlace.placeAddress,
+      lat: selectedPlace.lat,
+      lng: selectedPlace.lng,
+      scheduledAt: data.scheduledAt,
+      memo: data.memo,
+    });
+
     setSchedule({
-      scheduleId: mockId,
+      scheduleId: id,
       roomCode,
       placeName: selectedPlace.placeName,
       placeAddress: selectedPlace.placeAddress,
@@ -629,7 +674,7 @@ export default function RoomPage() {
     });
     setSherlockOpen(false);
     setShowDateModal(false);
-    router.push(`/calendar/${mockId}`);
+    router.push(`/calendar/${id}`);
   }
 
   function handleCopyCode() {
@@ -659,6 +704,8 @@ export default function RoomPage() {
           placeAddress={scheduleInfo.placeAddress}
           roomCode={roomCode}
           onReset={() => router.push("/room/create")}
+          participants={participants}
+          currentUserId={currentUserId}
         />
       </>
     );
@@ -724,13 +771,14 @@ export default function RoomPage() {
           {hasResults ? (
             /* ── Room summary (after results) ── */
             <RoomSummaryPane
-              participants={MOCK_PARTICIPANTS}
+              participants={participants}
               locationSaved={locationSaved}
               readyCount={readyCount}
               totalCount={totalCount}
               selectedPlaceName={selectedPlace.placeId ? selectedPlace.placeName : null}
               onConfirm={selectedPlace.placeId ? handleConfirmPlace : undefined}
               onRerun={handleRerun}
+              currentUserId={currentUserId}
             />
           ) : (
             /* ── Participant preferences (before results) ── */
@@ -748,23 +796,29 @@ export default function RoomPage() {
                     </span>
                   </div>
                   <div className="space-y-2">
-                    {MOCK_PARTICIPANTS.map((p, idx) => (
+                    {isLoading ? (
+                      /* Skeleton while joinRoom + getParticipants resolve */
+                      [0, 1].map((i) => (
+                        <div key={i} className="h-12 rounded-xl bg-surface-3 animate-pulse" />
+                      ))
+                    ) : participants.map((p, idx) => (
                       <ParticipantCard
                         key={p.id}
-                        nickname={p.nickname}
-                        isHost={p.isHost}
+                        nickname={p.user.nickname}
+                        isHost={isHost}
                         abstractLocation={
-                          p.isMe
+                          isMe(p)
                             ? locationSaved ? myLocation : undefined
                             : (p.abstractLocation ?? undefined)
                         }
-                        transports={p.isMe ? (locationSaved ? myTransports : []) : p.transports}
-                        isReady={p.isMe ? locationSaved : p.abstractLocation !== null}
-                        isMe={p.isMe}
+                        transports={isMe(p) ? (locationSaved ? myTransports : []) : p.transports as Transport[]}
+                        isReady={isMe(p) ? locationSaved : p.abstractLocation !== null}
+                        isMe={isMe(p)}
                         animationDelay={`${idx * 0.06}s`}
                       />
                     ))}
                   </div>
+
                 </div>
 
                 <div className="h-px bg-hairline mb-8" />
@@ -933,7 +987,7 @@ export default function RoomPage() {
               onRegenerate={handleRerun}
               onConfirm={selectedPlace.placeId ? handleConfirmPlace : undefined}
               isLoading={sherlockLoading}
-              participantCount={MOCK_PARTICIPANTS.length}
+              participantCount={participants.length}
             />
           ) : (
             /*
@@ -943,11 +997,12 @@ export default function RoomPage() {
             <SherlockAmbientSidebar
               readyCount={readyCount}
               totalCount={totalCount}
-              participants={MOCK_PARTICIPANTS}
+              participants={participants}
               locationSaved={locationSaved}
               allReady={allReady}
-              isCurrentUserHost={isCurrentUserHost}
+              isCurrentUserHost={isHost}
               onRunSherlock={handleRunSherlock}
+              currentUserId={currentUserId}
             />
           )}
         </div>
@@ -955,7 +1010,7 @@ export default function RoomPage() {
 
       {/* ── Mobile: sticky bottom CTA ─────────────────────────────── */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 px-5 pb-safe pb-5 bg-gradient-to-t from-canvas from-80% to-transparent pt-4">
-        {isCurrentUserHost ? (
+        {isHost ? (
           <div
             className="rounded-[10px] overflow-hidden"
             style={allReady ? { animation: "cta-glow 2.4s ease-in-out infinite" } : undefined}
@@ -1004,7 +1059,7 @@ export default function RoomPage() {
           onRegenerate={handleRerun}
           onConfirm={selectedPlace.placeId ? handleConfirmPlace : undefined}
           isLoading={sherlockLoading}
-          participantCount={MOCK_PARTICIPANTS.length}
+          participantCount={participants.length}
         />
       </div>
 
@@ -1014,6 +1069,7 @@ export default function RoomPage() {
           placeName={selectedPlace.placeName}
           placeAddress={selectedPlace.placeAddress}
           onSubmit={handleScheduleCreate}
+          isSubmitting={isScheduleSubmitting}
           onCancel={() => setShowDateModal(false)}
         />
       )}

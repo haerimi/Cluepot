@@ -87,6 +87,39 @@ export async function createSchedule(
 
 /* ── Read ────────────────────────────────────────────────────────────────── */
 
+/** 방 코드로 일정이 확정됐는지 확인 (방 재진입 시 ScheduleView 복원용) */
+export async function getScheduleByRoomCode(roomCode: string): Promise<{
+  id: string;
+  title: string;
+  placeName: string;
+  placeAddress: string;
+  lat: number;
+  lng: number;
+  scheduledAt: string;
+  memo: string | null;
+} | null> {
+  const schedule = await prisma.schedule.findUnique({
+    where: { roomCode },
+    select: {
+      id: true,
+      title: true,
+      placeName: true,
+      placeAddress: true,
+      lat: true,
+      lng: true,
+      scheduledAt: true,
+      memo: true,
+    },
+  });
+
+  if (!schedule) return null;
+
+  return {
+    ...schedule,
+    scheduledAt: schedule.scheduledAt.toISOString(),
+  };
+}
+
 export type ScheduleListItem = {
   id: string;
   title: string;
