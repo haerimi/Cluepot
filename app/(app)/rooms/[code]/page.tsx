@@ -532,9 +532,6 @@ export default function RoomPage() {
   );
   const scheduleInfo = useScheduleStore((s) => s.scheduleInfo);
   const setSchedule = useScheduleStore((s) => s.setSchedule);
-  const clearSchedule = useScheduleStore((s) => s.clearSchedule);
-
-  const addActiveRoom = useRoomStore((s) => s.addActiveRoom);
   const [participants, setParticipants] = useState<ParticipantWithUser[]>([]);
   const [isHost, setIsHost] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -564,7 +561,7 @@ export default function RoomPage() {
       // 이 방에 이미 확정된 일정이 있으면 ScheduleView로 복원 (Zustand 리셋 대응)
       const existing = await getScheduleByRoomCode(roomCode);
       if (existing) {
-        setSchedule({
+        useScheduleStore.getState().setSchedule({
           scheduleId: existing.id,
           roomCode,
           placeName: existing.placeName,
@@ -581,20 +578,23 @@ export default function RoomPage() {
     }
 
     participant();
-    addActiveRoom(roomCode);
+    useRoomStore.getState().addActiveRoom(roomCode);
     // TODO: 방 만료 시 removeActiveRoom(roomCode) 호출
 
     return () => {
-      clearSchedule();
-      clearMap();
+      useScheduleStore.getState().clearSchedule();
+      useMapStore.getState().clearMap();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomCode]);
 
-  const readyCount = participants.filter(p => p.abstractLocation).length;
+  const readyCount = participants.filter(
+    p => p.userId === currentUserId ? locationSaved : Boolean(p.abstractLocation)
+  ).length;
   const totalCount = participants.length;
   const allReady = totalCount > 0 && readyCount === totalCount;
+  console.log(readyCount, totalCount, allReady)
   /*
+
    * hasResults drives the grid transition.
    * True as soon as Sherlock fires (loading or done) so the pane expands
    * immediately, giving the user a spatial cue that results are coming.
