@@ -7,10 +7,10 @@ import { KakaoMap } from "@/app/components/KakaoMap";
 import { Button } from "@/app/components/ui/Button";
 import {
   updateSchedule,
-  deleteSchedule,
   updateMemberStatus,
   type ScheduleDetail,
 } from "@/app/actions/schedule";
+import { leaveRoom } from "@/app/actions/rooms";
 
 /* ── Date/time formatting ────────────────────────────────────────────────── */
 
@@ -22,11 +22,11 @@ function formatDateTime(iso: string) {
     day: "numeric",
     weekday: "long",
   });
-  const h      = d.getHours();
-  const m      = d.getMinutes();
+  const h = d.getHours();
+  const m = d.getMinutes();
   const period = h < 12 ? "오전" : "오후";
-  const hour   = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  const min    = String(m).padStart(2, "0");
+  const hour = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  const min = String(m).padStart(2, "0");
   return { date: datePart, time: `${period} ${hour}:${min}` };
 }
 
@@ -48,9 +48,10 @@ function ParticipantChip({
   const statusConfig = {
     accepted: { label: "수락", bg: "bg-[#E8F5EC]", text: "text-[#1A7A35]" },
     declined: { label: "거절", bg: "bg-[#FEF2F2]", text: "text-[#DC2626]" },
-    pending:  { label: "보류", bg: "bg-surface-3",  text: "text-ink-subtle" },
+    pending: { label: "보류", bg: "bg-surface-3", text: "text-ink-subtle" },
   } as const;
-  const cfg = statusConfig[(status as keyof typeof statusConfig)] ?? statusConfig.pending;
+  const cfg =
+    statusConfig[status as keyof typeof statusConfig] ?? statusConfig.pending;
 
   return (
     <div className="flex items-center gap-2.5 py-3 px-4 bg-white rounded-xl border border-hairline">
@@ -63,10 +64,14 @@ function ParticipantChip({
         {nickname.charAt(0)}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-semibold text-ink truncate">{nickname}</p>
+        <p className="text-[13px] font-semibold text-ink truncate">
+          {nickname}
+        </p>
         {isMe && <p className="text-[10px] text-ink-tertiary">나</p>}
       </div>
-      <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${cfg.bg} ${cfg.text}`}>
+      <span
+        className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${cfg.bg} ${cfg.text}`}
+      >
         {cfg.label}
       </span>
     </div>
@@ -84,15 +89,21 @@ function EditModal({
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const [title, setTitle]   = useState(schedule.title);
-  const [dt,    setDt]      = useState(toInputDatetime(schedule.scheduledAt));
-  const [memo,  setMemo]    = useState(schedule.memo ?? "");
-  const [error, setError]   = useState<string | null>(null);
-  const [isPending, start]  = useTransition();
+  const [title, setTitle] = useState(schedule.title);
+  const [dt, setDt] = useState(toInputDatetime(schedule.scheduledAt));
+  const [memo, setMemo] = useState(schedule.memo ?? "");
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, start] = useTransition();
 
   function handleSave() {
-    if (!title.trim()) { setError("제목을 입력해주세요"); return; }
-    if (!dt)           { setError("날짜와 시간을 선택해주세요"); return; }
+    if (!title.trim()) {
+      setError("제목을 입력해주세요");
+      return;
+    }
+    if (!dt) {
+      setError("날짜와 시간을 선택해주세요");
+      return;
+    }
     setError(null);
     start(async () => {
       await updateSchedule(schedule.id, {
@@ -106,15 +117,26 @@ function EditModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
-         style={{ animation: "section-fade 0.2s ease-out both" }}>
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onClick={onClose} />
-      <div className="relative w-full sm:max-w-[440px] bg-white rounded-t-[24px] sm:rounded-2xl
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
+      style={{ animation: "section-fade 0.2s ease-out both" }}
+    >
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
+        onClick={onClose}
+      />
+      <div
+        className="relative w-full sm:max-w-[440px] bg-white rounded-t-[24px] sm:rounded-2xl
                       shadow-xl px-6 pt-6 pb-8"
-           style={{ animation: "cinematic-up 0.3s cubic-bezier(0.16,1,0.3,1) both" }}>
+        style={{
+          animation: "cinematic-up 0.3s cubic-bezier(0.16,1,0.3,1) both",
+        }}
+      >
         <div className="sm:hidden w-10 h-1 bg-hairline rounded-full mx-auto mb-5" />
 
-        <h2 className="text-[20px] font-black text-ink tracking-tight mb-6">일정 수정</h2>
+        <h2 className="text-[20px] font-black text-ink tracking-tight mb-6">
+          일정 수정
+        </h2>
 
         <div className="space-y-4">
           <div>
@@ -124,7 +146,10 @@ function EditModal({
             <input
               type="text"
               value={title}
-              onChange={(e) => { setTitle(e.target.value); setError(null); }}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                setError(null);
+              }}
               className="w-full h-11 px-4 rounded-xl border border-hairline bg-canvas text-[14px] text-ink
                          outline-none transition-all focus:ring-2 focus:ring-accent focus:border-accent focus:bg-white"
             />
@@ -136,14 +161,20 @@ function EditModal({
             <input
               type="datetime-local"
               value={dt}
-              onChange={(e) => { setDt(e.target.value); setError(null); }}
+              onChange={(e) => {
+                setDt(e.target.value);
+                setError(null);
+              }}
               className="w-full h-11 px-4 rounded-xl border border-hairline bg-canvas text-[14px] text-ink
                          outline-none transition-all focus:ring-2 focus:ring-accent focus:border-accent focus:bg-white"
             />
           </div>
           <div>
             <label className="block text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase mb-2">
-              메모 <span className="text-ink-tertiary font-normal normal-case tracking-normal">(선택)</span>
+              메모{" "}
+              <span className="text-ink-tertiary font-normal normal-case tracking-normal">
+                (선택)
+              </span>
             </label>
             <textarea
               value={memo}
@@ -157,11 +188,87 @@ function EditModal({
         </div>
 
         <div className="mt-6 flex flex-col gap-2">
-          <Button variant="primary" size="lg" fullWidth loading={isPending} onClick={handleSave}>
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            loading={isPending}
+            onClick={handleSave}
+          >
             {isPending ? "저장하는 중…" : "저장하기"}
           </Button>
-          <Button variant="ghost" size="md" fullWidth onClick={onClose} disabled={isPending}>
+          <Button
+            variant="ghost"
+            size="md"
+            fullWidth
+            onClick={onClose}
+            disabled={isPending}
+          >
             취소
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Leave confirmation ─────────────────────────────────────────────────── */
+
+function LeaveConfirm({
+  roomCode,
+  onClose,
+}: {
+  roomCode: string;
+  onClose: () => void;
+}) {
+  const router = useRouter();
+  const [isPending, start] = useTransition();
+
+  function handleLeave() {
+    start(async () => {
+      await leaveRoom(roomCode);
+      router.push("/calendar");
+    });
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center px-5"
+      style={{ animation: "section-fade 0.2s ease-out both" }}
+    >
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
+        onClick={onClose}
+      />
+      <div
+        className="relative w-full max-w-[360px] bg-white rounded-2xl shadow-xl p-7"
+        style={{ animation: "fade-up 0.25s cubic-bezier(0.16,1,0.3,1) both" }}
+      >
+        <h3 className="text-[18px] font-black text-ink mb-2">
+          해당 일정에서 나가실건가요?
+        </h3>
+        <p className="text-[13px] text-ink-subtle leading-relaxed mb-7">
+          나가게 된 일정은 복구할 수 없어요. 다른 참가자의 일정에는 영향을 주지
+          않아요.
+        </p>
+        <div className="flex gap-2">
+          <Button
+            variant="secondary"
+            size="md"
+            fullWidth
+            onClick={onClose}
+            disabled={isPending}
+          >
+            취소
+          </Button>
+          <Button
+            variant="danger"
+            size="md"
+            fullWidth
+            loading={isPending}
+            onClick={handleLeave}
+          >
+            {isPending ? "나가는 중…" : "나가기"}
           </Button>
         </div>
       </div>
@@ -172,10 +279,10 @@ function EditModal({
 /* ── Delete confirmation ─────────────────────────────────────────────────── */
 
 function DeleteConfirm({
-  scheduleId,
+  roomCode,
   onClose,
 }: {
-  scheduleId: string;
+  roomCode: string;
   onClose: () => void;
 }) {
   const router = useRouter();
@@ -183,26 +290,47 @@ function DeleteConfirm({
 
   function handleDelete() {
     start(async () => {
-      await deleteSchedule(scheduleId);
+      await leaveRoom(roomCode);
       router.push("/calendar");
     });
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-5"
-         style={{ animation: "section-fade 0.2s ease-out both" }}>
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onClick={onClose} />
-      <div className="relative w-full max-w-[360px] bg-white rounded-2xl shadow-xl p-7"
-           style={{ animation: "fade-up 0.25s cubic-bezier(0.16,1,0.3,1) both" }}>
-        <h3 className="text-[18px] font-black text-ink mb-2">일정을 삭제할까요?</h3>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center px-5"
+      style={{ animation: "section-fade 0.2s ease-out both" }}
+    >
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
+        onClick={onClose}
+      />
+      <div
+        className="relative w-full max-w-[360px] bg-white rounded-2xl shadow-xl p-7"
+        style={{ animation: "fade-up 0.25s cubic-bezier(0.16,1,0.3,1) both" }}
+      >
+        <h3 className="text-[18px] font-black text-ink mb-2">
+          일정을 삭제할까요?
+        </h3>
         <p className="text-[13px] text-ink-subtle leading-relaxed mb-7">
           삭제된 일정은 복구할 수 없어요. 모든 참가자의 일정에서도 제거돼요.
         </p>
         <div className="flex gap-2">
-          <Button variant="secondary" size="md" fullWidth onClick={onClose} disabled={isPending}>
+          <Button
+            variant="secondary"
+            size="md"
+            fullWidth
+            onClick={onClose}
+            disabled={isPending}
+          >
             취소
           </Button>
-          <Button variant="danger" size="md" fullWidth loading={isPending} onClick={handleDelete}>
+          <Button
+            variant="danger"
+            size="md"
+            fullWidth
+            loading={isPending}
+            onClick={handleDelete}
+          >
             {isPending ? "삭제 중…" : "삭제하기"}
           </Button>
         </div>
@@ -219,14 +347,15 @@ interface ScheduleDetailViewProps {
 
 export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
   const { date, time } = formatDateTime(schedule.scheduledAt);
-  const isCreator      = schedule.createdBy === schedule.currentUserId;
-  const myMember       = schedule.members.find(
+  const isCreator = schedule.createdBy === schedule.currentUserId;
+  const myMember = schedule.members.find(
     (m) => m.userId === schedule.currentUserId,
   );
 
-  const [showEdit,   setShowEdit]   = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
-  const [isPending,  start]         = useTransition();
+  const [showLeave, setShowLeave] = useState(false);
+  const [isPending, start] = useTransition();
   const router = useRouter();
 
   function handleAttendance(status: "accepted" | "declined") {
@@ -250,9 +379,21 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
             href="/calendar"
             className="inline-flex items-center gap-1.5 text-[12px] font-medium text-ink-subtle hover:text-ink transition-colors mb-6 group"
           >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"
-                 className="group-hover:-translate-x-0.5 transition-transform">
-              <path d="M9 2.5L4.5 7L9 11.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 14 14"
+              fill="none"
+              aria-hidden="true"
+              className="group-hover:-translate-x-0.5 transition-transform"
+            >
+              <path
+                d="M9 2.5L4.5 7L9 11.5"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
             모임 일정
           </Link>
@@ -275,7 +416,7 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
             </div>
 
             {/* Creator actions */}
-            {isCreator && (
+            {isCreator ? (
               <div className="flex items-center gap-2 shrink-0 mt-1">
                 <button
                   onClick={() => setShowEdit(true)}
@@ -292,6 +433,16 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
                   삭제
                 </button>
               </div>
+            ) : (
+              <div className="flex items-center gap-2 shrink-0 mt-1">
+                <button
+                  onClick={() => setShowLeave(true)}
+                  className="h-9 px-3 rounded-lg border border-hairline text-[13px] font-medium text-ink-muted
+                             hover:border-hairline-strong hover:text-ink transition-colors"
+                >
+                  나가기
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -299,7 +450,6 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
 
       {/* ── Body ── */}
       <div className="max-w-3xl mx-auto px-6 lg:px-10 py-8 space-y-10">
-
         {/* Place section */}
         <section>
           <p className="text-[10px] font-bold text-ink-tertiary tracking-[3px] uppercase mb-4">
@@ -315,12 +465,18 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
             />
             {/* Place info */}
             <div className="px-5 py-4">
-              <p className="text-[16px] font-bold text-ink mb-0.5">{schedule.placeName}</p>
-              <p className="text-[13px] text-ink-subtle">{schedule.placeAddress}</p>
+              <p className="text-[16px] font-bold text-ink mb-0.5">
+                {schedule.placeName}
+              </p>
+              <p className="text-[13px] text-ink-subtle">
+                {schedule.placeAddress}
+              </p>
               {schedule.memo && (
                 <>
                   <div className="h-px bg-hairline my-3" />
-                  <p className="text-[13px] text-ink-muted leading-relaxed">{schedule.memo}</p>
+                  <p className="text-[13px] text-ink-muted leading-relaxed">
+                    {schedule.memo}
+                  </p>
                 </>
               )}
             </div>
@@ -335,7 +491,8 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
             </p>
             <div className="flex items-center gap-1.5 text-[11px] text-ink-tertiary">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#27A644]" />
-              {schedule.members.filter((m) => m.status === "accepted").length}명 수락
+              {schedule.members.filter((m) => m.status === "accepted").length}명
+              수락
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -395,7 +552,16 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
         />
       )}
       {showDelete && (
-        <DeleteConfirm scheduleId={schedule.id} onClose={() => setShowDelete(false)} />
+        <DeleteConfirm
+          roomCode={schedule.roomCode}
+          onClose={() => setShowDelete(false)}
+        />
+      )}
+      {showLeave && (
+        <LeaveConfirm
+          roomCode={schedule.roomCode}
+          onClose={() => setShowLeave(false)}
+        />
       )}
     </div>
   );
