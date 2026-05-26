@@ -42,7 +42,7 @@ export async function createSchedule(
   // client-side (mock flow) may not yet be in the DB.
   await prisma.room.upsert({
     where: { roomCode: input.roomCode },
-    update: {},
+    update: { status: "done"},
     create: {
       roomCode: input.roomCode,
       category: input.category ?? "restaurant",
@@ -82,6 +82,7 @@ export async function createSchedule(
   });
 
   revalidatePath("/calendar");
+  revalidatePath("/rooms");
   return { id: schedule.id };
 }
 
@@ -171,6 +172,7 @@ export type ScheduleDetail = {
     profileImage: string | null;
   }[];
   currentUserId: string;
+  roomCode: string;
 };
 
 export async function getScheduleById(
@@ -211,6 +213,7 @@ export async function getScheduleById(
       profileImage: m.user.profileImage,
     })),
     currentUserId: userId,
+    roomCode: schedule.roomCode,
   };
 }
 

@@ -44,7 +44,7 @@
  * stores, so it stays in sync without any prop drilling.
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ScheduleDateModal } from "./_components/ScheduleDateModal";
@@ -63,15 +63,20 @@ import { SherlockPanel } from "@/app/components/SherlockPanel";
 import { useMapStore } from "@/store/map";
 import { useScheduleStore } from "@/store/schedule";
 import { useRoomStore } from "@/store/room";
-import { getParticipants, joinRoom, savePreference } from "@/app/actions/participant";
+import {
+  getParticipants,
+  joinRoom,
+  savePreference,
+} from "@/app/actions/participant";
 import { createSchedule, getScheduleByRoomCode } from "@/app/actions/schedule";
 import { useUserStore } from "@/store/user";
+import { validateRoom } from "@/app/actions/rooms";
 
 /* ── Inferred type from server action ────────────────────────────────── */
 
 type ParticipantWithUser = Awaited<
   ReturnType<typeof getParticipants>
->["participants"][number]
+>["participants"][number];
 
 const MOCK_PLACES: RecommendedPlace[] = [
   {
@@ -94,7 +99,11 @@ const MOCK_PLACES: RecommendedPlace[] = [
     ],
     reviewIntelligence: {
       authenticCount: 124,
-      pros: ["조용해서 대화하기 좋아요", "음식이 일관되게 맛있어요", "자리 여유가 있는 편이에요"],
+      pros: [
+        "조용해서 대화하기 좋아요",
+        "음식이 일관되게 맛있어요",
+        "자리 여유가 있는 편이에요",
+      ],
       cons: ["점심 시간대는 기다릴 수 있어요"],
     },
   },
@@ -118,7 +127,11 @@ const MOCK_PLACES: RecommendedPlace[] = [
     ],
     reviewIntelligence: {
       authenticCount: 87,
-      pros: ["감성적인 공간으로 오래 있기 좋아요", "커피 퀄리티가 뛰어나요", "직원이 친절하고 조용해요"],
+      pros: [
+        "감성적인 공간으로 오래 있기 좋아요",
+        "커피 퀄리티가 뛰어나요",
+        "직원이 친절하고 조용해요",
+      ],
       cons: ["음료 가격이 다소 높아요", "주말 오후에는 자리 경쟁이 있어요"],
     },
   },
@@ -187,11 +200,17 @@ interface ScheduleViewProps {
   readonly currentUserId: string | undefined;
 }
 
-function ScheduleView({ placeName, placeAddress, roomCode, onReset, participants, currentUserId }: ScheduleViewProps) {
+function ScheduleView({
+  placeName,
+  placeAddress,
+  roomCode,
+  onReset,
+  participants,
+  currentUserId,
+}: ScheduleViewProps) {
   return (
     <div className="w-full flex-1">
       <div className="mx-auto flex min-h-[calc(100dvh-56px)] max-w-[576px] flex-col px-6 py-12 items-center">
-
         {/* Icon */}
         <div className="w-16 h-16 rounded-full bg-[#E8F5EC] flex items-center justify-center text-[32px] mb-8">
           ✅
@@ -207,10 +226,14 @@ function ScheduleView({ placeName, placeAddress, roomCode, onReset, participants
         {/* Confirmed card */}
         <div className="w-full bg-white rounded-2xl border border-hairline shadow-md p-6 mb-6">
           <div className="flex items-center gap-2 mb-4">
-            <Badge variant="success" dot>확정</Badge>
+            <Badge variant="success" dot>
+              확정
+            </Badge>
             <Badge variant="muted">모임 {roomCode}</Badge>
           </div>
-          <h3 className="text-[22px] font-black text-ink tracking-tight mb-1">{placeName}</h3>
+          <h3 className="text-[22px] font-black text-ink tracking-tight mb-1">
+            {placeName}
+          </h3>
           <p className="text-[13px] text-ink-subtle mb-5">{placeAddress}</p>
           <div className="h-px bg-[#F0EDE7] mb-5" />
           <div className="flex gap-2">
@@ -237,12 +260,16 @@ function ScheduleView({ placeName, placeAddress, roomCode, onReset, participants
                 <div
                   className={[
                     "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold",
-                    p.userId === currentUserId ? "bg-accent text-white" : "bg-surface-3 text-ink-muted",
+                    p.userId === currentUserId
+                      ? "bg-accent text-white"
+                      : "bg-surface-3 text-ink-muted",
                   ].join(" ")}
                 >
                   {p.user.nickname.charAt(0)}
                 </div>
-                <span className="text-[12px] font-medium text-ink">{p.user.nickname}</span>
+                <span className="text-[12px] font-medium text-ink">
+                  {p.user.nickname}
+                </span>
               </div>
             ))}
           </div>
@@ -252,7 +279,9 @@ function ScheduleView({ placeName, placeAddress, roomCode, onReset, participants
 
         <div className="flex flex-col gap-3 w-full">
           <Link href="/">
-            <Button variant="primary" size="lg" fullWidth>홈으로 돌아가기</Button>
+            <Button variant="primary" size="lg" fullWidth>
+              홈으로 돌아가기
+            </Button>
           </Link>
           <Button variant="ghost" size="md" fullWidth onClick={onReset}>
             새 모임 만들기
@@ -273,7 +302,7 @@ interface RoomSummaryPaneProps {
   readonly selectedPlaceName: string | null;
   readonly onConfirm: (() => void) | undefined;
   readonly onRerun: () => void;
-  readonly currentUserId: string | undefined
+  readonly currentUserId: string | undefined;
 }
 
 function RoomSummaryPane({
@@ -284,12 +313,10 @@ function RoomSummaryPane({
   selectedPlaceName,
   onConfirm,
   onRerun,
-  currentUserId
+  currentUserId,
 }: RoomSummaryPaneProps) {
-  
   return (
     <div className="h-full overflow-y-auto px-6 lg:px-8 py-8 bg-[#FAF9F6] border-r border-hairline">
-
       {/* Participants compact */}
       <div className="mb-6">
         <p className="text-[10px] font-bold text-ink-tertiary tracking-[2px] uppercase mb-4">
@@ -297,13 +324,18 @@ function RoomSummaryPane({
         </p>
         <div className="space-y-2">
           {participants.map((p) => {
-            const isReady = p.userId === currentUserId ? locationSaved : p.abstractLocation !== null;
+            const isReady =
+              p.userId === currentUserId
+                ? locationSaved
+                : p.abstractLocation !== null;
             return (
               <div key={p.id} className="flex items-center gap-2.5">
                 <div
                   className={[
                     "w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0",
-                    p.userId === currentUserId ? "bg-accent text-white" : "bg-surface-3 text-ink-muted",
+                    p.userId === currentUserId
+                      ? "bg-accent text-white"
+                      : "bg-surface-3 text-ink-muted",
                   ].join(" ")}
                 >
                   {p.user.nickname.charAt(0)}
@@ -396,7 +428,6 @@ function SherlockAmbientSidebar({
 }: SherlockAmbientSidebarProps) {
   return (
     <div className="h-full overflow-y-auto px-8 py-10 bg-[#FAF9F6] flex flex-col">
-
       {/* Header */}
       <div className="mb-7">
         <h2 className="text-[15px] font-black text-ink tracking-tight mb-1.5">
@@ -412,7 +443,10 @@ function SherlockAmbientSidebar({
       {/* Participant status */}
       <div className="space-y-3 mb-7">
         {participants.map((p) => {
-          const isReady = p.userId === currentUserId ? locationSaved : p.abstractLocation !== null;
+          const isReady =
+            p.userId === currentUserId
+              ? locationSaved
+              : p.abstractLocation !== null;
           return (
             <div key={p.id} className="flex items-center gap-3">
               <div
@@ -460,7 +494,11 @@ function SherlockAmbientSidebar({
         {isCurrentUserHost ? (
           <div
             className="rounded-[10px] overflow-hidden"
-            style={allReady ? { animation: "cta-glow 2.4s ease-in-out infinite" } : undefined}
+            style={
+              allReady
+                ? { animation: "cta-glow 2.4s ease-in-out infinite" }
+                : undefined
+            }
           >
             <Button
               variant="primary"
@@ -481,7 +519,9 @@ function SherlockAmbientSidebar({
                 <div
                   key={d}
                   className="w-1.5 h-1.5 rounded-full bg-accent"
-                  style={{ animation: `dot-bounce 1.2s ease-in-out ${d}s infinite` }}
+                  style={{
+                    animation: `dot-bounce 1.2s ease-in-out ${d}s infinite`,
+                  }}
                 />
               ))}
             </div>
@@ -500,13 +540,17 @@ function SherlockAmbientSidebar({
 export default function RoomPage() {
   const params = useParams();
   const router = useRouter();
-  const roomCode = decodeURIComponent((params?.code as string) ?? "").toUpperCase();
+  const roomCode = decodeURIComponent(
+    (params?.code as string) ?? "",
+  ).toUpperCase();
 
   /* ── Local form state ── */
   const [myLocation, setMyLocation] = useState("");
   const [myTransports, setMyTransports] = useState<Transport[]>([]);
   const [myDistance, setMyDistance] = useState<DistanceTolerance | null>(null);
-  const [myAtmosphere, setMyAtmosphere] = useState<AtmospherePreference | null>(null);
+  const [myAtmosphere, setMyAtmosphere] = useState<AtmospherePreference | null>(
+    null,
+  );
   const [locationSaved, setLocationSaved] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
 
@@ -536,13 +580,15 @@ export default function RoomPage() {
   const [isHost, setIsHost] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const currentUserId = useUserStore((s) => s.userInfo?.myId)
+  const currentUserId = useUserStore((s) => s.userInfo?.myId);
   const isMe = (p: ParticipantWithUser) => p.userId === currentUserId;
+  const expiryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     async function participant() {
       const { isHost: host, savedPreference } = await joinRoom(roomCode);
-      const { participants: fetchedParticipants } = await getParticipants(roomCode);
+      const { participants: fetchedParticipants } =
+        await getParticipants(roomCode);
 
       setIsHost(host);
       setParticipants(fetchedParticipants);
@@ -554,7 +600,9 @@ export default function RoomPage() {
         if (savedPreference.distanceTolerance)
           setMyDistance(savedPreference.distanceTolerance as DistanceTolerance);
         if (savedPreference.atmospherePreference)
-          setMyAtmosphere(savedPreference.atmospherePreference as AtmospherePreference);
+          setMyAtmosphere(
+            savedPreference.atmospherePreference as AtmospherePreference,
+          );
         setLocationSaved(true);
       }
 
@@ -581,18 +629,46 @@ export default function RoomPage() {
     useRoomStore.getState().addActiveRoom(roomCode);
     // TODO: 방 만료 시 removeActiveRoom(roomCode) 호출
 
+    async function checkAndWatch() {
+      // 1. 만료 되었는지 확인
+      const result = await validateRoom(roomCode);
+
+      if (!result.valid) {
+        useRoomStore.getState().removeActiveRoom(roomCode)
+        router.push("/");
+        return;
+      }
+
+      // 2. 유효한 roomCode -> activeRooms에 추가
+      useRoomStore.getState().addActiveRoom(roomCode);
+
+      // 3. 만료 시점 타이머 설정
+      const remaining = new Date(result.expiresAt!).getTime() - Date.now();
+      if (remaining > 0) {
+        expiryTimerRef.current = setTimeout(() => {
+          useRoomStore.getState().removeActiveRoom(roomCode);
+          router.push("/");
+        }, remaining);
+      } else {
+        useRoomStore.getState().removeActiveRoom(roomCode);
+        router.push("/");
+      }
+    }
+
+    checkAndWatch();
+
     return () => {
       useScheduleStore.getState().clearSchedule();
       useMapStore.getState().clearMap();
     };
   }, [roomCode]);
 
-  const readyCount = participants.filter(
-    p => p.userId === currentUserId ? locationSaved : Boolean(p.abstractLocation)
+  const readyCount = participants.filter((p) =>
+    p.userId === currentUserId ? locationSaved : Boolean(p.abstractLocation),
   ).length;
   const totalCount = participants.length;
   const allReady = totalCount > 0 && readyCount === totalCount;
-  console.log(readyCount, totalCount, allReady)
+  console.log(readyCount, totalCount, allReady);
   /*
 
    * hasResults drives the grid transition.
@@ -604,10 +680,22 @@ export default function RoomPage() {
   /* ── Handlers ── */
 
   async function handleSaveLocation() {
-    if (!myLocation.trim()) { setLocationError("지역명을 입력해주세요"); return; }
-    if (myTransports.length === 0) { setLocationError("교통수단을 하나 이상 선택해주세요"); return; }
-    if (!myDistance) { setLocationError("이동 거리 선호를 선택해주세요"); return; }
-    if (!myAtmosphere) { setLocationError("분위기 선호를 선택해주세요"); return; }
+    if (!myLocation.trim()) {
+      setLocationError("지역명을 입력해주세요");
+      return;
+    }
+    if (myTransports.length === 0) {
+      setLocationError("교통수단을 하나 이상 선택해주세요");
+      return;
+    }
+    if (!myDistance) {
+      setLocationError("이동 거리 선호를 선택해주세요");
+      return;
+    }
+    if (!myAtmosphere) {
+      setLocationError("분위기 선호를 선택해주세요");
+      return;
+    }
     setLocationError(null);
 
     await savePreference({
@@ -617,11 +705,10 @@ export default function RoomPage() {
       lng: 0,
       transports: myTransports,
       distanceTolerance: myDistance ?? undefined,
-      atmospherePreference: myAtmosphere ?? undefined
-    })
-    setLocationSaved(true)
+      atmospherePreference: myAtmosphere ?? undefined,
+    });
+    setLocationSaved(true);
   }
-
 
   async function handleRunSherlock() {
     /* Open mobile sheet; desktop grid handles itself via hasResults */
@@ -696,7 +783,9 @@ export default function RoomPage() {
       <>
         {/* Slim context header */}
         <header className="flex items-center justify-between px-6 lg:px-10 h-14 border-b border-hairline shrink-0">
-          <Badge variant="success" dot>모임 확정됨</Badge>
+          <Badge variant="success" dot>
+            모임 확정됨
+          </Badge>
           <Badge variant="muted">{roomCode}</Badge>
         </header>
         <ScheduleView
@@ -768,13 +857,13 @@ export default function RoomPage() {
             : "lg:grid lg:grid-cols-[1fr_360px]",
         ].join(" ")}
         style={{
-          transition: "grid-template-columns 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
+          transition:
+            "grid-template-columns 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
         }}
       >
         {/* ── Left pane ─────────────────────────────────────────────── */}
         {/* flex-1 fills the flex-col parent on mobile; ignored by grid on desktop */}
         <div className="flex-1  min-w-0  flex flex-col overflow-y-auto lg:border-r border-hairline pb-36 lg:pb-0">
-
           {/* Content changes based on whether results have arrived */}
           {hasResults ? (
             /* ── Room summary (after results) ── */
@@ -783,7 +872,9 @@ export default function RoomPage() {
               locationSaved={locationSaved}
               readyCount={readyCount}
               totalCount={totalCount}
-              selectedPlaceName={selectedPlace.placeId ? selectedPlace.placeName : null}
+              selectedPlaceName={
+                selectedPlace.placeId ? selectedPlace.placeName : null
+              }
               onConfirm={selectedPlace.placeId ? handleConfirmPlace : undefined}
               onRerun={handleRerun}
               currentUserId={currentUserId}
@@ -792,7 +883,6 @@ export default function RoomPage() {
             /* ── Participant preferences (before results) ── */
             <div className="px-6 lg:px-10 py-8 lg:py-10">
               <div className="w-full max-w-xl lg:max-w-2xl mx-auto">
-
                 {/* Participants */}
                 <div className="mb-8">
                   <div className="flex items-center gap-3 mb-5">
@@ -804,29 +894,43 @@ export default function RoomPage() {
                     </span>
                   </div>
                   <div className="space-y-2">
-                    {isLoading ? (
-                      /* Skeleton while joinRoom + getParticipants resolve */
-                      [0, 1].map((i) => (
-                        <div key={i} className="h-12 rounded-xl bg-surface-3 animate-pulse" />
-                      ))
-                    ) : participants.map((p, idx) => (
-                      <ParticipantCard
-                        key={p.id}
-                        nickname={p.user.nickname}
-                        isHost={isHost}
-                        abstractLocation={
-                          isMe(p)
-                            ? locationSaved ? myLocation : undefined
-                            : (p.abstractLocation ?? undefined)
-                        }
-                        transports={isMe(p) ? (locationSaved ? myTransports : []) : p.transports as Transport[]}
-                        isReady={isMe(p) ? locationSaved : p.abstractLocation !== null}
-                        isMe={isMe(p)}
-                        animationDelay={`${idx * 0.06}s`}
-                      />
-                    ))}
+                    {isLoading
+                      ? /* Skeleton while joinRoom + getParticipants resolve */
+                        [0, 1].map((i) => (
+                          <div
+                            key={i}
+                            className="h-12 rounded-xl bg-surface-3 animate-pulse"
+                          />
+                        ))
+                      : participants.map((p, idx) => (
+                          <ParticipantCard
+                            key={p.id}
+                            nickname={p.user.nickname}
+                            isHost={isHost}
+                            abstractLocation={
+                              isMe(p)
+                                ? locationSaved
+                                  ? myLocation
+                                  : undefined
+                                : (p.abstractLocation ?? undefined)
+                            }
+                            transports={
+                              isMe(p)
+                                ? locationSaved
+                                  ? myTransports
+                                  : []
+                                : (p.transports as Transport[])
+                            }
+                            isReady={
+                              isMe(p)
+                                ? locationSaved
+                                : p.abstractLocation !== null
+                            }
+                            isMe={isMe(p)}
+                            animationDelay={`${idx * 0.06}s`}
+                          />
+                        ))}
                   </div>
-
                 </div>
 
                 <div className="h-px bg-hairline mb-8" />
@@ -846,7 +950,10 @@ export default function RoomPage() {
                       <input
                         type="text"
                         value={myLocation}
-                        onChange={(e) => { setMyLocation(e.target.value); setLocationError(null); }}
+                        onChange={(e) => {
+                          setMyLocation(e.target.value);
+                          setLocationError(null);
+                        }}
                         placeholder="예: 강남구, 홍대, 잠실"
                         className={[
                           "w-full h-12 px-4 rounded-xl border text-[15px]",
@@ -866,9 +973,14 @@ export default function RoomPage() {
                         <label className="text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase">
                           이동 가능한 교통수단
                         </label>
-                        <span className="text-[10px] text-ink-tertiary">여러 개 선택 가능</span>
+                        <span className="text-[10px] text-ink-tertiary">
+                          여러 개 선택 가능
+                        </span>
                       </div>
-                      <TransportPicker value={myTransports} onChange={setMyTransports} />
+                      <TransportPicker
+                        value={myTransports}
+                        onChange={setMyTransports}
+                      />
                     </div>
 
                     {/* Distance */}
@@ -883,7 +995,10 @@ export default function RoomPage() {
                             <button
                               key={opt.value}
                               type="button"
-                              onClick={() => { setMyDistance(opt.value); setLocationError(null); }}
+                              onClick={() => {
+                                setMyDistance(opt.value);
+                                setLocationError(null);
+                              }}
                               className={[
                                 "flex flex-col items-center gap-1 flex-1 py-3 rounded-[10px] border text-center transition-all duration-150",
                                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
@@ -892,11 +1007,20 @@ export default function RoomPage() {
                                   : "bg-canvas border-hairline hover:border-hairline-strong hover:bg-surface-2",
                               ].join(" ")}
                             >
-                              <span className="text-xl leading-none">{opt.emoji}</span>
-                              <span className={["text-[11px] font-semibold leading-tight mt-0.5", sel ? "text-accent" : "text-ink-muted"].join(" ")}>
+                              <span className="text-xl leading-none">
+                                {opt.emoji}
+                              </span>
+                              <span
+                                className={[
+                                  "text-[11px] font-semibold leading-tight mt-0.5",
+                                  sel ? "text-accent" : "text-ink-muted",
+                                ].join(" ")}
+                              >
                                 {opt.label}
                               </span>
-                              <span className="text-[10px] text-ink-subtle">{opt.desc}</span>
+                              <span className="text-[10px] text-ink-subtle">
+                                {opt.desc}
+                              </span>
                             </button>
                           );
                         })}
@@ -915,7 +1039,10 @@ export default function RoomPage() {
                             <button
                               key={opt.value}
                               type="button"
-                              onClick={() => { setMyAtmosphere(opt.value); setLocationError(null); }}
+                              onClick={() => {
+                                setMyAtmosphere(opt.value);
+                                setLocationError(null);
+                              }}
                               className={[
                                 "flex flex-col items-center gap-1 flex-1 py-3 rounded-[10px] border text-center transition-all duration-150",
                                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
@@ -924,8 +1051,15 @@ export default function RoomPage() {
                                   : "bg-canvas border-hairline hover:border-hairline-strong hover:bg-surface-2",
                               ].join(" ")}
                             >
-                              <span className="text-xl leading-none">{opt.emoji}</span>
-                              <span className={["text-[11px] font-semibold leading-tight mt-0.5", sel ? "text-accent" : "text-ink-muted"].join(" ")}>
+                              <span className="text-xl leading-none">
+                                {opt.emoji}
+                              </span>
+                              <span
+                                className={[
+                                  "text-[11px] font-semibold leading-tight mt-0.5",
+                                  sel ? "text-accent" : "text-ink-muted",
+                                ].join(" ")}
+                              >
                                 {opt.label}
                               </span>
                             </button>
@@ -937,11 +1071,18 @@ export default function RoomPage() {
                     {locationError && (
                       <div className="flex items-center gap-2 mb-5">
                         <span className="text-[#DC2626] text-[13px]">⚠️</span>
-                        <p className="text-[12px] text-[#DC2626]">{locationError}</p>
+                        <p className="text-[12px] text-[#DC2626]">
+                          {locationError}
+                        </p>
                       </div>
                     )}
 
-                    <Button variant="secondary" size="md" fullWidth onClick={handleSaveLocation}>
+                    <Button
+                      variant="secondary"
+                      size="md"
+                      fullWidth
+                      onClick={handleSaveLocation}
+                    >
                       선호 저장하기
                     </Button>
                   </div>
@@ -955,8 +1096,12 @@ export default function RoomPage() {
                   >
                     <span className="text-[20px]">✅</span>
                     <div>
-                      <p className="text-[14px] font-semibold text-[#1A7A35]">선호가 저장됐어요!</p>
-                      <p className="text-[12px] text-[#27A644]">모든 참가자가 준비되면 Sherlock을 실행해요</p>
+                      <p className="text-[14px] font-semibold text-[#1A7A35]">
+                        선호가 저장됐어요!
+                      </p>
+                      <p className="text-[12px] text-[#27A644]">
+                        모든 참가자가 준비되면 Sherlock을 실행해요
+                      </p>
                     </div>
                   </div>
                 )}
@@ -966,8 +1111,12 @@ export default function RoomPage() {
                   <div className="flex items-center gap-3 p-4 bg-white rounded-xl border border-hairline">
                     <span className="text-[20px]">⏳</span>
                     <div>
-                      <p className="text-[13px] font-semibold text-ink-muted">참가자 대기 중</p>
-                      <p className="text-[12px] text-ink-subtle">이영희님이 입력하면 Sherlock을 실행할 수 있어요</p>
+                      <p className="text-[13px] font-semibold text-ink-muted">
+                        참가자 대기 중
+                      </p>
+                      <p className="text-[12px] text-ink-subtle">
+                        이영희님이 입력하면 Sherlock을 실행할 수 있어요
+                      </p>
                     </div>
                   </div>
                 )}
@@ -988,7 +1137,7 @@ export default function RoomPage() {
             <SherlockPanel
               variant="inline"
               open
-              onClose={() => { }}
+              onClose={() => {}}
               places={sherlockPlaces}
               selectedPlaceId={selectedPlace.placeId}
               onSelectPlace={handleSelectPlace}
@@ -1027,7 +1176,11 @@ export default function RoomPage() {
         {isHost ? (
           <div
             className="rounded-[10px] overflow-hidden pointer-events-auto"
-            style={allReady ? { animation: "cta-glow 2.4s ease-in-out infinite" } : undefined}
+            style={
+              allReady
+                ? { animation: "cta-glow 2.4s ease-in-out infinite" }
+                : undefined
+            }
           >
             <Button
               variant="primary"
@@ -1036,7 +1189,9 @@ export default function RoomPage() {
               disabled={!allReady}
               onClick={handleRunSherlock}
             >
-              {allReady ? "Sherlock 실행하기" : `대기 중 (${readyCount}/${totalCount})`}
+              {allReady
+                ? "Sherlock 실행하기"
+                : `대기 중 (${readyCount}/${totalCount})`}
             </Button>
           </div>
         ) : (
@@ -1049,7 +1204,9 @@ export default function RoomPage() {
                 <div
                   key={d}
                   className="w-1.5 h-1.5 rounded-full bg-accent"
-                  style={{ animation: `dot-bounce 1.2s ease-in-out ${d}s infinite` }}
+                  style={{
+                    animation: `dot-bounce 1.2s ease-in-out ${d}s infinite`,
+                  }}
                 />
               ))}
             </div>
