@@ -149,7 +149,7 @@ export function RoomCard({ data }: Readonly<{ data: RoomCardData }>) {
       <div className="relative group">
 
         {/* ── 카드 본체 (Link) ── */}
-        <Link href={`/room/${room.roomCode}`} className="block">
+        <Link href={`/rooms/${room.roomCode}`} className="block">
           <div
             className={[
               "rounded-2xl overflow-hidden border border-hairline",

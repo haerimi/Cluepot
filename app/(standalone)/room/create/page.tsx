@@ -369,7 +369,7 @@ export default function CreateRoomPage() {
                   variant="primary"
                   size="lg"
                   fullWidth
-                  onClick={() => router.push(`/room/${roomCode}`)}
+                  onClick={() => router.push(`/rooms/${roomCode}`)}
                 >
                   모임 입장하기
                 </Button>

@@ -3,9 +3,9 @@ import { updateSession } from "@/util/supabase/middleware";
 
 /**
  * Protected paths — unauthenticated visitors are redirected to /login.
- * /room/create is listed here; /room/[code] is handled separately via isRoomPage.
+ * /rooms/create is listed here; /rooms/[code] is handled separately via isRoomPage.
  */
-const PROTECTED_PREFIXES = ["/calendar", "/profile", "/settings", "/room/create"];
+const PROTECTED_PREFIXES = ["/calendar", "/profile", "/settings", "/rooms/create"];
 
 /** Auth pages — authenticated users are bounced back to home. */
 const AUTH_EXACT = new Set(["/login", "/signup"]);
@@ -22,9 +22,9 @@ export async function middleware(request: NextRequest) {
 
   const { response, user } = await updateSession(request);
   const { pathname } = request.nextUrl;
-  // /room/join is public (code entry before auth). /room/[code] requires login
+  // /rooms/join is public (code entry before auth). /rooms/[code] requires login
   // because the room page reads participant data tied to the authenticated user.
-  const isRoomPage = pathname.startsWith("/room/") && pathname !== "/room/join" && !pathname.startsWith("/room/create");
+  const isRoomPage = pathname.startsWith("/rooms/") && pathname !== "/rooms/join" && !pathname.startsWith("/rooms/create");
   const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p)) || isRoomPage;
   const isAuthPage = AUTH_EXACT.has(pathname);
 

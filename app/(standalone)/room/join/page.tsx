@@ -40,7 +40,7 @@ export default function JoinRoomPage() {
     }
 
     await joinRoom(normalizedCode)
-    router.push(`/room/${normalizedCode}`);
+    router.push(`/rooms/${normalizedCode}`);
   }
 
   return (
