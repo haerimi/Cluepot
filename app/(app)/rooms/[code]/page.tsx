@@ -44,7 +44,7 @@
  * stores, so it stays in sync without any prop drilling.
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ScheduleDateModal } from "./_components/ScheduleDateModal";
@@ -70,7 +70,7 @@ import {
 } from "@/app/actions/participant";
 import { createSchedule, getScheduleByRoomCode } from "@/app/actions/schedule";
 import { useUserStore } from "@/store/user";
-import { extendRoomLink, validateRoom } from "@/app/actions/rooms";
+import { extendRoomLink, checkRoomExists } from "@/app/actions/rooms";
 
 /* ── Inferred type from server action ────────────────────────────────── */
 
@@ -744,39 +744,31 @@ export default function RoomPage() {
         });
       }
 
+      const remaining = new Date(expiry).getTime() - Date.now();
+      if (remaining <= 0) {
+        setIsExpired(true);
+      } else {
+        expiryTimerRef.current = setTimeout(() => {
+          setIsExpired(true);
+        }, remaining);
+      }
+
       setIsLoading(false);
     }
 
-    participant();
-
     async function checkAndWatch() {
-      // 방이 존재하는지만 확인 (초대코드 만료 여부와 무관하게 기존 멤버는 접속 유지)
       const { exists } = await checkRoomExists(roomCode);
 
-      if (!result.valid && !isExpired) {
-        setIsExpired(true);
+      if (!exists) {
         useRoomStore.getState().removeActiveRoom(roomCode);
+        router.push("/");
         return;
       }
 
       useRoomStore.getState().addActiveRoom(roomCode);
-      setLinkExpiresAt(result.expiresAt!);
-
-      // 3. 만료 시점 타이머 설정
-      const remaining = new Date(result.expiresAt!).getTime() - Date.now();
-      if (remaining > 0) {
-        expiryTimerRef.current = setTimeout(() => {
-        setIsExpired(true);
-        useRoomStore.getState().removeActiveRoom(roomCode);
-        }, remaining);
-      } else {
-        setIsExpired(true);
-        useRoomStore.getState().removeActiveRoom(roomCode);
-      }
     }
 
-    if(isExpired) return;
-
+    participant();
     checkAndWatch();
 
     return () => {

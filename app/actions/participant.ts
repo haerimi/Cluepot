@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/util/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { AtmospherePreference, DistanceTolerance, Transport } from "@/types/participant";
-import type { Participant } from "@/lib/generated/prisma/client";
+import type { Participant } from "@/generated/prisma/client";
 
 export async function joinRoom(roomCode: string)
     : Promise<{

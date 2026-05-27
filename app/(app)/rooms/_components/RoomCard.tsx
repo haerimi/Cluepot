@@ -197,20 +197,18 @@ export function RoomCard({ data }: Readonly<{ data: RoomCardData }>) {
               </span>
 
               {/* 호버 오버레이 */}
-              {!isExpired && (
-                <div
-                  className={[
-                    "absolute inset-0 flex items-end justify-center pb-4",
-                    "bg-black/0 group-hover:bg-black/15",
-                    "opacity-0 group-hover:opacity-100",
-                    "transition-all duration-200",
-                  ].join(" ")}
-                >
-                  <span className="text-white text-[12px] font-semibold drop-shadow">
-                    입장하기 →
-                  </span>
-                </div>
-              )}
+              <div
+                className={[
+                  "absolute inset-0 flex items-end justify-center pb-4",
+                  "bg-black/0 group-hover:bg-black/15",
+                  "opacity-0 group-hover:opacity-100",
+                  "transition-all duration-200",
+                ].join(" ")}
+              >
+                <span className="text-white text-[12px] font-semibold drop-shadow">
+                  입장하기 →
+                </span>
+              </div>
             </div>
 
             {/* 정보 영역 */}
