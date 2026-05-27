@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { login } from "@/app/actions/auth";
 
-/* ── Watson ambient orb — reused from the home hero ─────────────────── */
-function WatsonOrb() {
+/* ── PINI ambient orb — reused from the home hero ─────────────────── */
+function PiniOrb() {
   return (
     <div className="relative flex items-center justify-center w-32 h-32">
       <div
@@ -93,20 +93,20 @@ export default function LoginPage() {
 
           {/* Supporting copy */}
           <p className="text-[14px] text-[#908D87] leading-[1.85] max-w-[320px]">
-            Watson이 참가자 모두의 위치와 이동수단,
+            피니가 참가자 모두의 위치와 이동수단,
             <br />
             분위기를 분석해 공정한 장소를 찾아드려요.
           </p>
 
-          {/* Watson orb */}
-          <WatsonOrb />
+          {/* PINI orb */}
+          <PiniOrb />
         </div>
 
         {/* Bottom ambient label */}
         <div className="relative z-10 flex items-center gap-3">
           <div className="w-5 h-px bg-[#2D2B28]" />
           <span className="text-[10px] font-bold text-[#4A4740] tracking-[2.5px] uppercase">
-            Watson Mode · AI 모임 조율
+            PINI Mode · AI 모임 조율
           </span>
         </div>
       </div>
@@ -131,7 +131,7 @@ export default function LoginPage() {
           <span className="text-[#7C5CFC]">중심으로</span>
         </h1>
         <p className="mt-5 text-[13px] text-[#908D87] leading-[1.8]">
-          Watson이 공정한 모임 장소를 찾아드려요.
+          피니가 공정한 모임 장소를 찾아드려요.
         </p>
       </div>
 

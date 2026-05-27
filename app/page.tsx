@@ -5,7 +5,7 @@ import { logout } from "@/app/actions/auth";
 import { Button } from "@/app/components/ui/Button";
 
 /* ── Enlarged cinematic hero visualization ───────────────────────────────── */
-function SherlockHeroViz() {
+function PiniHeroViz() {
   return (
     <div className="relative w-full h-full min-h-[360px] lg:min-h-[560px] flex items-center justify-center overflow-hidden">
 
@@ -29,7 +29,7 @@ function SherlockHeroViz() {
       <div className="absolute w-56 h-56 lg:w-[340px] lg:h-[340px] rounded-full border border-dashed border-[#7C5CFC]/10 pointer-events-none" />
       <div className="absolute w-80 h-80 lg:w-[500px] lg:h-[500px] rounded-full border border-dashed border-[#D0CCC4]/20 pointer-events-none" />
 
-      {/* Center Sherlock orb — enlarged */}
+      {/* Center PINI orb — enlarged */}
       <div
         className="relative z-20 w-20 h-20 lg:w-28 lg:h-28 rounded-full bg-[#7C5CFC] flex items-center justify-center"
         style={{
@@ -129,7 +129,7 @@ export default async function HomePage() {
       {/* ── Fixed navigation bar ── */}
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 lg:px-16 h-14 bg-[#F4F2EE]/92 backdrop-blur-sm border-b border-[#E5E1D9]">
         <span className="text-[18px] font-black text-[#1C1A17] tracking-tight">
-          Meet<span className="text-[#7C5CFC]">Spot</span>
+          Clue<span className="text-[#7C5CFC]">Pot</span>
         </span>
         <div className="flex items-center gap-4">
           <Link
@@ -247,7 +247,7 @@ export default async function HomePage() {
           <div className="flex items-center gap-4">
             <span className="text-[11px] text-[#C4C1BC] uppercase tracking-widest font-medium">Powered by</span>
             <div className="h-px w-12 bg-[#E5E1D9]" />
-            <span className="text-[12px] font-bold text-[#7C5CFC] tracking-wide">Sherlock Mode</span>
+            <span className="text-[12px] font-bold text-[#7C5CFC] tracking-wide">PINI Mode</span>
           </div>
         </div>
 
@@ -264,7 +264,7 @@ export default async function HomePage() {
               backgroundSize: "28px 28px",
             }}
           />
-          <SherlockHeroViz />
+          <PiniHeroViz />
         </div>
       </section>
 
@@ -281,7 +281,7 @@ export default async function HomePage() {
           <div className="flex items-center gap-4 mb-14 lg:mb-20">
             <div className="w-8 h-px bg-[#7C5CFC]" />
             <span className="text-[11px] font-bold text-[#7C5CFC] tracking-[3px] uppercase">
-              Sherlock 철학
+              PINI 철학
             </span>
           </div>
 
@@ -300,7 +300,7 @@ export default async function HomePage() {
               </h2>
               <p className="text-[14px] lg:text-[15px] text-[#908D87] leading-[1.8] max-w-[320px]">
                 한 명에게 불리한 선택은 하지 않아요.
-                Sherlock은 모든 참가자의 위치·이동 방식·
+                피니는 모든 참가자의 위치·이동 방식·
                 분위기 선호를 동등하게 고려해 장소를 조율해요.
               </p>
             </div>
@@ -370,7 +370,7 @@ export default async function HomePage() {
                 <span className="text-[#7C5CFC]">읽어요</span>
               </h2>
               <p className="text-[14px] lg:text-[15px] text-[#908D87] leading-[1.8] max-w-[340px]">
-                Sherlock은 위치 데이터가 아닌 동선 패턴을 분석해요.
+                피니는 위치 데이터가 아닌 동선 패턴을 분석해요.
                 누가 어디서 오는지, 어떤 방식으로 이동하는지를 종합해
                 공정한 중간 지점을 탐색해요.
               </p>
@@ -388,7 +388,7 @@ export default async function HomePage() {
                 {
                   step: "02",
                   icon: "⚖️",
-                  title: "Sherlock 조율",
+                  title: "PINI 조율",
                   desc: "AI가 모든 참가자의 이동 균형을 계산하고, 분위기 선호를 겹쳐서 최적 후보군을 생성해요.",
                 },
                 {
@@ -401,7 +401,7 @@ export default async function HomePage() {
                   step: "04",
                   icon: "✓",
                   title: "이유와 함께 추천",
-                  desc: "왜 이 장소인지 Sherlock이 직접 설명해요. 균형도 수치와 참가자별 이동 시간을 투명하게 공개해요.",
+                  desc: "왜 이 장소인지 피니가 직접 설명해요. 균형도 수치와 참가자별 이동 시간을 투명하게 공개해요.",
                 },
               ].map((item, i) => (
                 <div
@@ -437,7 +437,7 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-0 lg:divide-x lg:divide-[#E5E1D9]">
             {[
-              { emoji: "🔍", title: "Sherlock Mode", desc: "AI 기반 공정한 장소 조율" },
+              { emoji: "🔍", title: "PINI Mode", desc: "AI 기반 공정한 장소 조율" },
               { emoji: "📍", title: "공정한 중간지점", desc: "이동 부담을 균등하게 분배" },
               { emoji: "🚇", title: "교통수단 반영", desc: "도보·지하철·자가용 모두 고려" },
               { emoji: "⚡", title: "실시간 추천", desc: "분위기·취향까지 반영한 맞춤 제안" },
@@ -509,7 +509,7 @@ export default async function HomePage() {
       <footer className="border-t border-[#E5E1D9] px-6 lg:px-16 py-8">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <span className="text-[17px] font-black text-[#1C1A17] tracking-tight">
-            Meet<span className="text-[#7C5CFC]">Spot</span>
+            Clue<span className="text-[#7C5CFC]">Pot</span>
           </span>
           <p className="text-[12px] text-[#C4C1BC]">
             카카오맵 기반 · 위치 데이터는 저장되지 않아요

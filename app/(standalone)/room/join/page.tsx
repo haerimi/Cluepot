@@ -48,7 +48,7 @@ export default function JoinRoomPage() {
       {/* Header */}
       <header className="flex items-center gap-3 px-5 pt-safe pt-4 pb-3 w-full max-w-[480px] lg:px-0 lg:mb-4">
         <Link href="/" className="text-[20px] font-black text-[#1C1A17] tracking-tight">
-          Meet<span className="text-[#7C5CFC]">Spot</span>
+          Clue<span className="text-[#7C5CFC]">Pot</span>
         </Link>
       </header>
 

@@ -161,7 +161,7 @@ function MonthEmptyState() {
       </div>
       <h3 className="text-[16px] font-bold text-ink mb-1">이달의 일정이 없어요</h3>
       <p className="text-[13px] text-ink-subtle leading-relaxed mb-7 max-w-[200px]">
-        모임을 만들고 Watson으로 장소를 확정하면 여기에 기록돼요
+        모임을 만들고 피니로 장소를 확정하면 여기에 기록돼요
       </p>
       <Link
         href="/room/create"

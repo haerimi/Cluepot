@@ -108,7 +108,7 @@ export function AppTopNav({ user }: Readonly<{ user: HydratedUser | null }>) {
           href={user ? '/calendar' : '/'}
           className="text-[16px] font-black text-[#1C1A17] tracking-tight hover:opacity-70 transition-opacity"
         >
-          Meet<span className="text-[#7C5CFC]">Spot</span>
+          Clue<span className="text-[#7C5CFC]">Pot</span>
         </Link>
 
         <div className="flex items-center gap-2.5">
@@ -163,7 +163,7 @@ export function AppTopNav({ user }: Readonly<{ user: HydratedUser | null }>) {
             {/* Drawer header */}
             <div className="flex items-center justify-between px-6 h-[52px] border-b border-[#E5E1D9] shrink-0">
               <span className="text-[16px] font-black text-[#1C1A17] tracking-tight">
-                Meet<span className="text-[#7C5CFC]">Spot</span>
+                Clue<span className="text-[#7C5CFC]">Pot</span>
               </span>
               <button
                 onClick={closeMenu}

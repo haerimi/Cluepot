@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { signup } from "@/app/actions/auth";
 
-/* ── Watson ambient orb ───────────────────────────────────────────────── */
-function WatsonOrb() {
+/* ── PINI ambient orb ───────────────────────────────────────────────── */
+function PiniOrb() {
   return (
     <div className="relative flex items-center justify-center w-32 h-32">
       <div
@@ -92,13 +92,13 @@ export default function SignupPage() {
             한 곳에서 관리할 수 있어요.
           </p>
 
-          <WatsonOrb />
+          <PiniOrb />
         </div>
 
         <div className="relative z-10 flex items-center gap-3">
           <div className="w-5 h-px bg-[#2D2B28]" />
           <span className="text-[10px] font-bold text-[#4A4740] tracking-[2.5px] uppercase">
-            Watson Mode · AI 모임 조율
+            PINI Mode · AI 모임 조율
           </span>
         </div>
       </div>

@@ -11,7 +11,7 @@ import { joinRoom } from "@/app/actions/participant";
 
 type Step = 1 | 2 | 3 | 4;
 
-const SHERLOCK_FEATURES = [
+const PINI_FEATURES = [
   {
     emoji: "⚖️",
     title: "이동 부담을 균등하게",
@@ -25,7 +25,7 @@ const SHERLOCK_FEATURES = [
   {
     emoji: "🔍",
     title: "이유를 설명해드려요",
-    desc: "왜 이 장소인지 Sherlock이 직접 설명해줘요",
+    desc: "왜 이 장소인지 피니가 직접 설명해줘요",
   },
 ] as const;
 
@@ -40,7 +40,7 @@ const CATEGORY_PLACEHOLDER: Record<string, string> = {
 const STEP_LABELS: Record<Step, string> = {
   1: "카테고리",
   2: "모임 이름",
-  3: "Sherlock 소개",
+  3: "PINI 소개",
   4: "완료",
 };
 
@@ -114,7 +114,7 @@ export default function CreateRoomPage() {
         )}
 
         <span className="text-[18px] font-black text-[#1C1A17] tracking-tight">
-          Meet<span className="text-[#7C5CFC]">Spot</span>
+          Clue<span className="text-[#7C5CFC]">Pot</span>
         </span>
       </header>
 
@@ -276,11 +276,11 @@ export default function CreateRoomPage() {
             >
               <div className="mb-10">
                 <p className="text-[11px] font-bold text-[#7C5CFC] tracking-[3px] uppercase mb-4">
-                  Step 03 · Sherlock Mode
+                  Step 03 · PINI Mode
                 </p>
 
                 <h1 className="text-[30px] sm:text-[36px] lg:text-[48px] font-black text-[#1C1A17] leading-[1.0] tracking-[-1.5px] mb-4 break-keep">
-                  Sherlock이
+                  피니가
                   <br />
                   공정하게 조율해요
                 </h1>
@@ -288,12 +288,12 @@ export default function CreateRoomPage() {
                 <p className="text-[14px] lg:text-[15px] text-[#908D87] leading-[1.75] break-keep">
                   참가자가 각자 선호를 입력하면,
                   <br />
-                  Sherlock이 모두를 위한 장소를 찾아줘요
+                  피니가 모두를 위한 장소를 찾아줘요
                 </p>
               </div>
 
               <div className="space-y-3 mb-8 min-w-0">
-                {SHERLOCK_FEATURES.map((f, i) => (
+                {PINI_FEATURES.map((f, i) => (
                   <div
                     key={f.title}
                     className="flex items-start gap-4 sm:gap-5 p-4 sm:p-5 bg-white rounded-2xl border border-[#E5E1D9] hover:border-[#D0CCC4] transition-colors min-w-0 overflow-hidden"
@@ -416,7 +416,7 @@ export default function CreateRoomPage() {
                 <div className="w-px h-3 bg-[#D0CCC4]" />
 
                 <span className="text-[13px] text-[#7C5CFC] font-semibold">
-                  🔍 Sherlock 협력 조율
+                  🔍 PINI 협력 조율
                 </span>
               </div>
 
@@ -439,7 +439,7 @@ export default function CreateRoomPage() {
                   onClick={() => {
                     if (navigator.share) {
                       navigator.share({
-                        title: "MeetSpot 모임에 참가해요",
+                        title: "CluePot 모임에 참가해요",
                         text: `모임 코드: ${roomCode}`,
                       });
                     } else {

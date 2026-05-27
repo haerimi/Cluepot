@@ -10,7 +10,7 @@ interface ParticipantInput {
     atmospherePreference: string;
 }
 
-interface WatsonRequestBody {
+interface PiniRequestBody {
     participants: ParticipantInput[];
     category: string;
     excludePlaces?: string[];
@@ -55,7 +55,7 @@ async function fetchNaverBlogReviews(placeName: string): Promise<string[]> {
 
 export async function POST(req: Request) {
     try {
-        return await runWatson(req);
+        return await runPini(req);
     } catch (err) {
         const msg = err instanceof Error ? err.message : 'AI 추천 중 오류가 발생했어요.';
         const isOverload = msg.includes('503') || msg.toLowerCase().includes('unavailable') || msg.toLowerCase().includes('high demand');
@@ -66,8 +66,8 @@ export async function POST(req: Request) {
     }
 }
 
-async function runWatson(req: Request) {
-    const { participants, category, excludePlaces } = await req.json() as WatsonRequestBody;
+async function runPini(req: Request) {
+    const { participants, category, excludePlaces } = await req.json() as PiniRequestBody;
 
     // contents에 참가자 정보 넣기
     const participantDesc = participants.map(p =>

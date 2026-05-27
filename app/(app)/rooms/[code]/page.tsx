@@ -4,24 +4,24 @@
  * Room page — cinematic desktop layout with persistent grid transition
  *
  * ── Why no modal on desktop ──────────────────────────────────────────
- * The previous SherlockPanel was a fixed overlay (z-50 backdrop + centred
+ * The previous PiniPanel was a fixed overlay (z-50 backdrop + centred
  * dialog). On a 1440 px screen that means the product's most important
  * moment — the recommendation — played inside a ~768 px window with
  * ~336 px of unused space on each side. The result felt spatially weak.
  *
- * The fix: the page OWNS two persistent panes. When Sherlock results
+ * The fix: the page OWNS two persistent panes. When PINI results
  * arrive, the grid transition swaps which pane is wide and which is
  * narrow. No modal, no backdrop, no z-index stacking.
  *
  * ── Grid transition ──────────────────────────────────────────────────
  *
  *   BEFORE results  lg:grid-cols-[1fr_360px]
- *     [ participant / preference area ] [ sherlock ambient sidebar ]
+ *     [ participant / preference area ] [ pini ambient sidebar ]
  *
  *   AFTER results   lg:grid-cols-[360px_1fr]
- *     [ room summary ] [ full sherlock results pane ← owns the space ]
+ *     [ room summary ] [ full pini results pane ← owns the space ]
  *
- * The transition is driven by `hasResults = sherlockLoading || places.length > 0`.
+ * The transition is driven by `hasResults = piniLoading || places.length > 0`.
  * CSS grid-template-columns is animatable between equal-track-count values
  * in Chromium 107+, Firefox 101+, Safari 16+. The inline `transition` style
  * uses `cubic-bezier(0.16, 1, 0.3, 1)` — an expo-out curve that makes the
@@ -32,8 +32,8 @@
  * LOCAL (this component only):
  *   myLocation, myTransports, myDistance, myAtmosphere — form inputs
  *   locationSaved, locationError                       — form UI state
- *   sherlockLoading                                    — async flag
- *   sherlockOpen                                       — MOBILE ONLY, controls bottom sheet
+ *   piniLoading                                        — async flag
+ *   piniOpen                                           — MOBILE ONLY, controls bottom sheet
  *   copied                                             — clipboard feedback
  *
  * GLOBAL (Zustand — also read by AppSidebar):
@@ -864,7 +864,7 @@ export default function RoomPage() {
       scheduledAt: data.scheduledAt,
       memo: data.memo,
     });
-    setSherlockOpen(false);
+    setPiniOpen(false);
     setShowDateModal(false);
     router.push(`/calendar/${id}`);
   }
@@ -1030,7 +1030,7 @@ export default function RoomPage() {
         style keeps the easing string readable.
 
         On mobile (< lg): grid collapses to a single column; the right
-        pane is hidden, and the mobile bottom sheet handles Sherlock.
+        pane is hidden, and the mobile bottom sheet handles PINI.
       */}
       {/*
         ── Two-pane layout ─────────────────────────────────────────────
@@ -1293,7 +1293,7 @@ export default function RoomPage() {
                         선호가 저장됐어요!
                       </p>
                       <p className="text-[12px] text-[#27A644]">
-                        모든 참가자가 준비되면 Sherlock을 실행해요
+                        모든 참가자가 준비되면 PINI를 실행해요
                       </p>
                     </div>
                     <button
@@ -1314,7 +1314,7 @@ export default function RoomPage() {
                         참가자 대기 중
                       </p>
                       <p className="text-[12px] text-ink-subtle">
-                        이영희님이 입력하면 Sherlock을 실행할 수 있어요
+                        이영희님이 입력하면 PINI를 실행할 수 있어요
                       </p>
                     </div>
                   </div>
@@ -1387,7 +1387,7 @@ export default function RoomPage() {
               size="lg"
               fullWidth
               disabled={!allReady}
-              onClick={handleRunSherlock}
+              onClick={handleRunPini}
             >
               {allReady
                 ? "PINI 실행하기"
@@ -1417,20 +1417,20 @@ export default function RoomPage() {
         )}
       </div>
 
-      {/* ── Mobile: Sherlock bottom sheet — lg:hidden so it never ── */}
+      {/* ── Mobile: PINI bottom sheet — lg:hidden so it never ── */}
       {/* ── overlays the desktop inline pane                      ── */}
       <div className="lg:hidden">
-        <SherlockPanel
+        <PiniPanel
           variant="modal"
-          open={sherlockOpen}
-          onClose={() => setSherlockOpen(false)}
-          places={sherlockPlaces}
+          open={piniOpen}
+          onClose={() => setPiniOpen(false)}
+          places={piniPlaces}
           selectedPlaceId={selectedPlace.placeId}
           onSelectPlace={handleSelectPlace}
           onRegenerate={handleRerun}
           onConfirm={selectedPlace.placeId ? handleConfirmPlace : undefined}
-          isLoading={sherlockLoading}
-          error={sherlockError}
+          isLoading={piniLoading}
+          error={piniError}
           participantCount={participants.length}
         />
       </div>

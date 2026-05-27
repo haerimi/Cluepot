@@ -108,7 +108,7 @@ export function AppSidebar({ user }: Readonly<{ user: HydratedUser | null }>) {
           href="/"
           className="text-[17px] font-black text-ink tracking-tight hover:opacity-75 transition-opacity"
         >
-          Meet<span className="text-accent">Spot</span>
+          Clue<span className="text-accent">Pot</span>
         </Link>
       </div>
 
@@ -168,12 +168,12 @@ export function AppSidebar({ user }: Readonly<{ user: HydratedUser | null }>) {
           active={pathname.startsWith("/rooms")} />
       </nav>
 
-      {/* ── Watson ambient text + user section — pinned to bottom ── */}
+      {/* ── PINI ambient text + user section — pinned to bottom ── */}
       <div className="mt-auto">
         <div className="px-6 pb-5">
           <div className="h-px bg-hairline mb-5" />
           <p className="text-[10px] font-bold text-ink-tertiary tracking-[2px] uppercase mb-3">
-            Watson
+            PINI
           </p>
           <p
             className="text-[12px] text-ink-subtle leading-relaxed italic"

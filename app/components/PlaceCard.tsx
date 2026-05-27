@@ -5,14 +5,14 @@
  *
  * New reading order:
  *   1. Place identity   — name large, category + rating small
- *   2. Watson voice   — reasoning is the PRIMARY section, not a footnote
+ *   2. PINI voice   — reasoning is the PRIMARY section, not a footnote
  *   3. Travel balance   — clean per-person rows, no badge overload
  *   4. Detail drawer    — ReviewIntelligence + fairness score collapsed by default
  *
  * What was removed from the default view:
  *   - BalanceTag chip cluster (kept as a single subtle label)
  *   - FairnessScore percentage in the footer
- *   - AnalysisSummaryStrip (moved to WatsonPanel level)
+ *   - AnalysisSummaryStrip (moved to PiniPanel level)
  *   - Left-border accent box around reasoning (now open prose)
  *
  * Whitespace increased throughout; chip density reduced.
@@ -174,7 +174,7 @@ function DetailDrawer({
           >
             <div className="flex items-center justify-between mb-3">
               <span className="text-[10px] font-bold text-accent tracking-[1.5px] uppercase">
-                Watson 리뷰 분석
+                PINI 리뷰 분석
               </span>
               <span className="text-[10px] font-semibold bg-accent-light text-accent px-2 py-0.5 rounded-full">
                 검증 후기 {intelligence.authenticCount}개
@@ -279,10 +279,10 @@ export function PlaceCard({
 
         <div className="h-px bg-hairline" />
 
-        {/* ── 2. Watson voice — primary section ── */}
+        {/* ── 2. PINI voice — primary section ── */}
         <div>
           <p className="text-[10px] font-bold text-accent tracking-[1.5px] uppercase mb-2.5">
-            Watson이 선택한 이유
+            피니가 선택한 이유
           </p>
           <p
             className="text-[14px] text-ink-muted leading-[1.8]"
