@@ -154,8 +154,8 @@ button {
   100% { transform: scale(2.8); opacity: 0; }
 }
 
-/* Sherlock radar sweep rotation */
-@keyframes sherlock-scan {
+/* Watson radar sweep rotation */
+@keyframes watson-scan {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
@@ -208,7 +208,7 @@ button {
   50%      { opacity: 0.9;  transform: scale(1.3); }
 }
 
-/* CTA glow when Sherlock is ready to fire */
+/* CTA glow when Watson is ready to fire */
 @keyframes cta-glow {
   0%, 100% { box-shadow: 0 1px 3px rgba(124, 92, 252, 0.3); }
   50%      { box-shadow: 0 0 0 6px rgba(124, 92, 252, 0.12), 0 4px 16px rgba(124, 92, 252, 0.4); }
@@ -226,7 +226,7 @@ button {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Sherlock reasoning chip entrance — slides in from left */
+/* Watson reasoning chip entrance — slides in from left */
 @keyframes reason-in {
   from { opacity: 0; transform: translateX(-6px); }
   to   { opacity: 1; transform: translateX(0); }
@@ -259,8 +259,8 @@ button {
   to   { opacity: 1; }
 }
 
-/* Sherlock typographic loader — scanning bar sweeps left→right */
-@keyframes sherlock-progress {
+/* Watson typographic loader — scanning bar sweeps left→right */
+@keyframes watson-progress {
   0%   { transform: translateX(-200%); }
   100% { transform: translateX(600%); }
 }

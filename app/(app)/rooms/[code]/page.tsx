@@ -59,7 +59,7 @@ import { Badge } from "@/app/components/ui/Badge";
 import { ParticipantCard } from "@/app/components/ParticipantCard";
 import { TransportPicker } from "@/app/components/TransportPicker";
 import { RecommendedPlace } from "@/types/recommendation";
-import { SherlockPanel } from "@/app/components/SherlockPanel";
+import { PiniPanel } from "@/app/components/PiniPanel";
 import { useMapStore } from "@/store/map";
 import { useScheduleStore } from "@/store/schedule";
 import { useRoomStore } from "@/store/room";
@@ -352,35 +352,35 @@ function RoomSummaryPane({
   );
 }
 
-/* ── Sherlock ambient sidebar — right side BEFORE results ────────────── */
+/* ── PINI ambient sidebar — right side BEFORE results ────────────── */
 
-interface SherlockAmbientSidebarProps {
+interface PiniAmbientSidebarProps {
   readonly readyCount: number;
   readonly totalCount: number;
   readonly participants: ParticipantWithUser[];
   readonly locationSaved: boolean;
   readonly allReady: boolean;
   readonly isCurrentUserHost: boolean;
-  readonly onRunSherlock: () => void;
+  readonly onRunPini: () => void;
   readonly currentUserId: string | undefined;
 }
 
-function SherlockAmbientSidebar({
+function PiniAmbientSidebar({
   readyCount,
   totalCount,
   participants,
   locationSaved,
   allReady,
   isCurrentUserHost,
-  onRunSherlock,
+  onRunPini,
   currentUserId,
-}: SherlockAmbientSidebarProps) {
+}: PiniAmbientSidebarProps) {
   return (
     <div className="h-full overflow-y-auto px-8 py-10 bg-[#FAF9F6] flex flex-col">
       {/* Header */}
       <div className="mb-7">
         <h2 className="text-[15px] font-black text-ink tracking-tight mb-1.5">
-          Sherlock 조율
+          PINI 조율
         </h2>
         <p className="text-[12px] text-ink-subtle leading-relaxed">
           모든 참가자가 준비되면 공정한 장소를 찾아드려요
@@ -454,10 +454,10 @@ function SherlockAmbientSidebar({
               size="lg"
               fullWidth
               disabled={!allReady}
-              onClick={onRunSherlock}
+              onClick={onRunPini}
             >
               {allReady
-                ? "Sherlock 실행하기"
+                ? "PINI 실행하기"
                 : `대기 중 (${readyCount}/${totalCount})`}
             </Button>
           </div>
@@ -621,10 +621,10 @@ export default function RoomPage() {
   const [locationSaved, setLocationSaved] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
 
-  /* ── Sherlock state ── */
-  const [sherlockLoading, setSherlockLoading] = useState(false);
-  /* sherlockOpen is ONLY used for the mobile bottom-sheet variant */
-  const [sherlockOpen, setSherlockOpen] = useState(false);
+  /* ── PINI state ── */
+  const [piniLoading, setPiniLoading] = useState(false);
+  /* piniOpen is ONLY used for the mobile bottom-sheet variant */
+  const [piniOpen, setPiniOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
   /* ── Date modal state ── */
@@ -632,7 +632,7 @@ export default function RoomPage() {
   const [isScheduleSubmitting, setIsScheduleSubmitting] = useState(false);
 
   /* ── Zustand ── */
-  const sherlockPlaces = useMapStore((s) => s.recommendedPlaces);
+  const piniPlaces = useMapStore((s) => s.recommendedPlaces);
   const selectedPlace = useMapStore((s) => s.selectedPlace);
   const setSelectPlace = useMapStore((s) => s.selectPlace);
   const setPlace = useMapStore((s) => s.setPlaces);
@@ -737,14 +737,14 @@ export default function RoomPage() {
   /*
 
    * hasResults drives the grid transition.
-   * True as soon as Sherlock fires (loading or done) so the pane expands
+   * True as soon as PINI fires (loading or done) so the pane expands
    * immediately, giving the user a spatial cue that results are coming.
    */
-  const hasResults = sherlockLoading || sherlockPlaces.length > 0;
+  const hasResults = piniLoading || piniPlaces.length > 0;
 
   // 이전 추천장소 제외
   const [excludedPlaces, setExcludedPlaces] = useState<string[]>([]);
-  const [sherlockError, setSherlockError] = useState<string | null>(null);
+  const [piniError, setPiniError] = useState<string | null>(null);
   /* ── Handlers ── */
 
   async function handleSaveLocation() {
@@ -778,15 +778,15 @@ export default function RoomPage() {
     setLocationSaved(true);
   }
 
-  async function handleRunSherlock() {
+  async function handleRunPini() {
     /* Open mobile sheet; desktop grid handles itself via hasResults */
-    setSherlockOpen(true);
-    setSherlockLoading(true);
-    setSherlockError(null);
+    setPiniOpen(true);
+    setPiniLoading(true);
+    setPiniError(null);
     clearMap();
 
     try {
-      const res = await fetch('/api/sherlock', {
+      const res = await fetch('/api/pini', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -806,7 +806,7 @@ export default function RoomPage() {
         const body = await res.text();
         let msg = 'AI 추천 중 오류가 발생했어요.';
         try { msg = (JSON.parse(body) as { error?: string }).error ?? msg; } catch { /* ignore */ }
-        setSherlockError(msg);
+        setPiniError(msg);
         return;
       }
 
@@ -819,9 +819,9 @@ export default function RoomPage() {
         ...places.map((p) => p.placeName)
       ]);
     } catch {
-      setSherlockError('네트워크 오류가 발생했어요. 다시 시도해 주세요.');
+      setPiniError('네트워크 오류가 발생했어요. 다시 시도해 주세요.');
     } finally {
-      setSherlockLoading(false);
+      setPiniLoading(false);
     }
   }
 
@@ -877,7 +877,7 @@ export default function RoomPage() {
 
   function handleRerun() {
     clearMap();
-    handleRunSherlock();
+    handleRunPini();
   }
 
   function handleResetPlace() {
@@ -1328,37 +1328,37 @@ export default function RoomPage() {
         <div className="hidden lg:block overflow-hidden">
           {hasResults ? (
             /*
-             * Sherlock inline results pane — variant="inline" means no
+             * PINI inline results pane — variant="inline" means no
              * backdrop, no fixed positioning. Fills this grid cell entirely.
-             * The SherlockPanel reads its own internal loading/done state
+             * The PiniPanel reads its own internal loading/done state
              * from the isLoading + places props.
              */
-            <SherlockPanel
+            <PiniPanel
               variant="inline"
               open
               onClose={() => { }}
-              places={sherlockPlaces}
+              places={piniPlaces}
               selectedPlaceId={selectedPlace.placeId}
               onSelectPlace={handleSelectPlace}
               onRegenerate={handleRerun}
               onConfirm={selectedPlace.placeId ? handleConfirmPlace : undefined}
-              isLoading={sherlockLoading}
-              error={sherlockError}
+              isLoading={piniLoading}
+              error={piniError}
               participantCount={participants.length}
             />
           ) : (
             /*
-             * Sherlock ambient sidebar — shows participant readiness and
+             * PINI ambient sidebar — shows participant readiness and
              * the host CTA before any results have been requested.
              */
-            <SherlockAmbientSidebar
+            <PiniAmbientSidebar
               readyCount={readyCount}
               totalCount={totalCount}
               participants={participants}
               locationSaved={locationSaved}
               allReady={allReady}
               isCurrentUserHost={isHost}
-              onRunSherlock={handleRunSherlock}
+              onRunPini={handleRunPini}
               currentUserId={currentUserId}
             />
           )}
@@ -1390,7 +1390,7 @@ export default function RoomPage() {
               onClick={handleRunSherlock}
             >
               {allReady
-                ? "Sherlock 실행하기"
+                ? "PINI 실행하기"
                 : `대기 중 (${readyCount}/${totalCount})`}
             </Button>
           </div>

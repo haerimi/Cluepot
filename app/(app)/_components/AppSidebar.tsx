@@ -168,12 +168,12 @@ export function AppSidebar({ user }: Readonly<{ user: HydratedUser | null }>) {
           active={pathname.startsWith("/rooms")} />
       </nav>
 
-      {/* ── Sherlock ambient text + user section — pinned to bottom ── */}
+      {/* ── Watson ambient text + user section — pinned to bottom ── */}
       <div className="mt-auto">
         <div className="px-6 pb-5">
           <div className="h-px bg-hairline mb-5" />
           <p className="text-[10px] font-bold text-ink-tertiary tracking-[2px] uppercase mb-3">
-            Sherlock
+            Watson
           </p>
           <p
             className="text-[12px] text-ink-subtle leading-relaxed italic"

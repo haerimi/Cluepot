@@ -3,13 +3,13 @@ import Script from "next/script";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "MeetSpot",
+  title: "CluePot",
   description: "AI가 참가자 위치를 분석해 최적의 모임 장소를 추천해드립니다",
-  applicationName: "MeetSpot",
+  applicationName: "CluePot",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "MeetSpot",
+    title: "CluePot",
   },
 };
 

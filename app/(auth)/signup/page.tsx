@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { signup } from "@/app/actions/auth";
 
-/* ── Sherlock ambient orb ───────────────────────────────────────────────── */
-function SherlockOrb() {
+/* ── Watson ambient orb ───────────────────────────────────────────────── */
+function WatsonOrb() {
   return (
     <div className="relative flex items-center justify-center w-32 h-32">
       <div
@@ -60,7 +60,7 @@ export default function SignupPage() {
             href="/"
             className="text-[18px] font-black text-white tracking-tight hover:opacity-70 transition-opacity"
           >
-            Meet<span className="text-[#7C5CFC]">Spot</span>
+            Clue<span className="text-[#7C5CFC]">Pot</span>
           </Link>
         </div>
 
@@ -92,13 +92,13 @@ export default function SignupPage() {
             한 곳에서 관리할 수 있어요.
           </p>
 
-          <SherlockOrb />
+          <WatsonOrb />
         </div>
 
         <div className="relative z-10 flex items-center gap-3">
           <div className="w-5 h-px bg-[#2D2B28]" />
           <span className="text-[10px] font-bold text-[#4A4740] tracking-[2.5px] uppercase">
-            Sherlock Mode · AI 모임 조율
+            Watson Mode · AI 모임 조율
           </span>
         </div>
       </div>
@@ -113,7 +113,7 @@ export default function SignupPage() {
           href="/"
           className="text-[17px] font-black text-white tracking-tight"
         >
-          Meet<span className="text-[#7C5CFC]">Spot</span>
+          Clue<span className="text-[#7C5CFC]">Pot</span>
         </Link>
         <h1 className="mt-5 text-[40px] font-black text-white leading-[0.92] tracking-[-2px]">
           새로운
@@ -140,7 +140,7 @@ export default function SignupPage() {
               </span>
             </div>
             <h2 className="text-[28px] font-black text-[#1C1A17] leading-tight tracking-[-1px]">
-              MeetSpot에 오신 것을
+              CluePot에 오신 것을
               <br />
               환영해요
             </h2>

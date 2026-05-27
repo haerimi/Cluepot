@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { login } from "@/app/actions/auth";
 
-/* ── Sherlock ambient orb — reused from the home hero ─────────────────── */
-function SherlockOrb() {
+/* ── Watson ambient orb — reused from the home hero ─────────────────── */
+function WatsonOrb() {
   return (
     <div className="relative flex items-center justify-center w-32 h-32">
       <div
@@ -62,7 +62,7 @@ export default function LoginPage() {
             href="/"
             className="text-[18px] font-black text-white tracking-tight hover:opacity-70 transition-opacity"
           >
-            Meet<span className="text-[#7C5CFC]">Spot</span>
+            Clue<span className="text-[#7C5CFC]">Pot</span>
           </Link>
         </div>
 
@@ -93,20 +93,20 @@ export default function LoginPage() {
 
           {/* Supporting copy */}
           <p className="text-[14px] text-[#908D87] leading-[1.85] max-w-[320px]">
-            Sherlock이 참가자 모두의 위치와 이동수단,
+            Watson이 참가자 모두의 위치와 이동수단,
             <br />
             분위기를 분석해 공정한 장소를 찾아드려요.
           </p>
 
-          {/* Sherlock orb */}
-          <SherlockOrb />
+          {/* Watson orb */}
+          <WatsonOrb />
         </div>
 
         {/* Bottom ambient label */}
         <div className="relative z-10 flex items-center gap-3">
           <div className="w-5 h-px bg-[#2D2B28]" />
           <span className="text-[10px] font-bold text-[#4A4740] tracking-[2.5px] uppercase">
-            Sherlock Mode · AI 모임 조율
+            Watson Mode · AI 모임 조율
           </span>
         </div>
       </div>
@@ -121,7 +121,7 @@ export default function LoginPage() {
           href="/"
           className="text-[17px] font-black text-white tracking-tight"
         >
-          Meet<span className="text-[#7C5CFC]">Spot</span>
+          Clue<span className="text-[#7C5CFC]">Pot</span>
         </Link>
         <h1 className="mt-5 text-[40px] font-black text-white leading-[0.92] tracking-[-2px]">
           다시,
@@ -131,7 +131,7 @@ export default function LoginPage() {
           <span className="text-[#7C5CFC]">중심으로</span>
         </h1>
         <p className="mt-5 text-[13px] text-[#908D87] leading-[1.8]">
-          Sherlock이 공정한 모임 장소를 찾아드려요.
+          Watson이 공정한 모임 장소를 찾아드려요.
         </p>
       </div>
 
