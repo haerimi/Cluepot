@@ -198,6 +198,13 @@ interface ScheduleViewProps {
   readonly onReset: () => void;
   readonly participants: ParticipantWithUser[];
   readonly currentUserId: string | undefined;
+  readonly lng: number;
+  readonly lat: number;
+}
+
+function handleViewMap(placeName: string, lat: number, lng: number) {
+  const destination = `${encodeURIComponent(placeName)},${lat},${lng}`;
+  return `https://map.kakao.com/link/to/${destination}`;
 }
 
 function ScheduleView({
@@ -207,7 +214,18 @@ function ScheduleView({
   onReset,
   participants,
   currentUserId,
+  lng,
+  lat
 }: ScheduleViewProps) {
+  const [copied, setCopied] = useState(false);
+
+
+  function handleCopy() {
+    navigator.clipboard.writeText(`${placeName}\n${placeAddress}`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
   return (
     <div className="w-full flex-1">
       <div className="mx-auto flex min-h-[calc(100dvh-56px)] max-w-[576px] flex-col px-6 py-12 items-center">
@@ -237,11 +255,15 @@ function ScheduleView({
           <p className="text-[13px] text-ink-subtle mb-5">{placeAddress}</p>
           <div className="h-px bg-[#F0EDE7] mb-5" />
           <div className="flex gap-2">
-            <button className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl bg-surface-3 text-ink-muted text-[13px] font-semibold hover:bg-hairline transition-colors">
+            <button
+              onClick={() => window.open(handleViewMap(placeName, lat, lng), '_blank')}
+              className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl bg-surface-3 text-ink-muted text-[13px] font-semibold hover:bg-hairline transition-colors">
               🗺 지도 보기
             </button>
-            <button className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl bg-surface-3 text-ink-muted text-[13px] font-semibold hover:bg-hairline transition-colors">
-              📋 복사
+            <button
+              onClick={handleCopy}
+              className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl bg-surface-3 text-ink-muted text-[13px] font-semibold hover:bg-hairline transition-colors">
+              {copied ? "✓" : "📋"} 복사
             </button>
           </div>
         </div>
@@ -772,7 +794,7 @@ export default function RoomPage() {
     checkAndWatch();
 
     return () => {
-      if(expiryTimerRef.current) clearTimeout(expiryTimerRef.current);
+      if (expiryTimerRef.current) clearTimeout(expiryTimerRef.current);
       useScheduleStore.getState().clearSchedule();
       useMapStore.getState().clearMap();
     };
@@ -899,7 +921,7 @@ export default function RoomPage() {
     setShowLinkSheet(false);
 
     // 타이머 재설정
-    if(expiryTimerRef.current) clearTimeout(expiryTimerRef.current);
+    if (expiryTimerRef.current) clearTimeout(expiryTimerRef.current);
   }
 
   /* ── Confirmed view ── */
@@ -920,6 +942,8 @@ export default function RoomPage() {
           onReset={() => router.push("/room/create")}
           participants={participants}
           currentUserId={currentUserId}
+          lat={scheduleInfo.lat}
+          lng={scheduleInfo.lng}
         />
       </>
     );
@@ -935,7 +959,7 @@ export default function RoomPage() {
         </header>
 
         <div className="flex-1 flex flex-col items-center justify-center px-6 text-center"
-             style={{ animation: "fade-up 0.4s ease-out both" }}>
+          style={{ animation: "fade-up 0.4s ease-out both" }}>
 
           {/* Icon */}
           <div className="w-16 h-16 rounded-full bg-[#FFF8E1] flex items-center justify-center text-[32px] mb-8">
@@ -1091,40 +1115,40 @@ export default function RoomPage() {
                   <div className="space-y-2">
                     {isLoading
                       ? /* Skeleton while joinRoom + getParticipants resolve */
-                        [0, 1].map((i) => (
-                          <div
-                            key={i}
-                            className="h-12 rounded-xl bg-surface-3 animate-pulse"
-                          />
-                        ))
+                      [0, 1].map((i) => (
+                        <div
+                          key={i}
+                          className="h-12 rounded-xl bg-surface-3 animate-pulse"
+                        />
+                      ))
                       : participants.map((p, idx) => (
-                          <ParticipantCard
-                            key={p.id}
-                            nickname={p.user.nickname}
-                            isHost={p.isHost}
-                            abstractLocation={
-                              isMe(p)
-                                ? locationSaved
-                                  ? myLocation
-                                  : undefined
-                                : (p.abstractLocation ?? undefined)
-                            }
-                            transports={
-                              isMe(p)
-                                ? locationSaved
-                                  ? myTransports
-                                  : []
-                                : (p.transports as Transport[])
-                            }
-                            isReady={
-                              isMe(p)
-                                ? locationSaved
-                                : Boolean(p.abstractLocation)
-                            }
-                            isMe={isMe(p)}
-                            animationDelay={`${idx * 0.06}s`}
-                          />
-                        ))}
+                        <ParticipantCard
+                          key={p.id}
+                          nickname={p.user.nickname}
+                          isHost={p.isHost}
+                          abstractLocation={
+                            isMe(p)
+                              ? locationSaved
+                                ? myLocation
+                                : undefined
+                              : (p.abstractLocation ?? undefined)
+                          }
+                          transports={
+                            isMe(p)
+                              ? locationSaved
+                                ? myTransports
+                                : []
+                              : (p.transports as Transport[])
+                          }
+                          isReady={
+                            isMe(p)
+                              ? locationSaved
+                              : Boolean(p.abstractLocation)
+                          }
+                          isMe={isMe(p)}
+                          animationDelay={`${idx * 0.06}s`}
+                        />
+                      ))}
                   </div>
                 </div>
 
@@ -1332,7 +1356,7 @@ export default function RoomPage() {
             <SherlockPanel
               variant="inline"
               open
-              onClose={() => {}}
+              onClose={() => { }}
               places={sherlockPlaces}
               selectedPlaceId={selectedPlace.placeId}
               onSelectPlace={handleSelectPlace}
