@@ -1275,6 +1275,7 @@ export default function RoomPage() {
                       size="md"
                       fullWidth
                       onClick={handleSaveLocation}
+                      className="mb-2"
                     >
                       선호 저장하기
                     </Button>
@@ -1288,7 +1289,7 @@ export default function RoomPage() {
                     style={{ animation: "fade-up 0.3s ease-out both" }}
                   >
                     <span className="text-[20px]">✅</span>
-                    <div>
+                    <div className="flex-1">
                       <p className="text-[14px] font-semibold text-[#1A7A35]">
                         선호가 저장됐어요!
                       </p>
@@ -1298,7 +1299,7 @@ export default function RoomPage() {
                     </div>
                     <button
                       onClick={handleResetPlace}
-                      className="text-[12px] text-[#1A7A35] underline underline-offset-2 shrink-0"
+                      className="ml-auto text-[12px] text-[#1A7A35] underline underline-offset-2 shrink-0"
                     >
                       수정
                     </button>
@@ -1306,19 +1307,30 @@ export default function RoomPage() {
                 )}
 
                 {/* Waiting hint */}
-                {!allReady && (
-                  <div className="flex items-center gap-3 p-4 bg-white rounded-xl border border-hairline">
-                    <span className="text-[20px]">⏳</span>
-                    <div>
-                      <p className="text-[13px] font-semibold text-ink-muted">
-                        참가자 대기 중
-                      </p>
-                      <p className="text-[12px] text-ink-subtle">
-                        이영희님이 입력하면 PINI를 실행할 수 있어요
-                      </p>
+                {!allReady && (() => {
+                  const notReady = participants.filter((p) =>
+                    p.userId === currentUserId ? !locationSaved : !p.abstractLocation
+                  );
+                  const names = notReady.map((p) => p.user.nickname);
+                  const nameText =
+                    names.length === 1
+                      ? `${names[0]}님`
+                      : `${names.slice(0, -1).join("님, ")}님, ${names.at(-1)}님`;
+
+                  return (
+                    <div className="flex items-center gap-3 p-4 bg-white rounded-xl border border-hairline">
+                      <span className="text-[20px]">⏳</span>
+                      <div>
+                        <p className="text-[13px] font-semibold text-ink-muted">
+                          참가자 대기 중
+                        </p>
+                        <p className="text-[12px] text-ink-subtle gap-3">
+                          {nameText}이 입력하면 PINI를 실행할 수 있어요
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
               </div>
             </div>
           )}
