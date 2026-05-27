@@ -9,6 +9,7 @@ import {
   updateSchedule,
   updateMemberStatus,
   type ScheduleDetail,
+  cancelSchedule,
 } from "@/app/actions/schedule";
 import { leaveRoom } from "@/app/actions/rooms";
 
@@ -339,6 +340,70 @@ function DeleteConfirm({
   );
 }
 
+function ReplacePlaceConfirm({
+  scheduleId,
+  roomCode,
+  onClose
+}: {
+  scheduleId: string;
+  roomCode: string;
+  onClose: () => void;
+}) {
+  const router = useRouter();
+  const [isPending, start] = useTransition();
+
+  function handleConfirm() {
+    start(async () => {
+      console.log(scheduleId)
+      await cancelSchedule(scheduleId);
+      router.push(`/rooms/${roomCode}`);
+    })
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center px-5"
+      style={{ animation: "section-fade 0.2s ease-out both" }}
+    >
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
+        onClick={onClose}
+      />
+      <div
+        className="relative w-full max-w-[360px] bg-white rounded-2xl shadow-xl p-7"
+        style={{ animation: "fade-up 0.25s cubic-bezier(0.16,1,0.3,1) both" }}
+      >
+        <h3 className="text-[18px] font-black text-ink mb-2">
+          일정을 수정할까요?
+        </h3>
+        <p className="text-[13px] text-ink-subtle leading-relaxed mb-7">
+          장소를 다시 찾으시겠어요? 참가자들은 유지돼요.
+        </p>
+        <div className="flex gap-2">
+          <Button
+            variant="secondary"
+            size="md"
+            fullWidth
+            onClick={onClose}
+            disabled={isPending}
+          >
+            취소
+          </Button>
+          <Button
+            variant="danger"
+            size="md"
+            fullWidth
+            loading={isPending}
+            onClick={handleConfirm}
+          >
+            {isPending ? "수정 중…" : "수정하기"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── Main ────────────────────────────────────────────────────────────────── */
 
 interface ScheduleDetailViewProps {
@@ -356,6 +421,7 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
   const [showDelete, setShowDelete] = useState(false);
   const [showLeave, setShowLeave] = useState(false);
   const [isPending, start] = useTransition();
+  const [showReplace, setShowReplace] = useState(false);
   const router = useRouter();
 
   function handleAttendance(status: "accepted" | "declined") {
@@ -419,7 +485,7 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
             {isCreator ? (
               <div className="flex items-center gap-2 shrink-0 mt-1">
                 <button
-                  onClick={() => setShowEdit(true)}
+                  onClick={() => setShowReplace(true)}
                   className="h-9 px-3 rounded-lg border border-hairline text-[13px] font-medium text-ink-muted
                              hover:border-hairline-strong hover:text-ink transition-colors"
                 >
@@ -548,13 +614,20 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
         <EditModal
           schedule={schedule}
           onClose={() => setShowEdit(false)}
-          onSaved={() => {}}
+          onSaved={() => { }}
         />
       )}
       {showDelete && (
         <DeleteConfirm
           roomCode={schedule.roomCode}
           onClose={() => setShowDelete(false)}
+        />
+      )}
+      {showReplace && (
+        <ReplacePlaceConfirm
+          scheduleId={schedule.id}
+          roomCode={schedule.roomCode}
+          onClose={() => setShowReplace(false)}
         />
       )}
       {showLeave && (

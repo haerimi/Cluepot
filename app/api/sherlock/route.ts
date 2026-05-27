@@ -55,7 +55,7 @@ async function fetchNaverBlogReviews(placeName: string): Promise<string[]> {
 
 export async function POST(req: Request) {
     try {
-    return await runSherlock(req);
+        return await runSherlock(req);
     } catch (err) {
         const msg = err instanceof Error ? err.message : 'AI 추천 중 오류가 발생했어요.';
         const isOverload = msg.includes('503') || msg.toLowerCase().includes('unavailable') || msg.toLowerCase().includes('high demand');
@@ -75,21 +75,30 @@ async function runSherlock(req: Request) {
     ).join('\n');
 
     const excludeText = excludePlaces?.length
-  ? `\n이미 추천된 장소이니 제외해주세요: ${excludePlaces.join(', ')}`
-  : '';
+        ? `\n이미 추천된 장소이니 제외해주세요: ${excludePlaces.join(', ')}`
+        : '';
 
     // 1. 선호 정보를 기반으로 장소명 3개 추천 받기
     const firstResponse = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: `
+You are a meeting place recommendation system for Seoul, Korea.
 Category: ${category}
-Participant Info: ${participantDesc}
-Based on the preferences of the participants above, please recommend exactly 5 ${category} places in Seoul that would be suitable. ${excludePlaces}
 
-Please be sure to return the full, exact business names that can be searched on Kakao Map. (e.g., "Blue Bottle Coffee Seongsu Branch", "Onion Seongsu", "Cafe Knotted Dosan")
+Participants:
+${participantDesc}
 
-You must not return fewer than 3 places. Please return only the place names as a JSON array.Example: ["블루보틀 커피 성수점", "어니언 성수", "카페 노티드 도산"]
-    `,
+CRITICAL: You must ONLY suggest REAL, EXISTING businesses currently operating in Seoul.
+- CORRECT: "블루보틀 커피 성수점", "어니언 성수", "카페 노티드 도산", "스타벅스 강남역점"
+- WRONG: "화곡동 작은 서재", "고요한 오후" (fictional names — strictly forbidden)
+
+Find a geographically balanced meeting point between all participants,
+considering their transport modes and distance tolerance.
+${excludeText}
+
+Return exactly 5 real, Kakao Map-searchable business names as a JSON array.
+`,
+
         config: {
             responseMimeType: "application/json",
             responseSchema: {
@@ -111,9 +120,18 @@ You must not return fewer than 3 places. Please return only the place names as a
         Promise.all(placeNames.map(name => fetchNaverBlogReviews(name))),
     ]);
 
+    // 카카오에서 못 찾은 장소(null) 제거
+    const valid = placeNames
+        .map((name, i) => ({ name, kakao: kakaoResults[i], reviews: reviewResults[i] }))
+        .filter(r => r.kakao !== null);
+
+    if (valid.length < 2) {
+        throw new Error('카카오맵에서 실존하는 장소를 찾지 못했어요. 다시 시도해주세요.');
+    }
+
     // 2. 리뷰 분석 후 최종 추천
-    const reviewText = placeNames.map((name, i) =>
-        `[${name}]\n${reviewResults[i].slice(0, 5).join('\n')}`
+    const reviewText = valid.map((r) =>
+        `[${r.name}]\n${r.reviews.slice(0, 5).join('\n')}`
     ).join('\n\n');
 
     const secondResponse = await ai.models.generateContent({
@@ -198,14 +216,25 @@ Each recommended place must be a JSON object with the following keys:
         throw new Error('Gemini 응답이 비어있어요.');
     }
 
-    const places = JSON.parse(secondResponse.text).map((place: Record<string, unknown>, i: number) => ({
-        ...place,
-        placeId: kakaoResults[i]?.id ?? `place-${i}`,
-        placeAddress: kakaoResults[i]?.road_address_name ?? kakaoResults[i]?.address_name ?? '',
-        lat: parseFloat(kakaoResults[i]?.y ?? '37.5665'),
-        lng: parseFloat(kakaoResults[i]?.x ?? '126.9780'),
-        category,
-    }));
+    let parsed: Record<string, unknown>[];
+    try {
+        parsed = JSON.parse(secondResponse.text);
+    } catch {
+        console.error('Gemini 응답 파싱 실패:', secondResponse.text?.slice(0, 300));
+        throw new Error('AI 응답 형식이 올바르지 않아요. 다시 시도해주세요.');
+    }
+
+    const places = parsed.map(
+        (place: Record<string, unknown>, i: number) => ({
+            ...place,
+            placeId: valid[i]?.kakao?.id ?? `place-${i}`,
+            placeAddress: valid[i]?.kakao?.road_address_name ?? valid[i]?.kakao?.address_name ?? '',
+            lat: parseFloat(valid[i]?.kakao?.y ?? '37.5665'),
+            lng: parseFloat(valid[i]?.kakao?.x ?? '126.9780'),
+            category,
+        })
+    );
+
 
     return Response.json(places);
 }

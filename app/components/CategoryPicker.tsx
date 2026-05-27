@@ -18,15 +18,18 @@ const CATEGORIES: CategoryOption[] = [
 ];
 
 interface CategoryPickerProps {
-  value: Category | null;
-  onChange: (category: Category) => void;
+  readonly value: Category | null;
+  readonly onChange: (category: Category) => void;
 }
 
 export function CategoryPicker({ value, onChange }: CategoryPickerProps) {
   return (
     <div className="grid grid-cols-2 gap-3">
-      {CATEGORIES.map((cat) => {
+      {CATEGORIES.map((cat, idx) => {
         const isSelected = value === cat.value;
+        /* 홀수 개 항목일 때 마지막 항목이 혼자 남아 반쪽만 차지하지 않도록 2열 스팬 */
+        const isAloneInRow =
+          idx === CATEGORIES.length - 1 && CATEGORIES.length % 2 !== 0;
         return (
           <button
             key={cat.value}
@@ -37,7 +40,8 @@ export function CategoryPicker({ value, onChange }: CategoryPickerProps) {
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
               isSelected
                 ? "bg-accent-light border-accent shadow-[0_0_0_1px_#7C5CFC]"
-                : "bg-white border-[#E5E1D9] hover:border-[#D0CCC4] hover:bg-[#FAF9F6]",
+                : "bg-white border-hairline hover:border-hairline-strong hover:bg-surface-2",
+              isAloneInRow ? "col-span-2" : "",
             ]
               .filter(Boolean)
               .join(" ")}
@@ -46,12 +50,12 @@ export function CategoryPicker({ value, onChange }: CategoryPickerProps) {
             <span
               className={[
                 "text-[15px] font-semibold leading-tight mt-1",
-                isSelected ? "text-accent" : "text-[#1C1A17]",
+                isSelected ? "text-accent" : "text-ink",
               ].join(" ")}
             >
               {cat.label}
             </span>
-            <span className="text-[12px] text-[#908D87] leading-tight">
+            <span className="text-[12px] text-ink-subtle leading-tight">
               {cat.desc}
             </span>
             {isSelected && (

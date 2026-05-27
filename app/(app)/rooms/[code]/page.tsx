@@ -1075,7 +1075,7 @@ export default function RoomPage() {
           ) : (
             /* ── Participant preferences (before results) ── */
             <div className="px-6 lg:px-10 py-8 lg:py-10">
-              <div className="w-full max-w-xl lg:max-w-2xl mx-auto">
+              <div className="flex-1 flex flex-col min-h-0">
                 {/* Participants */}
                 <div className="mb-8">
                   <div className="flex items-center gap-3 mb-5">
@@ -1296,6 +1296,12 @@ export default function RoomPage() {
                         모든 참가자가 준비되면 Sherlock을 실행해요
                       </p>
                     </div>
+                    <button
+                      onClick={handleResetPlace}
+                      className="text-[12px] text-[#1A7A35] underline underline-offset-2 shrink-0"
+                    >
+                      수정
+                    </button>
                   </div>
                 )}
 

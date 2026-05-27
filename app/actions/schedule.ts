@@ -42,7 +42,7 @@ export async function createSchedule(
   // client-side (mock flow) may not yet be in the DB.
   await prisma.room.upsert({
     where: { roomCode: input.roomCode },
-    update: { status: "done"},
+    update: { status: "done" },
     create: {
       roomCode: input.roomCode,
       category: input.category ?? "restaurant",
@@ -282,10 +282,46 @@ export async function updateMemberStatus(
 ): Promise<void> {
   const userId = await getCurrentUserId();
 
+
   await prisma.scheduleMember.update({
     where: { scheduleId_userId: { scheduleId, userId } },
     data: { status },
   });
 
   revalidatePath(`/calendar/${scheduleId}`);
+}
+
+export async function cancelSchedule(scheduleId: string): Promise<void> {
+  const userId = await getCurrentUserId();
+
+  const schedule = await prisma.schedule.findUnique({
+    where: { id: scheduleId },
+    select: { createdBy: true, roomCode: true },
+  });
+
+  // 생성자 = 호스트만 취소 가능
+  if (!schedule || schedule.createdBy !== userId)
+    throw new Error("권한이 없어요");
+
+  // 1. 일정 멤버 삭제
+  await prisma.scheduleMember.deleteMany({ where: { scheduleId } });
+
+  // 2. 일정 삭제
+  await prisma.schedule.delete({ where: { id: scheduleId } });
+
+  // 3. 참가자 선호 초기화 (유저는 유지, 선호만 리셋)
+  await prisma.participant.updateMany({
+    where: { roomCode: schedule.roomCode },
+    data: {
+      abstractLocation: "",
+      transports: [],
+      distanceTolerance: null,
+      atmospherePreference: null,
+      lat: 0,
+      lng: 0,
+    },
+  });
+
+  revalidatePath("/calendar");
+  revalidatePath(`/rooms/${schedule.roomCode}`);
 }

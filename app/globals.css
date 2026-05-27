@@ -190,6 +190,12 @@ button {
   to   { opacity: 1; transform: translateX(0); }
 }
 
+/* Horizontal reveal from right — mobile drawer slide-in */
+@keyframes reveal-right {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
 /* Pure opacity reveal for section entrances */
 @keyframes section-fade {
   from { opacity: 0; }
