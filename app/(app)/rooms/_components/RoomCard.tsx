@@ -16,6 +16,7 @@ type RoomCardData = {
     status: string;
     linkExpiresAt: Date;
     name: string;
+    schedule: { id: string } | null;
   };
 };
 
@@ -25,28 +26,60 @@ const CATEGORY_CONFIG: Record<
   string,
   { label: string; emoji: string; from: string; to: string }
 > = {
-  restaurant: { label: "맛집",   emoji: "🍽",  from: "from-[#FFE4D6]", to: "to-[#FFAB85]" },
-  cafe:       { label: "카페",   emoji: "☕",  from: "from-[#FFF3E0]", to: "to-[#FFCC80]" },
-  bar:        { label: "술자리", emoji: "🍻",  from: "from-[#EDE7F6]", to: "to-[#B39DDB]" },
-  brunch:     { label: "브런치", emoji: "🥞",  from: "from-[#E8F5E9]", to: "to-[#A5D6A7]" },
-  dessert:    { label: "디저트", emoji: "🍰",  from: "from-[#FCE4EC]", to: "to-[#F48FB1]" },
+  restaurant: {
+    label: "맛집",
+    emoji: "🍽",
+    from: "from-[#FFE4D6]",
+    to: "to-[#FFAB85]",
+  },
+  cafe: {
+    label: "카페",
+    emoji: "☕",
+    from: "from-[#FFF3E0]",
+    to: "to-[#FFCC80]",
+  },
+  bar: {
+    label: "술자리",
+    emoji: "🍻",
+    from: "from-[#EDE7F6]",
+    to: "to-[#B39DDB]",
+  },
+  brunch: {
+    label: "브런치",
+    emoji: "🥞",
+    from: "from-[#E8F5E9]",
+    to: "to-[#A5D6A7]",
+  },
+  dessert: {
+    label: "디저트",
+    emoji: "🍰",
+    from: "from-[#FCE4EC]",
+    to: "to-[#F48FB1]",
+  },
 };
 
 const FALLBACK_CATEGORY = {
-  label: "모임", emoji: "📍", from: "from-[#F0EDE7]", to: "to-[#D8D3CB]",
+  label: "모임",
+  emoji: "📍",
+  from: "from-[#F0EDE7]",
+  to: "to-[#D8D3CB]",
 };
 
 /* ── 상태별 설정 ─────────────────────────────────────────────────────── */
 
 type StatusVariant = "warning" | "accent" | "success" | "muted";
 
-const STATUS_CONFIG: Record<string, { label: string; variant: StatusVariant }> = {
-  waiting: { label: "대기 중", variant: "warning" },
-  voting:  { label: "추천 중", variant: "accent"  },
-  done:    { label: "확정됨",  variant: "success" },
-};
+const STATUS_CONFIG: Record<string, { label: string; variant: StatusVariant }> =
+  {
+    waiting: { label: "대기 중", variant: "warning" },
+    voting: { label: "추천 중", variant: "accent" },
+    done: { label: "확정됨", variant: "success" },
+  };
 
-const FALLBACK_STATUS = { label: "알 수 없음", variant: "muted" as StatusVariant };
+const FALLBACK_STATUS = {
+  label: "알 수 없음",
+  variant: "muted" as StatusVariant,
+};
 
 /* ── 삭제 확인 모달 ───────────────────────────────────────────────────── */
 
@@ -83,7 +116,9 @@ function DeleteModal({
       {/* sheet / dialog */}
       <div
         className="relative w-full max-w-90 bg-white rounded-t-[24px] sm:rounded-2xl shadow-xl px-6 pt-6 pb-8"
-        style={{ animation: "cinematic-up 0.3s cubic-bezier(0.16,1,0.3,1) both" }}
+        style={{
+          animation: "cinematic-up 0.3s cubic-bezier(0.16,1,0.3,1) both",
+        }}
       >
         {/* mobile drag handle */}
         <div className="sm:hidden w-10 h-1 bg-hairline rounded-full mx-auto mb-5" />
@@ -132,8 +167,9 @@ export function RoomCard({ data }: Readonly<{ data: RoomCardData }>) {
   const [confirming, setConfirming] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const cat    = CATEGORY_CONFIG[room.category] ?? FALLBACK_CATEGORY;
-  const status = STATUS_CONFIG[room.status]     ?? FALLBACK_STATUS;
+  const cat = CATEGORY_CONFIG[room.category] ?? FALLBACK_CATEGORY;
+  const status =
+    STATUS_CONFIG[room.schedule ? "done" : room.status] ?? FALLBACK_STATUS;
 
   const isExpired = new Date(room.linkExpiresAt) < new Date();
 
@@ -147,7 +183,6 @@ export function RoomCard({ data }: Readonly<{ data: RoomCardData }>) {
   return (
     <>
       <div className="relative group">
-
         {/* ── 카드 본체 (Link) ── */}
         <Link href={`/rooms/${room.roomCode}`} className="block">
           <div
@@ -179,12 +214,14 @@ export function RoomCard({ data }: Readonly<{ data: RoomCardData }>) {
 
               {/* 호버 오버레이 */}
               {!isExpired && (
-                <div className={[
-                  "absolute inset-0 flex items-end justify-center pb-4",
-                  "bg-black/0 group-hover:bg-black/15",
-                  "opacity-0 group-hover:opacity-100",
-                  "transition-all duration-200",
-                ].join(" ")}>
+                <div
+                  className={[
+                    "absolute inset-0 flex items-end justify-center pb-4",
+                    "bg-black/0 group-hover:bg-black/15",
+                    "opacity-0 group-hover:opacity-100",
+                    "transition-all duration-200",
+                  ].join(" ")}
+                >
                   <span className="text-white text-[12px] font-semibold drop-shadow">
                     입장하기 →
                   </span>

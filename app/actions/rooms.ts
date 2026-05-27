@@ -28,6 +28,7 @@ export async function createRoom(
       roomCode,
       category,
       name,
+      linkExpiresAt: new Date(Date.now() + 5 * 1000), // 🧪 테스트용 5초
     },
   });
 
@@ -101,6 +102,21 @@ export async function getMyRooms() {
 
   return await prisma.participant.findMany({
     where: { userId: userId, leftAt: null },
-    include: { room: true },
+    include: { room: {
+        include: { schedule: true }
+    } },
   });
+}
+
+export async function extendRoomLink(roomCode: string, isHost: boolean) {
+    if(!isHost) {
+        return;
+    }   
+
+    return await prisma.room.update({
+        where: { roomCode },
+        data: {
+            linkExpiresAt: new Date(Date.now() + 4 * 60 * 60 * 1000)
+        }
+    })
 }
