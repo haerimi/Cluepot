@@ -221,11 +221,11 @@ export function CalendarView({ schedules }: CalendarViewProps) {
 
   return (
     <div
-      className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden"
+      className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-y-auto lg:overflow-hidden"
       style={{ animation: "section-fade 0.4s ease-out both" }}
     >
       {/* ── Left: Calendar grid panel ─────────────────────────────────── */}
-      <div className="lg:w-100 xl:w-110 shrink-0 flex flex-col border-r border-hairline">
+      <div className="lg:w-100 xl:w-110 shrink-0 flex flex-col border-b lg:border-b-0 lg:border-r border-hairline">
 
         {/* Page header */}
         <div className="px-6 lg:px-8 pt-8 pb-6 border-b border-hairline">
@@ -283,7 +283,7 @@ export function CalendarView({ schedules }: CalendarViewProps) {
         </div>
 
         {/* Calendar grid */}
-        <div className="grid grid-cols-7 px-4 lg:px-6 pb-6 gap-y-1 flex-1">
+        <div className="grid grid-cols-7 px-4 lg:px-6 pb-6 gap-y-1 lg:flex-1">
           {cells.map((cellDate, i) => {
             const key         = toDateKey(cellDate);
             const isCurrMonth = cellDate.getMonth() === month;
@@ -328,7 +328,7 @@ export function CalendarView({ schedules }: CalendarViewProps) {
       </div>
 
       {/* ── Right: Schedule list panel ────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto px-6 lg:px-10 py-8">
+      <div className="lg:flex-1 lg:overflow-y-auto px-6 lg:px-10 py-8">
         {selectedKey && selectedDay ? (
           <div style={{ animation: "fade-up 0.25s ease-out both" }} key={selectedKey}>
             {/* Date heading */}
