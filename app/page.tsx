@@ -370,7 +370,7 @@ export default async function HomePage() {
                 <span className="text-[#7C5CFC]">읽어요</span>
               </h2>
               <p className="text-[14px] lg:text-[15px] text-[#908D87] leading-[1.8] max-w-[340px]">
-                Sherlock은 위치 데이터가 아닌 '동선 패턴'을 분석해요.
+                Sherlock은 위치 데이터가 아닌 동선 패턴을 분석해요.
                 누가 어디서 오는지, 어떤 방식으로 이동하는지를 종합해
                 공정한 중간 지점을 탐색해요.
               </p>

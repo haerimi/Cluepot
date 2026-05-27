@@ -70,7 +70,7 @@ import {
 } from "@/app/actions/participant";
 import { createSchedule, getScheduleByRoomCode } from "@/app/actions/schedule";
 import { useUserStore } from "@/store/user";
-import { checkRoomExists } from "@/app/actions/rooms";
+import { extendRoomLink, validateRoom } from "@/app/actions/rooms";
 
 /* ── Inferred type from server action ────────────────────────────────── */
 
@@ -327,7 +327,7 @@ function RoomSummaryPane({
             const isReady =
               p.userId === currentUserId
                 ? locationSaved
-                : p.abstractLocation !== null;
+                : Boolean(p.abstractLocation);
             return (
               <div key={p.id} className="flex items-center gap-2.5">
                 <div
@@ -446,7 +446,7 @@ function SherlockAmbientSidebar({
           const isReady =
             p.userId === currentUserId
               ? locationSaved
-              : p.abstractLocation !== null;
+              : Boolean(p.abstractLocation);
           return (
             <div key={p.id} className="flex items-center gap-3">
               <div
@@ -535,6 +535,124 @@ function SherlockAmbientSidebar({
   );
 }
 
+/* ── Room link sheet ─────────────────────────────────────────────────── */
+
+function formatRemaining(expiresAt: string | null): { text: string; warning: boolean } {
+  if (!expiresAt) return { text: "알 수 없음", warning: false };
+  const diff = new Date(expiresAt).getTime() - Date.now();
+  if (diff <= 0) return { text: "만료됨", warning: true };
+  const hours = Math.floor(diff / 3_600_000);
+  const minutes = Math.floor((diff % 3_600_000) / 60_000);
+  const warning = diff < 30 * 60_000; // 30분 미만이면 경고색
+  if (hours > 0) return { text: `${hours}시간 ${minutes}분 남음`, warning };
+  if (minutes > 0) return { text: `${minutes}분 남음`, warning };
+  return { text: "잠시 후 만료", warning: true };
+}
+
+function RoomLinkSheet({
+  roomCode,
+  expiresAt,
+  isHost,
+  onCopy,
+  copied,
+  onExtend,
+  onClose,
+}: Readonly<{
+  roomCode: string;
+  expiresAt: string | null;
+  isHost: boolean;
+  onCopy: () => void;
+  copied: boolean;
+  onExtend: () => void;
+  onClose: () => void;
+}>) {
+  const { text: remainingText, warning } = formatRemaining(expiresAt);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center px-4"
+      style={{ animation: "section-fade 0.2s ease-out both" }}
+    >
+      {/* backdrop */}
+      <button
+        type="button"
+        aria-label="닫기"
+        className="absolute inset-0 bg-black/40 backdrop-blur-[2px] w-full h-full cursor-default"
+        onClick={onClose}
+      />
+
+      {/* sheet */}
+      <div
+        className="relative w-full max-w-90 bg-white rounded-t-[24px] sm:rounded-2xl shadow-xl px-6 pt-6 pb-8"
+        style={{ animation: "cinematic-up 0.3s cubic-bezier(0.16,1,0.3,1) both" }}
+      >
+        {/* mobile drag handle */}
+        <div className="sm:hidden w-10 h-1 bg-hairline rounded-full mx-auto mb-5" />
+
+        <h3 className="text-[16px] font-black text-ink text-center mb-6 tracking-tight">
+          모임 초대 코드
+        </h3>
+
+        {/* Room code — tap to copy */}
+        <button
+          onClick={onCopy}
+          className="w-full flex items-center justify-between px-5 py-4 bg-surface-3 rounded-2xl mb-3 hover:bg-hairline transition-colors"
+        >
+          <span className="font-mono text-[28px] font-black text-ink tracking-[4px]">
+            {roomCode}
+          </span>
+          <span className="text-[20px]">{copied ? "✓" : "📋"}</span>
+        </button>
+        {copied && (
+          <p className="text-[12px] text-[#27A644] text-center font-medium mb-3">
+            클립보드에 복사됐어요!
+          </p>
+        )}
+
+        {/* Expiry info */}
+        <div
+          className={[
+            "flex items-center gap-3 px-4 py-3 rounded-xl mb-5",
+            warning ? "bg-[#FFF8E1]" : "bg-surface-3",
+          ].join(" ")}
+        >
+          <span className="text-[18px] shrink-0">{warning ? "⚠️" : "⏰"}</span>
+          <div>
+            <p className="text-[10px] font-bold text-ink-subtle tracking-[1.5px] uppercase">
+              링크 유효 시간
+            </p>
+            <p
+              className={[
+                "text-[13px] font-semibold",
+                warning ? "text-[#E65100]" : "text-ink",
+              ].join(" ")}
+            >
+              {remainingText}
+            </p>
+          </div>
+        </div>
+
+        {/* Extend button — host only */}
+        {isHost && (
+          <button
+            onClick={onExtend}
+            className="w-full h-11 rounded-xl bg-accent text-white text-[14px] font-semibold hover:bg-accent/90 transition-colors mb-3"
+          >
+            🔗 4시간 연장하기
+          </button>
+        )}
+
+        <button
+          onClick={onClose}
+          className="w-full h-11 rounded-xl border border-hairline text-[14px] font-semibold text-ink-muted hover:bg-surface-3 transition-colors"
+        >
+          닫기
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /* ── Main page ───────────────────────────────────────────────────────── */
 
 export default function RoomPage() {
@@ -579,17 +697,23 @@ export default function RoomPage() {
   const [participants, setParticipants] = useState<ParticipantWithUser[]>([]);
   const [isHost, setIsHost] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isExpired, setIsExpired] = useState(false);
+  const [linkExpiresAt, setLinkExpiresAt] = useState<string | null>(null);
+  const [showLinkSheet, setShowLinkSheet] = useState(false);
 
   const currentUserId = useUserStore((s) => s.userInfo?.myId);
   const isMe = (p: ParticipantWithUser) => p.userId === currentUserId;
+  const expiryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     async function participant() {
-      const { isHost: host, savedPreference } = await joinRoom(roomCode);
+      const { isHost: host, savedPreference, linkExpiresAt: expiry } = await joinRoom(roomCode);
       const { participants: fetchedParticipants } =
         await getParticipants(roomCode);
 
       setIsHost(host);
       setParticipants(fetchedParticipants);
+      setLinkExpiresAt(expiry);  // joinRoom에서 바로 세팅 → 시트 즉시 표시 가능
 
       // 새로고침해도 이전에 저장한 선호 복원
       if (savedPreference) {
@@ -624,28 +748,43 @@ export default function RoomPage() {
     }
 
     participant();
-    useRoomStore.getState().addActiveRoom(roomCode);
 
     async function checkAndWatch() {
       // 방이 존재하는지만 확인 (초대코드 만료 여부와 무관하게 기존 멤버는 접속 유지)
       const { exists } = await checkRoomExists(roomCode);
 
-      if (!exists) {
+      if (!result.valid && !isExpired) {
+        setIsExpired(true);
         useRoomStore.getState().removeActiveRoom(roomCode);
-        router.push("/");
         return;
       }
 
       useRoomStore.getState().addActiveRoom(roomCode);
+      setLinkExpiresAt(result.expiresAt!);
+
+      // 3. 만료 시점 타이머 설정
+      const remaining = new Date(result.expiresAt!).getTime() - Date.now();
+      if (remaining > 0) {
+        expiryTimerRef.current = setTimeout(() => {
+        setIsExpired(true);
+        useRoomStore.getState().removeActiveRoom(roomCode);
+        }, remaining);
+      } else {
+        setIsExpired(true);
+        useRoomStore.getState().removeActiveRoom(roomCode);
+      }
     }
+
+    if(isExpired) return;
 
     checkAndWatch();
 
     return () => {
+      if(expiryTimerRef.current) clearTimeout(expiryTimerRef.current);
       useScheduleStore.getState().clearSchedule();
       useMapStore.getState().clearMap();
     };
-  }, [roomCode]);
+  }, [roomCode, isExpired]);
 
   const readyCount = participants.filter((p) =>
     p.userId === currentUserId ? locationSaved : Boolean(p.abstractLocation),
@@ -760,6 +899,17 @@ export default function RoomPage() {
     handleRunSherlock();
   }
 
+  async function handleExtend() {
+    await extendRoomLink(roomCode, isHost);
+    const newExpiry = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString();
+    setLinkExpiresAt(newExpiry);
+    setIsExpired(false);
+    setShowLinkSheet(false);
+
+    // 타이머 재설정
+    if(expiryTimerRef.current) clearTimeout(expiryTimerRef.current);
+  }
+
   /* ── Confirmed view ── */
   if (isDone && scheduleInfo) {
     return (
@@ -783,6 +933,76 @@ export default function RoomPage() {
     );
   }
 
+  /* ── Expired view ── */
+  if (isExpired) {
+    return (
+      <>
+        <header className="flex items-center justify-between px-6 lg:px-10 h-14 border-b border-hairline shrink-0">
+          <Badge variant="warning" dot>링크 만료됨</Badge>
+          <Badge variant="muted">{roomCode}</Badge>
+        </header>
+
+        <div className="flex-1 flex flex-col items-center justify-center px-6 text-center"
+             style={{ animation: "fade-up 0.4s ease-out both" }}>
+
+          {/* Icon */}
+          <div className="w-16 h-16 rounded-full bg-[#FFF8E1] flex items-center justify-center text-[32px] mb-8">
+            ⏰
+          </div>
+
+          <h2 className="text-[26px] lg:text-[32px] font-black text-ink tracking-tight mb-3">
+            모임 링크가 만료됐어요
+          </h2>
+
+          {isHost ? (
+            /* ── 호스트 ── */
+            <>
+              <p className="text-[14px] text-ink-subtle leading-relaxed mb-10 max-w-[320px]">
+                링크 유효 시간이 지났어요.<br />연장하면 참가자들이 다시 입장할 수 있어요.
+              </p>
+              <Button variant="primary" size="lg" onClick={handleExtend}>
+                4시간 연장하기
+              </Button>
+              <button
+                onClick={() => router.push("/")}
+                className="mt-4 text-[13px] text-ink-subtle hover:text-ink transition-colors"
+              >
+                홈으로 돌아가기
+              </button>
+            </>
+          ) : (
+            /* ── 참가자 ── */
+            <>
+              <p className="text-[14px] text-ink-subtle leading-relaxed mb-10 max-w-[320px]">
+                호스트가 링크를 연장하면<br />자동으로 다시 입장할 수 있어요.
+              </p>
+              <div className="flex items-center gap-3 py-3.5 px-5 bg-white rounded-xl border border-hairline">
+                <div className="flex gap-[3px] shrink-0">
+                  {([0, 0.15, 0.3] as const).map((d) => (
+                    <div
+                      key={d}
+                      className="w-1.5 h-1.5 rounded-full bg-accent"
+                      style={{ animation: `dot-bounce 1.2s ease-in-out ${d}s infinite` }}
+                    />
+                  ))}
+                </div>
+                <p className="text-[13px] font-medium text-ink-muted">
+                  호스트 연장 대기 중
+                </p>
+              </div>
+              <button
+                onClick={() => router.push("/")}
+                className="mt-6 text-[13px] text-ink-subtle hover:text-ink transition-colors"
+              >
+                홈으로 돌아가기
+              </button>
+            </>
+          )}
+        </div>
+      </>
+    );
+  }
+
   /* ── Active session view ── */
   return (
     <>
@@ -798,13 +1018,13 @@ export default function RoomPage() {
           </Badge>
         </div>
         <button
-          onClick={handleCopyCode}
+          onClick={() => setShowLinkSheet(true)}
           className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-hairline rounded-full
                      text-[13px] font-semibold text-ink-muted
                      hover:border-hairline-strong hover:bg-surface-3 transition-colors"
         >
           <span className="font-mono tracking-wider text-ink">{roomCode}</span>
-          <span className="text-ink-subtle">{copied ? "✓" : "📋"}</span>
+          <span className="text-ink-subtle">🔗</span>
         </button>
       </header>
 
@@ -889,7 +1109,7 @@ export default function RoomPage() {
                           <ParticipantCard
                             key={p.id}
                             nickname={p.user.nickname}
-                            isHost={isHost}
+                            isHost={p.isHost}
                             abstractLocation={
                               isMe(p)
                                 ? locationSaved
@@ -907,7 +1127,7 @@ export default function RoomPage() {
                             isReady={
                               isMe(p)
                                 ? locationSaved
-                                : p.abstractLocation !== null
+                                : Boolean(p.abstractLocation)
                             }
                             isMe={isMe(p)}
                             animationDelay={`${idx * 0.06}s`}
@@ -1225,6 +1445,19 @@ export default function RoomPage() {
           onSubmit={handleScheduleCreate}
           isSubmitting={isScheduleSubmitting}
           onCancel={() => setShowDateModal(false)}
+        />
+      )}
+
+      {/* ── Room link sheet ── */}
+      {showLinkSheet && (
+        <RoomLinkSheet
+          roomCode={roomCode}
+          expiresAt={linkExpiresAt}
+          isHost={isHost}
+          onCopy={handleCopyCode}
+          copied={copied}
+          onExtend={handleExtend}
+          onClose={() => setShowLinkSheet(false)}
         />
       )}
     </>
