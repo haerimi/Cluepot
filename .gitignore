@@ -43,6 +43,7 @@ next-env.d.ts
 
 /generated/prisma
 lib/generated/
+lib/prisma/generated/
 
 # local docs / planning files
 /docs/
