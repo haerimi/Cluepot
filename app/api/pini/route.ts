@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, Type, ThinkingLevel } from "@google/genai";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
@@ -15,162 +15,293 @@ interface PiniRequestBody {
     category: string;
     excludePlaces?: string[];
 }
-// 카카오 맵 API에서 위치와 장소이름 가져오기
-async function searchKakaoPlace(query: string) {
+
+interface PerParticipantTime {
+    nickname: string;
+    minutes: number;
+    transport: string;
+}
+
+interface ReviewIntelligence {
+    authenticCount: number;
+    pros: string[];
+    cons: string[];
+}
+
+// AI가 반환하는 구조 (이동 시간 제외 — 직접 계산함)
+interface PiniPlaceAiResponse {
+    placeName: string;
+    reasoning: string;
+    atmosphereMatch: string;
+    fairnessScore: number;
+    balanceTag: string;
+    rating: number;
+    reviewIntelligence: ReviewIntelligence;
+}
+
+interface KakaoPlace {
+    id: string;
+    place_name: string;
+    road_address_name: string;
+    address_name: string;
+    x: string; // longitude
+    y: string; // latitude
+    category_name: string;
+}
+
+interface GeoCoord {
+    lat: number;
+    lng: number;
+}
+
+// ── 지오코딩 ──────────────────────────────────────────────────────────────
+// 텍스트 위치를 Kakao keyword 검색으로 좌표로 변환
+async function geocodeLocation(location: string): Promise<GeoCoord | null> {
     const res = await fetch(
-        `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(query)}&size=1`,
+        `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(location)}&size=1`,
         { headers: { Authorization: `KakaoAK ${process.env.KAKAO_REST_API_KEY}` } }
     );
     const data = await res.json();
-    return data.documents?.[0] ?? null;
+    const doc = data.documents?.[0];
+    if (!doc) return null;
+    return { lat: Number.parseFloat(doc.y), lng: Number.parseFloat(doc.x) };
 }
 
-// 네이버 검색 API를 이용해 장소 후기 검색
+// ── 거리 계산 (Haversine) ──────────────────────────────────────────────────
+function haversineKm(a: GeoCoord, b: GeoCoord): number {
+    const R = 6371;
+    const dLat = (b.lat - a.lat) * (Math.PI / 180);
+    const dLng = (b.lng - a.lng) * (Math.PI / 180);
+    const h =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(a.lat * (Math.PI / 180)) *
+            Math.cos(b.lat * (Math.PI / 180)) *
+            Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+}
+
+// ── 이동 시간 추정 ────────────────────────────────────────────────────────
+// 직선거리 × 도로계수(1.35) 를 이동 수단별 속도로 나눈 값
+// 대중교통은 대기·환승 시간 8분 추가
+function estimateMinutes(distKm: number, transport: string): number {
+    const road = distKm * 1.35; // 직선 → 실제 도로 거리 보정
+    switch (transport) {
+        case "walk":    return Math.round((road / 4.5) * 60);           // 4.5 km/h
+        case "bike":    return Math.round((road / 14) * 60);            // 14 km/h
+        case "car":     return Math.round((road / 30) * 60);            // 서울 평균 30 km/h
+        case "transit": return Math.round(8 + (road / 28) * 60);        // 대기 8분 + 28 km/h
+        default:        return Math.round(8 + (road / 28) * 60);
+    }
+}
+
+// ── 최선 교통수단 선택 ────────────────────────────────────────────────────
+// 참가자의 교통수단 목록 중 가장 빠른 수단을 선택
+// (도보는 2km 이내일 때만 우선 고려)
+function pickBestTransport(transports: string[], distKm: number): string {
+    if (transports.length === 0) return "transit";
+    const order = ["car", "transit", "bike", "walk"] as const;
+    for (const t of order) {
+        if (!transports.includes(t)) continue;
+        if (t === "walk" && distKm > 2.5) continue; // 너무 멀면 도보 제외
+        return t;
+    }
+    return transports[0]; // 그래도 없으면 첫 번째
+}
+
+// ── 참가자별 이동 시간 계산 ───────────────────────────────────────────────
+function calcPerParticipantTime(
+    participants: (ParticipantInput & { coord: GeoCoord | null })[],
+    placeCoord: GeoCoord
+): PerParticipantTime[] {
+    return participants.map((p) => {
+        if (!p.coord) {
+            // 좌표 못 찾으면 AI 기본값 그대로 30분 fallback
+            return { nickname: p.nickname, minutes: 30, transport: p.transports[0] ?? "transit" };
+        }
+        const dist = haversineKm(p.coord, placeCoord);
+        const transport = pickBestTransport(p.transports, dist);
+        const minutes = estimateMinutes(dist, transport);
+        return { nickname: p.nickname, minutes, transport };
+    });
+}
+
+// ── Kakao 지역 장소 검색 ──────────────────────────────────────────────────
+async function searchKakaoPlacesByArea(category: string, area: string): Promise<KakaoPlace[]> {
+    const query = `${area} ${category}`;
+    const res = await fetch(
+        `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(query)}&size=15`,
+        { headers: { Authorization: `KakaoAK ${process.env.KAKAO_REST_API_KEY}` } }
+    );
+    const data = await res.json();
+    return (data.documents ?? []) as KakaoPlace[];
+}
+
+// ── 네이버 블로그 리뷰 (광고 필터링) ─────────────────────────────────────
 async function fetchNaverBlogReviews(placeName: string): Promise<string[]> {
     const query = encodeURIComponent(`${placeName} 후기`);
     const res = await fetch(
         `https://openapi.naver.com/v1/search/blog?query=${query}&display=10&sort=sim`,
         {
             headers: {
-                'X-Naver-Client-Id': process.env.NAVER_CLIENT_ID!,
-                'X-Naver-Client-Secret': process.env.NAVER_CLIENT_SECRET!,
-            }
+                "X-Naver-Client-Id": process.env.NAVER_CLIENT_ID!,
+                "X-Naver-Client-Secret": process.env.NAVER_CLIENT_SECRET!,
+            },
         }
-    )
-
-    // 검색 결과를 JSON 형태로 받음
-    const data = await res.json();
-
-    // 광고성 필터링
-    const adKeywords = /협찬|광고|제공|제공받아|지원받아|협찬받아|무료로 받|소정의 원고료/i;
-    const filtered = data.items.filter((item: { description: string, title: string }) =>
-        !adKeywords.test(item.title) && !adKeywords.test(item.description)
     );
-
-    // 본문 요약 텍스트만 추출
+    const data = await res.json();
+    const adKeywords = /협찬|광고|제공|제공받아|지원받아|협찬받아|무료로 받|소정의 원고료/i;
+    const filtered = (data.items ?? []).filter(
+        (item: { description: string; title: string }) =>
+            !adKeywords.test(item.title) && !adKeywords.test(item.description)
+    );
     return filtered.map((item: { description: string }) =>
-        item.description.replace(/<[^>]+>/g, '') // HTML 태그 제거
+        item.description.replace(/<[^>]+>/g, "")
     );
 }
 
+// ── POST handler ──────────────────────────────────────────────────────────
 export async function POST(req: Request) {
     try {
         return await runPini(req);
     } catch (err) {
-        const msg = err instanceof Error ? err.message : 'AI 추천 중 오류가 발생했어요.';
-        const isOverload = msg.includes('503') || msg.toLowerCase().includes('unavailable') || msg.toLowerCase().includes('high demand');
+        const msg = err instanceof Error ? err.message : "AI 추천 중 오류가 발생했어요.";
+        const isOverload =
+            msg.includes("503") ||
+            msg.toLowerCase().includes("unavailable") ||
+            msg.toLowerCase().includes("high demand");
         return Response.json(
-            { error: isOverload ? 'AI 서버가 일시적으로 혼잡해요. 잠시 후 다시 시도해 주세요.' : msg },
+            { error: isOverload ? "AI 서버가 일시적으로 혼잡해요. 잠시 후 다시 시도해 주세요." : msg },
             { status: isOverload ? 503 : 500 }
         );
     }
 }
 
 async function runPini(req: Request) {
-    const { participants, category, excludePlaces } = await req.json() as PiniRequestBody;
+    const { participants, category, excludePlaces } = (await req.json()) as PiniRequestBody;
 
-    // contents에 참가자 정보 넣기
-    const participantDesc = participants.map(p =>
-        `- ${p.nickname}: 출발지 "${p.abstractLocation}", 교통수단 [${p.transports.join(', ')}], 이동거리 선호: ${p.distanceTolerance}, 분위기 선호: ${p.atmospherePreference}`
-    ).join('\n');
+    const participantDesc = participants
+        .map(
+            (p) =>
+                `- ${p.nickname}: 출발지 "${p.abstractLocation}", 교통수단 [${p.transports.join(", ")}], 이동거리 선호: ${p.distanceTolerance}, 분위기 선호: ${p.atmospherePreference}`
+        )
+        .join("\n");
 
-    const excludeText = excludePlaces?.length
-        ? `\n이미 추천된 장소이니 제외해주세요: ${excludePlaces.join(', ')}`
-        : '';
-
-    // 1. 선호 정보를 기반으로 장소명 5개 추천 받기
-    const firstResponse = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: `
-You are a meeting place recommendation system for Seoul, Korea.
-Category: ${category}
-
-Participants:
+    // ── Step 1: AI 최적 지역 도출 + 참가자 지오코딩 (병렬) ─────────────────
+    const [areaRes, participantCoords] = await Promise.all([
+        ai.models.generateContent({
+            model: "gemini-3.1-flash-lite",
+            contents: `
+참가자 정보:
 ${participantDesc}
 
-CRITICAL: You must ONLY suggest REAL, EXISTING businesses currently operating in Seoul.
-- CORRECT: "블루보틀 커피 성수점", "어니언 성수", "카페 노티드 도산", "스타벅스 강남역점"
-- WRONG: "화곡동 작은 서재", "고요한 오후" (fictional names — strictly forbidden)
+카테고리: ${category}
 
-Find a geographically balanced meeting point between all participants,
-considering their transport modes and distance tolerance.
-${excludeText}
-
-Return exactly 5 real, Kakao Map-searchable business names as a JSON array.
-`,
-
-        config: {
-            responseMimeType: "application/json",
-            responseSchema: {
-                type: Type.ARRAY,
-                items: { type: Type.STRING },
-            }
-        }
-    });
-
-    // 추천 받은 장소 string 배열에 저장
-    const placeNames: string[] = JSON.parse(firstResponse.text!);
-    console.log("추천 장소명:", placeNames);
-
-    // Promise.all을 사용해 장소 이름이 저장된 배열을 map을 사용해 순환하며 함수 실행
-    // kakaoResults: 위치, 장소이름 가져오기
-    // reviewResults: 장소 후기 검색하기
-    const [kakaoResults, reviewResults] = await Promise.all([
-        Promise.all(placeNames.map(name => searchKakaoPlace(name))),
-        Promise.all(placeNames.map(name => fetchNaverBlogReviews(name))),
+위 참가자들의 출발지와 교통수단을 고려했을 때, 모두에게 이동 시간이 공평한 서울 내 중간 지점을 하나 도출하세요.
+카카오맵에서 바로 검색 가능한 형태로, "강서구 화곡동" 또는 "마포구 합정동" 같이 "구 + 동" 수준으로 작성하세요.
+지역명만 단순 문자열로 반환하세요.
+            `,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: { type: Type.STRING },
+            },
+        }),
+        Promise.all(participants.map((p) => geocodeLocation(p.abstractLocation))),
     ]);
 
-    // 카카오에서 못 찾은 장소(null) 제거
-    const valid = placeNames
-        .map((name, i) => ({ name, kakao: kakaoResults[i], reviews: reviewResults[i] }))
-        .filter(r => r.kakao !== null);
+    const targetArea = JSON.parse(areaRes.text!) as string;
+    console.log("타깃 지역:", targetArea);
 
-    if (valid.length < 2) {
-        throw new Error('카카오맵에서 실존하는 장소를 찾지 못했어요. 다시 시도해주세요.');
+    // 참가자 좌표를 입력 데이터에 합체
+    const participantsWithCoord = participants.map((p, i) => ({
+        ...p,
+        coord: participantCoords[i],
+    }));
+
+    console.log(
+        "참가자 좌표:",
+        participantsWithCoord.map((p) => `${p.nickname}: ${p.coord?.lat},${p.coord?.lng}`)
+    );
+
+    // ── Step 2: 카카오에서 해당 지역 실존 장소 목록 확보 ──────────────────
+    const kakaoPlaces = await searchKakaoPlacesByArea(category, targetArea);
+
+    if (kakaoPlaces.length === 0) {
+        throw new Error(`${targetArea} 근처에서 ${category} 장소를 찾지 못했어요. 다시 시도해주세요.`);
     }
 
-    // 2. 리뷰 분석 후 최종 추천
-    const reviewText = valid.map((r) =>
-        `[${r.name}]\n${r.reviews.slice(0, 5).join('\n')}`
-    ).join('\n\n');
+    // 이미 추천된 장소 제외
+    const excludeSet = new Set((excludePlaces ?? []).map((n) => n.replace(/\s+/g, "")));
+    const candidates = kakaoPlaces.filter(
+        (p) => !excludeSet.has(p.place_name.replace(/\s+/g, ""))
+    );
 
-    const secondResponse = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+    if (candidates.length < 2) {
+        throw new Error("추천 가능한 새로운 장소가 부족해요. 범위를 바꿔서 다시 시도해보세요.");
+    }
+
+    console.log("카카오 후보 장소:", candidates.map((p) => p.place_name));
+
+    // ── Step 3: 후보 장소들의 네이버 블로그 리뷰 수집 ─────────────────────
+    const reviewResults = await Promise.all(
+        candidates.map((p) => fetchNaverBlogReviews(p.place_name))
+    );
+
+    // 리뷰가 1개 이상인 장소 우선, 부족하면 전체 상위 5개
+    const withReviews = candidates
+        .map((place, i) => ({ place, reviews: reviewResults[i] }))
+        .filter((r) => r.reviews.length > 0);
+
+    const analysisTargets = withReviews.length >= 2
+        ? withReviews
+        : candidates.map((place, i) => ({ place, reviews: reviewResults[i] })).slice(0, 5);
+
+    console.log("리뷰 포함 장소:", analysisTargets.map((r) => r.place.place_name));
+
+    // ── Step 4: AI가 리뷰 분석 후 장소 선정 (이동 시간은 AI 담당 아님) ────
+    const reviewText = analysisTargets
+        .map(
+            (r) =>
+                `[${r.place.place_name}] (주소: ${r.place.road_address_name || r.place.address_name})\n${r.reviews.slice(0, 5).join("\n")}`
+        )
+        .join("\n\n");
+
+    const excludeText = excludePlaces?.length
+        ? `\n이미 추천된 장소이니 절대 포함하지 마세요: ${excludePlaces.join(", ")}`
+        : "";
+
+    const aiRes = await ai.models.generateContent({
+        model: "gemini-3.1-flash-lite",
         contents: `
-Category: ${category}
-Participant Information: ${participantDesc}
-[Naver Blog Reviews for Each Location]
+분류 카테고리: ${category}
+참가자 선호 정보:
+${participantDesc}
+${excludeText}
+
+[카카오맵에서 확인된 실존 장소 및 네이버 블로그 실방문 후기 데이터]
 ${reviewText}
-Please analyze the reviews above and recommend the optimal locations for the participants.
-    `,
+
+위의 실제 장소 목록과 방문자 후기 데이터를 정밀하게 분석하여, 참가자들의 분위기 선호와 후기 신뢰도를 기준으로 최적인 장소 3~5곳을 선정해 주세요.
+반드시 위 목록에 있는 장소명을 그대로 사용하세요. 목록에 없는 장소는 절대 추가하지 마세요.
+        `,
         config: {
-            thinkingConfig: { thinkingBudget: 1024 },
+            thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
             systemInstruction: `
-            You are a sophisticated data analysis expert recommending meeting places in the Seoul area.
+당신은 서울 지역의 모임 장소를 추천하고 데이터를 정밀하게 분석하는 전문 AI 피니(PINI)입니다.
+사용자가 제공한 정보와 실제 방문자 후기 데이터를 바탕으로, 반드시 아래 규칙과 지정된 JSON 스키마 형식에 맞춰 모든 텍스트 필드를 **100% 한국어(Korean)**로 작성해야 합니다.
 
-Based on information provided by the user and actual visitor data collected via the 'Naver Search API (filtering for advertisements/sponsorships/provided content completed),' you must respond strictly in accordance with the rules below and the specified JSON format.
+[기본 규칙]
+1. 반드시 전달받은 실방문 후기 데이터에 존재하는 매장만 분석하여 결과에 포함하세요.
+2. 같은 장소를 두 번 포함하지 마세요. placeName이 중복되면 안 됩니다.
+3. 이동 시간(perParticipantTime)은 별도로 계산되므로 당신은 포함하지 않아도 됩니다.
+4. 'reasoning', 'pros', 'cons' 등 모든 텍스트 영역은 반드시 명확하고 자연스러운 한국어 문장이나 단어로 기술되어야 합니다. 영어를 섞어 쓰지 마세요.
+5. 응답은 다른 부가적인 설명 마크다운 블록(예: \`\`\`json) 없이 순수한 JSON 배열 포맷으로만 출력되어야 합니다.
 
-[Basic Rules]
-
-1. You must recommend only places that actually exist and are searchable on KakaoMap.
-2. The input review data has been primarily filtered for promotional keywords. Even from this, you must exclude simple promotional tones and carefully select only data containing the 'pure opinions' of actual visitors and a 'rating of 3.5 or higher' to reflect in your analysis.
-3. The response must be output in a pure JSON array format, without any other text such as markdown blocks.
-
-[Data Analysis and Output Guidelines]
-
-Each recommended place must be a JSON object with the following keys:
-
-- placeName: The name of the recommended business (based on the name registered on Kakao Map)
-- reasoning: Write the reason for the recommendation in a sentence, synthesizing the variation in participants' travel times, the match in preferred atmosphere, and the reliability of actual reviews.
-- atmosphereMatch: Specify how many participants match in their atmosphere preferences.
-- perParticipantTime: Calculate and include the travel time (minutes) and mode of transportation (transport: 'transit' or 'walk') for each participant (nickname) as an array.
-- rating: Estimate a score between 1.0 and 5.0 based on the overall sentiment of the blog reviews.
-  If the overall review sentiment is negative and the estimated rating is below 3.5,
-  exclude that place from the results and replace it with a better alternative.
-- reviewIntelligence:
-* authenticCount: The number of actual, reliable reviews used for analysis, excluding promotional posts
-* pros: 2-3 positive advantages cited by actual visitors
-* cons: 1-2 points of dissatisfaction or precautions mentioned by actual visitors
+[데이터 분석 및 출력 가이드라인]
+- placeName: 추천된 매장의 이름 (제공된 데이터의 이름 기준, 절대 변형하지 말 것)
+- reasoning: 선호 분위기 일치 여부, 실제 후기의 신뢰성을 종합하여 추천하는 이유를 신뢰감 있는 한국어 문장으로 작성하세요.
+- atmosphereMatch: 선호 분위기가 매칭되는 참가자 명수나 매칭 상태를 한국어로 적으세요. (예: "3명 일치", "모두 만족")
+- rating: 블로그 리뷰의 전반적인 감정을 분석하여 1.0에서 5.0 사이의 점수를 부여하세요.
+- reviewIntelligence: authenticCount(분석에 활용된 순수 후기 수), pros(실제 방문자들이 꼽은 생생한 한국어 장점 2-3개), cons(아쉬운 점이나 주의사항 1-2개)를 포함하세요.
             `,
             responseMimeType: "application/json",
             responseSchema: {
@@ -186,54 +317,85 @@ Each recommended place must be a JSON object with the following keys:
                         fairnessScore: { type: Type.INTEGER },
                         balanceTag: { type: Type.STRING },
                         rating: { type: Type.NUMBER },
-                        perParticipantTime: {
-                            type: Type.ARRAY,
-                            items: {
-                                type: Type.OBJECT,
-                                properties: {
-                                    nickname: { type: Type.STRING },
-                                    minutes: { type: Type.INTEGER },
-                                    transport: { type: Type.STRING }
-                                }
-                            },
-                        },
                         reviewIntelligence: {
                             type: Type.OBJECT,
                             properties: {
                                 authenticCount: { type: Type.INTEGER },
                                 pros: { type: Type.ARRAY, items: { type: Type.STRING } },
-                                cons: { type: Type.ARRAY, items: { type: Type.STRING } }
-                            }
-                        }
+                                cons: { type: Type.ARRAY, items: { type: Type.STRING } },
+                            },
+                        },
                     },
-                    required: ["placeName", "reasoning", "atmosphereMatch", "fairnessScore", "balanceTag", "rating", "perParticipantTime", "reviewIntelligence"]
+                    required: [
+                        "placeName",
+                        "reasoning",
+                        "atmosphereMatch",
+                        "fairnessScore",
+                        "balanceTag",
+                        "rating",
+                        "reviewIntelligence",
+                    ],
                 },
-            }
-        }
+            },
+        },
     });
 
-    if (!secondResponse.text) {
-        throw new Error('Gemini 응답이 비어있어요.');
-    }
+    if (!aiRes.text) throw new Error("Gemini 응답이 비어있어요.");
 
-    let parsed: Record<string, unknown>[];
+    let parsed: PiniPlaceAiResponse[];
     try {
-        parsed = JSON.parse(secondResponse.text);
+        parsed = JSON.parse(aiRes.text) as PiniPlaceAiResponse[];
     } catch {
-        console.error('Gemini 응답 파싱 실패:', secondResponse.text?.slice(0, 300));
-        throw new Error('AI 응답 형식이 올바르지 않아요. 다시 시도해주세요.');
+        throw new Error("AI 응답 형식이 올바르지 않아요. 다시 시도해주세요.");
     }
 
-    const places = parsed.map(
-        (place: Record<string, unknown>, i: number) => ({
-            ...place,
-            placeId: valid[i]?.kakao?.id ?? `place-${i}`,
-            placeAddress: valid[i]?.kakao?.road_address_name ?? valid[i]?.kakao?.address_name ?? '',
-            lat: parseFloat(valid[i]?.kakao?.y ?? '37.5665'),
-            lng: parseFloat(valid[i]?.kakao?.x ?? '126.9780'),
-            category,
+    // ── Step 5: AI 선택 장소에 카카오 데이터 매칭 + 이동 시간 직접 계산 ───
+    const seenIds = new Set<string>();
+
+    const places = parsed
+        .map((place) => {
+            const cleanAI = place.placeName.replace(/\s+/g, "");
+            const matched = analysisTargets.find((r) => {
+                const cleanKakao = r.place.place_name.replace(/\s+/g, "");
+                return cleanKakao.includes(cleanAI) || cleanAI.includes(cleanKakao);
+            });
+
+            if (!matched) return null;
+
+            const kakao = matched.place;
+            if (seenIds.has(kakao.id)) return null;
+            seenIds.add(kakao.id);
+
+            const placeCoord: GeoCoord = {
+                lat: Number.parseFloat(kakao.y),
+                lng: Number.parseFloat(kakao.x),
+            };
+
+            // 이동 시간: Haversine 거리 기반 직접 계산
+            const perParticipantTime = calcPerParticipantTime(participantsWithCoord, placeCoord);
+
+            // fairnessScore: 이동 시간 편차 기반으로 재계산
+            const times = perParticipantTime.map((p) => p.minutes);
+            const diff = Math.max(...times) - Math.min(...times);
+            const fairnessScore = Math.max(0, Math.round(100 - diff * 3));
+
+            return {
+                ...place,
+                placeName: kakao.place_name,
+                placeId: kakao.id,
+                placeAddress: kakao.road_address_name || kakao.address_name,
+                lat: placeCoord.lat,
+                lng: placeCoord.lng,
+                category,
+                perParticipantTime,
+                fairnessScore,
+            };
         })
-    );
+        .filter(Boolean);
+
+    if (places.length < 1) {
+        throw new Error("AI 추천 결과를 장소 데이터와 연결하지 못했어요. 다시 시도해주세요.");
+    }
 
     return Response.json(places);
 }
