@@ -78,89 +78,6 @@ type ParticipantWithUser = Awaited<
   ReturnType<typeof getParticipants>
 >["participants"][number];
 
-const MOCK_PLACES: RecommendedPlace[] = [
-  {
-    placeId: "p1",
-    placeName: "홍콩반점0410 강남점",
-    placeAddress: "서울 강남구 테헤란로 142",
-    category: "restaurant" as Category,
-    rating: 4.8,
-    lat: 37.5012,
-    lng: 127.039,
-    fairnessScore: 94,
-    balanceTag: "most_balanced",
-    reasoning:
-      "세 분의 이동 시간 차이가 4분 이내예요. 대중교통으로도 접근성이 좋고, 조용한 분위기 선호 2명과 일치해요.",
-    atmosphereMatch: "조용한 분위기 선호 2명 일치",
-    perParticipantTime: [
-      { nickname: "박해림", minutes: 17, transport: "transit" },
-      { nickname: "김철수", minutes: 19, transport: "walk" },
-      { nickname: "이영희", minutes: 21, transport: "transit" },
-    ],
-    reviewIntelligence: {
-      authenticCount: 124,
-      pros: [
-        "조용해서 대화하기 좋아요",
-        "음식이 일관되게 맛있어요",
-        "자리 여유가 있는 편이에요",
-      ],
-      cons: ["점심 시간대는 기다릴 수 있어요"],
-    },
-  },
-  {
-    placeId: "p2",
-    placeName: "블루보틀 커피 삼청점",
-    placeAddress: "서울 종로구 삼청로 100",
-    category: "cafe" as Category,
-    rating: 4.6,
-    lat: 37.5825,
-    lng: 126.9822,
-    fairnessScore: 87,
-    balanceTag: "review_pick",
-    reasoning:
-      "세 분 모두 조용하고 아늑한 분위기를 선호하셨어요. 실제 방문자 후기도 일관되게 긍정적이에요.",
-    atmosphereMatch: "분위기 선호 3명 모두 일치",
-    perParticipantTime: [
-      { nickname: "박해림", minutes: 24, transport: "transit" },
-      { nickname: "김철수", minutes: 22, transport: "walk" },
-      { nickname: "이영희", minutes: 20, transport: "transit" },
-    ],
-    reviewIntelligence: {
-      authenticCount: 87,
-      pros: [
-        "감성적인 공간으로 오래 있기 좋아요",
-        "커피 퀄리티가 뛰어나요",
-        "직원이 친절하고 조용해요",
-      ],
-      cons: ["음료 가격이 다소 높아요", "주말 오후에는 자리 경쟁이 있어요"],
-    },
-  },
-  {
-    placeId: "p3",
-    placeName: "이자카야 하나 서초점",
-    placeAddress: "서울 서초구 서초대로 77",
-    category: "bar" as Category,
-    rating: 4.5,
-    lat: 37.4967,
-    lng: 127.0276,
-    fairnessScore: 79,
-    balanceTag: "closest_to_all",
-    reasoning:
-      "박해림님과 이영희님에게 가장 가까운 위치예요. 두 분의 이동 부담이 가장 적은 선택지예요.",
-    atmosphereMatch: "아늑한 분위기 선호 1명 일치",
-    perParticipantTime: [
-      { nickname: "박해림", minutes: 14, transport: "transit" },
-      { nickname: "김철수", minutes: 28, transport: "walk" },
-      { nickname: "이영희", minutes: 15, transport: "transit" },
-    ],
-    reviewIntelligence: {
-      authenticCount: 56,
-      pros: ["분위기가 아늑하고 편안해요", "음식 퀄리티가 기대 이상이에요"],
-      cons: ["공간이 좁아서 소규모 모임에 적합해요", "미리 예약하는 게 좋아요"],
-    },
-  },
-];
-
 /* ── Picker option types ─────────────────────────────────────────────── */
 
 interface DistanceOption {
@@ -325,6 +242,7 @@ interface RoomSummaryPaneProps {
   readonly onConfirm: (() => void) | undefined;
   readonly onRerun: () => void;
   readonly currentUserId: string | undefined;
+  readonly onResetPreference: () => void;
 }
 
 function RoomSummaryPane({
@@ -335,6 +253,7 @@ function RoomSummaryPane({
   selectedPlaceName,
   onConfirm,
   onRerun,
+  onResetPreference,
   currentUserId,
 }: RoomSummaryPaneProps) {
   return (
@@ -419,6 +338,14 @@ function RoomSummaryPane({
           className="text-[12px] text-ink-subtle hover:text-ink transition-colors underline underline-offset-2"
         >
           다시 추천받기
+        </button>
+      </div>
+      <div className="mt-1">
+        <button
+          onClick={onResetPreference}
+          className="text-[12px] text-ink-subtle hover:text-ink transition-colors underline underline-offset-2"
+        >
+          선호 다시 입력하기
         </button>
       </div>
     </div>
@@ -722,6 +649,7 @@ export default function RoomPage() {
   const [isExpired, setIsExpired] = useState(false);
   const [linkExpiresAt, setLinkExpiresAt] = useState<string | null>(null);
   const [showLinkSheet, setShowLinkSheet] = useState(false);
+  const [category, setCategory] = useState<string>('');
 
   const currentUserId = useUserStore((s) => s.userInfo?.myId);
   const isMe = (p: ParticipantWithUser) => p.userId === currentUserId;
@@ -729,13 +657,14 @@ export default function RoomPage() {
 
   useEffect(() => {
     async function participant() {
-      const { isHost: host, savedPreference, linkExpiresAt: expiry } = await joinRoom(roomCode);
+      const { isHost: host, savedPreference, linkExpiresAt: expiry, category: roomCategory } = await joinRoom(roomCode);
       const { participants: fetchedParticipants } =
         await getParticipants(roomCode);
 
       setIsHost(host);
       setParticipants(fetchedParticipants);
       setLinkExpiresAt(expiry);  // joinRoom에서 바로 세팅 → 시트 즉시 표시 가능
+      setCategory(roomCategory);
 
       // 새로고침해도 이전에 저장한 선호 복원
       if (savedPreference) {
@@ -813,6 +742,9 @@ export default function RoomPage() {
    */
   const hasResults = sherlockLoading || sherlockPlaces.length > 0;
 
+  // 이전 추천장소 제외
+  const [excludedPlaces, setExcludedPlaces] = useState<string[]>([]);
+  const [sherlockError, setSherlockError] = useState<string | null>(null);
   /* ── Handlers ── */
 
   async function handleSaveLocation() {
@@ -850,10 +782,47 @@ export default function RoomPage() {
     /* Open mobile sheet; desktop grid handles itself via hasResults */
     setSherlockOpen(true);
     setSherlockLoading(true);
+    setSherlockError(null);
     clearMap();
-    await new Promise((r) => setTimeout(r, 3500));
-    setPlace(MOCK_PLACES);
-    setSherlockLoading(false);
+
+    try {
+      const res = await fetch('/api/sherlock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          participants: participants.map(p => ({
+            nickname: p.user.nickname,
+            abstractLocation: p.abstractLocation ?? '',
+            transports: p.transports,
+            distanceTolerance: p.distanceTolerance ?? 'medium',
+            atmospherePreference: p.atmospherePreference ?? 'quiet',
+          })),
+          category,
+          excludePlaces: excludedPlaces,   // server key와 일치
+        })
+      });
+
+      if (!res.ok) {
+        const body = await res.text();
+        let msg = 'AI 추천 중 오류가 발생했어요.';
+        try { msg = (JSON.parse(body) as { error?: string }).error ?? msg; } catch { /* ignore */ }
+        setSherlockError(msg);
+        return;
+      }
+
+      const places: RecommendedPlace[] = await res.json();
+      setPlace(places);
+
+      // 누적 제외 목록 업데이트
+      setExcludedPlaces(prev => [
+        ...prev,
+        ...places.map((p) => p.placeName)
+      ]);
+    } catch {
+      setSherlockError('네트워크 오류가 발생했어요. 다시 시도해 주세요.');
+    } finally {
+      setSherlockLoading(false);
+    }
   }
 
   function handleSelectPlace(place: RecommendedPlace) {
@@ -908,9 +877,13 @@ export default function RoomPage() {
 
   function handleRerun() {
     clearMap();
-    setSherlockLoading(false);
-    setSherlockOpen(false);
     handleRunSherlock();
+  }
+
+  function handleResetPlace() {
+    setLocationSaved(false);
+    clearMap();
+    setExcludedPlaces([]);  // 선호 바꾸면 제외 목록도 초기화
   }
 
   async function handleExtend() {
@@ -1097,6 +1070,7 @@ export default function RoomPage() {
               onConfirm={selectedPlace.placeId ? handleConfirmPlace : undefined}
               onRerun={handleRerun}
               currentUserId={currentUserId}
+              onResetPreference={handleResetPlace}
             />
           ) : (
             /* ── Participant preferences (before results) ── */
@@ -1363,6 +1337,7 @@ export default function RoomPage() {
               onRegenerate={handleRerun}
               onConfirm={selectedPlace.placeId ? handleConfirmPlace : undefined}
               isLoading={sherlockLoading}
+              error={sherlockError}
               participantCount={participants.length}
             />
           ) : (
@@ -1449,6 +1424,7 @@ export default function RoomPage() {
           onRegenerate={handleRerun}
           onConfirm={selectedPlace.placeId ? handleConfirmPlace : undefined}
           isLoading={sherlockLoading}
+          error={sherlockError}
           participantCount={participants.length}
         />
       </div>

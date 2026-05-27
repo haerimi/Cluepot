@@ -12,6 +12,7 @@ export async function joinRoom(roomCode: string)
         participantId: string;
         isHost: boolean;
         linkExpiresAt: string;
+        category: string;
         savedPreference: {
             abstractLocation: string;
             transports: string[];
@@ -48,7 +49,7 @@ export async function joinRoom(roomCode: string)
             lat: 0,
             lng: 0
         },
-        include: { room: { select: { linkExpiresAt: true } } }
+        include: { room: { select: { linkExpiresAt: true, category: true } } }
     })
 
     // isHost는 DB 컬럼을 기준으로 반환 (새로고침해도 정확함)
@@ -58,6 +59,7 @@ export async function joinRoom(roomCode: string)
         participantId: participant.id,
         isHost: participant.isHost,
         linkExpiresAt: participant.room.linkExpiresAt.toISOString(),
+        category: participant.room.category,
         savedPreference: hasSaved
             ? {
                 abstractLocation: participant.abstractLocation,

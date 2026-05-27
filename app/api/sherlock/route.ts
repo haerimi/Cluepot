@@ -13,6 +13,7 @@ interface ParticipantInput {
 interface SherlockRequestBody {
     participants: ParticipantInput[];
     category: string;
+    excludePlaces?: string[];
 }
 // 카카오 맵 API에서 위치와 장소이름 가져오기
 async function searchKakaoPlace(query: string) {
@@ -53,12 +54,29 @@ async function fetchNaverBlogReviews(placeName: string): Promise<string[]> {
 }
 
 export async function POST(req: Request) {
-    const { participants, category } = await req.json() as SherlockRequestBody;
+    try {
+    return await runSherlock(req);
+    } catch (err) {
+        const msg = err instanceof Error ? err.message : 'AI 추천 중 오류가 발생했어요.';
+        const isOverload = msg.includes('503') || msg.toLowerCase().includes('unavailable') || msg.toLowerCase().includes('high demand');
+        return Response.json(
+            { error: isOverload ? 'AI 서버가 일시적으로 혼잡해요. 잠시 후 다시 시도해 주세요.' : msg },
+            { status: isOverload ? 503 : 500 }
+        );
+    }
+}
+
+async function runSherlock(req: Request) {
+    const { participants, category, excludePlaces } = await req.json() as SherlockRequestBody;
 
     // contents에 참가자 정보 넣기
     const participantDesc = participants.map(p =>
         `- ${p.nickname}: 출발지 "${p.abstractLocation}", 교통수단 [${p.transports.join(', ')}], 이동거리 선호: ${p.distanceTolerance}, 분위기 선호: ${p.atmospherePreference}`
     ).join('\n');
+
+    const excludeText = excludePlaces?.length
+  ? `\n이미 추천된 장소이니 제외해주세요: ${excludePlaces.join(', ')}`
+  : '';
 
     // 1. 선호 정보를 기반으로 장소명 3개 추천 받기
     const firstResponse = await ai.models.generateContent({
@@ -66,7 +84,7 @@ export async function POST(req: Request) {
         contents: `
 Category: ${category}
 Participant Info: ${participantDesc}
-Based on the preferences of the participants above, please recommend exactly 3 ${category} places in Seoul that would be suitable.
+Based on the preferences of the participants above, please recommend exactly 5 ${category} places in Seoul that would be suitable. ${excludePlaces}
 
 Please be sure to return the full, exact business names that can be searched on Kakao Map. (e.g., "Blue Bottle Coffee Seongsu Branch", "Onion Seongsu", "Cafe Knotted Dosan")
 
@@ -129,6 +147,8 @@ Each recommended place must be a JSON object with the following keys:
 - atmosphereMatch: Specify how many participants match in their atmosphere preferences.
 - perParticipantTime: Calculate and include the travel time (minutes) and mode of transportation (transport: 'transit' or 'walk') for each participant (nickname) as an array.
 - rating: Estimate a score between 1.0 and 5.0 based on the overall sentiment of the blog reviews.
+  If the overall review sentiment is negative and the estimated rating is below 3.5, 
+  exclude that place from the results and replace it with a better alternative.
 - reviewIntelligence:
 * authenticCount: The number of actual, reliable reviews used for analysis, excluding promotional posts
 * pros: 2-3 positive advantages cited by actual visitors
@@ -168,7 +188,7 @@ Each recommended place must be a JSON object with the following keys:
                             }
                         }
                     },
-                    required: ["placeName", "required", "reasoning", "atmosphereMatch", "fairnessScore", "balanceTag", "perParticipantTime", "reviewIntelligence"]
+                    required: ["placeName", "reasoning", "atmosphereMatch", "fairnessScore", "balanceTag", "rating", "perParticipantTime", "reviewIntelligence"]
                 },
             }
         }

@@ -28,7 +28,7 @@ export async function createRoom(
       roomCode,
       category,
       name,
-      linkExpiresAt: new Date(Date.now() + 5 * 1000), // 🧪 테스트용 5초
+      linkExpiresAt: new Date(Date.now() + 4 * 60 * 60 * 1000)
     },
   });
 
@@ -84,16 +84,16 @@ export async function leaveRoom(roomCode: string): Promise<void> {
       where: { roomCode_userId: { roomCode, userId } },
       data: { leftAt: new Date() },
     });
-    
+
     // ScheduleMember 삭제 -> 캘린더에서 제외 
     const schedule = await prisma.schedule.findUnique({
-        where: { roomCode }
+      where: { roomCode }
     })
 
-    if(schedule) {
-        await prisma.scheduleMember.deleteMany({
-            where: { scheduleId: schedule.id, userId },
-        })
+    if (schedule) {
+      await prisma.scheduleMember.deleteMany({
+        where: { scheduleId: schedule.id, userId },
+      })
     }
   }
 
@@ -114,23 +114,25 @@ export async function getMyRooms() {
 
   return await prisma.participant.findMany({
     where: { userId: userId, leftAt: null },
-    include: { room: {
-      include: {
-        schedule: { select: { id: true }}
+    include: {
+      room: {
+        include: {
+          schedule: { select: { id: true } }
+        }
       }
-    } },
+    },
   });
 }
 
 export async function extendRoomLink(roomCode: string, isHost: boolean) {
-    if(!isHost) {
-        return;
-    }   
+  if (!isHost) {
+    return;
+  }
 
-    return await prisma.room.update({
-        where: { roomCode },
-        data: {
-            linkExpiresAt: new Date(Date.now() + 4 * 60 * 60 * 1000)
-        }
-    })
+  return await prisma.room.update({
+    where: { roomCode },
+    data: {
+      linkExpiresAt: new Date(Date.now() + 4 * 60 * 60 * 1000)
+    }
+  })
 }

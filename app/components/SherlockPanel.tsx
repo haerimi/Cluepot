@@ -26,7 +26,7 @@ import { PlaceCard } from "@/app/components/PlaceCard";
 export type { RecommendedPlace };
 
 type PanelVariant = "modal" | "inline";
-type PanelState = "loading" | "done";
+type PanelState = "loading" | "done" | "error";
 
 interface SherlockPanelProps {
   readonly open: boolean;
@@ -37,6 +37,7 @@ interface SherlockPanelProps {
   readonly onRegenerate: () => void;
   readonly onConfirm?: () => void;
   readonly isLoading?: boolean;
+  readonly error?: string | null;
   readonly participantCount?: number;
   readonly variant?: PanelVariant;
 }
@@ -135,6 +136,7 @@ interface PanelContentProps {
   readonly onSelectPlace: (place: RecommendedPlace) => void;
   readonly onRegenerate: () => void;
   readonly participantCount: number;
+  readonly errorMessage?: string | null;
 }
 
 function PanelContent({
@@ -144,10 +146,28 @@ function PanelContent({
   onSelectPlace,
   onRegenerate,
   participantCount,
+  errorMessage,
 }: PanelContentProps) {
   return (
     <>
       {panelState === "loading" && <SherlockTypographicLoader />}
+
+      {panelState === "error" && (
+        <div className="flex flex-col items-center justify-center flex-1 gap-4 px-10 py-20 text-center">
+          <p className="text-[32px]" aria-hidden="true">😵</p>
+          <p className="text-[15px] font-semibold text-ink">추천 중 오류가 발생했어요</p>
+          <p className="text-[13px] text-ink-subtle leading-relaxed">
+            {errorMessage ?? 'AI 서버가 일시적으로 바쁜 것 같아요.'}
+          </p>
+          <button
+            onClick={onRegenerate}
+            className="mt-2 px-5 py-2.5 rounded-xl bg-accent text-white text-[13px] font-semibold
+                       hover:bg-accent/90 transition-colors"
+          >
+            다시 시도하기
+          </button>
+        </div>
+      )}
 
       {panelState === "done" && (
         <div className="px-5 lg:px-8 py-6">
@@ -245,6 +265,7 @@ export function SherlockPanel({
   onRegenerate,
   onConfirm,
   isLoading = false,
+  error = null,
   participantCount = 3,
   variant = "modal",
 }: SherlockPanelProps) {
@@ -258,10 +279,12 @@ export function SherlockPanel({
     if (isLoading) {
       setPanelState("loading");
       setResetKey((k) => k + 1);
+    } else if (error) {
+      setPanelState("error");
     } else if (places.length > 0) {
       setPanelState("done");
     }
-  }, [isActive, isLoading, places]);
+  }, [isActive, isLoading, error, places]);
 
   const showConfirm = panelState === "done" && !!selectedPlaceId && !!onConfirm;
 
@@ -302,6 +325,7 @@ export function SherlockPanel({
             onSelectPlace={onSelectPlace}
             onRegenerate={onRegenerate}
             participantCount={participantCount}
+            errorMessage={error}
           />
         </div>
 
@@ -392,6 +416,7 @@ export function SherlockPanel({
             onSelectPlace={onSelectPlace}
             onRegenerate={onRegenerate}
             participantCount={participantCount}
+            errorMessage={error}
           />
         </div>
 
