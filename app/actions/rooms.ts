@@ -43,9 +43,21 @@ export async function validateRoom(
 
   if (!room) return { valid: false, reason: "존재하지 않는 모임 코드예요." };
   if (room.linkExpiresAt < new Date())
-    return { valid: false, reason: "만료된 모임이에요." };
+    return { valid: false, reason: "만료된 초대코드예요." };
 
   return { valid: true, expiresAt: room.linkExpiresAt.toISOString() };
+}
+
+/** 기존 멤버의 방 접속 유효성 확인 — 초대코드 만료와 무관하게 방이 존재하면 true */
+export async function checkRoomExists(
+  roomCode: string,
+): Promise<{ exists: boolean }> {
+  const room = await prisma.room.findUnique({
+    where: { roomCode },
+    select: { roomCode: true },
+  });
+
+  return { exists: Boolean(room) };
 }
 
 export async function leaveRoom(roomCode: string): Promise<void> {
@@ -101,6 +113,10 @@ export async function getMyRooms() {
 
   return await prisma.participant.findMany({
     where: { userId: userId, leftAt: null },
-    include: { room: true },
+    include: { room: {
+      include: {
+        schedule: { select: { id: true }}
+      }
+    } },
   });
 }

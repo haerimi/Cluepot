@@ -44,7 +44,7 @@
  * stores, so it stays in sync without any prop drilling.
  */
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ScheduleDateModal } from "./_components/ScheduleDateModal";
@@ -70,7 +70,7 @@ import {
 } from "@/app/actions/participant";
 import { createSchedule, getScheduleByRoomCode } from "@/app/actions/schedule";
 import { useUserStore } from "@/store/user";
-import { validateRoom } from "@/app/actions/rooms";
+import { checkRoomExists } from "@/app/actions/rooms";
 
 /* ── Inferred type from server action ────────────────────────────────── */
 
@@ -582,8 +582,6 @@ export default function RoomPage() {
 
   const currentUserId = useUserStore((s) => s.userInfo?.myId);
   const isMe = (p: ParticipantWithUser) => p.userId === currentUserId;
-  const expiryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
   useEffect(() => {
     async function participant() {
       const { isHost: host, savedPreference } = await joinRoom(roomCode);
@@ -627,32 +625,18 @@ export default function RoomPage() {
 
     participant();
     useRoomStore.getState().addActiveRoom(roomCode);
-    // TODO: 방 만료 시 removeActiveRoom(roomCode) 호출
 
     async function checkAndWatch() {
-      // 1. 만료 되었는지 확인
-      const result = await validateRoom(roomCode);
+      // 방이 존재하는지만 확인 (초대코드 만료 여부와 무관하게 기존 멤버는 접속 유지)
+      const { exists } = await checkRoomExists(roomCode);
 
-      if (!result.valid) {
-        useRoomStore.getState().removeActiveRoom(roomCode)
+      if (!exists) {
+        useRoomStore.getState().removeActiveRoom(roomCode);
         router.push("/");
         return;
       }
 
-      // 2. 유효한 roomCode -> activeRooms에 추가
       useRoomStore.getState().addActiveRoom(roomCode);
-
-      // 3. 만료 시점 타이머 설정
-      const remaining = new Date(result.expiresAt!).getTime() - Date.now();
-      if (remaining > 0) {
-        expiryTimerRef.current = setTimeout(() => {
-          useRoomStore.getState().removeActiveRoom(roomCode);
-          router.push("/");
-        }, remaining);
-      } else {
-        useRoomStore.getState().removeActiveRoom(roomCode);
-        router.push("/");
-      }
     }
 
     checkAndWatch();
@@ -668,7 +652,6 @@ export default function RoomPage() {
   ).length;
   const totalCount = participants.length;
   const allReady = totalCount > 0 && readyCount === totalCount;
-  console.log(readyCount, totalCount, allReady);
   /*
 
    * hasResults drives the grid transition.

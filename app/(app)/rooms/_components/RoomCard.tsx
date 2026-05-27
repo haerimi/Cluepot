@@ -16,6 +16,7 @@ type RoomCardData = {
     status: string;
     linkExpiresAt: Date;
     name: string;
+    schedule: { id: string } | null;
   };
 };
 
@@ -135,8 +136,6 @@ export function RoomCard({ data }: Readonly<{ data: RoomCardData }>) {
   const cat    = CATEGORY_CONFIG[room.category] ?? FALLBACK_CATEGORY;
   const status = STATUS_CONFIG[room.status]     ?? FALLBACK_STATUS;
 
-  const isExpired = new Date(room.linkExpiresAt) < new Date();
-
   async function handleDelete() {
     setIsDeleting(true);
     await leaveRoom(room.roomCode);
@@ -149,14 +148,9 @@ export function RoomCard({ data }: Readonly<{ data: RoomCardData }>) {
       <div className="relative group">
 
         {/* ── 카드 본체 (Link) ── */}
-        <Link href={`/rooms/${room.roomCode}`} className="block">
+        <Link href={room.schedule ? `/calendar/${room.schedule.id}` : `/rooms/${room.roomCode}`} className="block">
           <div
-            className={[
-              "rounded-2xl overflow-hidden border border-hairline",
-              "shadow-sm hover:shadow-md",
-              "transition-all duration-200 hover:-translate-y-0.5",
-              isExpired ? "opacity-50 pointer-events-none" : "",
-            ].join(" ")}
+            className="rounded-2xl overflow-hidden border border-hairline shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
           >
             {/* 커버 (2:3 비율) */}
             <div
@@ -168,28 +162,17 @@ export function RoomCard({ data }: Readonly<{ data: RoomCardData }>) {
                 {room.roomCode}
               </span>
 
-              {/* 만료 오버레이 */}
-              {isExpired && (
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                  <span className="text-white text-[12px] font-semibold tracking-wide">
-                    만료된 모임
-                  </span>
-                </div>
-              )}
-
               {/* 호버 오버레이 */}
-              {!isExpired && (
-                <div className={[
-                  "absolute inset-0 flex items-end justify-center pb-4",
-                  "bg-black/0 group-hover:bg-black/15",
-                  "opacity-0 group-hover:opacity-100",
-                  "transition-all duration-200",
-                ].join(" ")}>
-                  <span className="text-white text-[12px] font-semibold drop-shadow">
-                    입장하기 →
-                  </span>
-                </div>
-              )}
+              <div className={[
+                "absolute inset-0 flex items-end justify-center pb-4",
+                "bg-black/0 group-hover:bg-black/15",
+                "opacity-0 group-hover:opacity-100",
+                "transition-all duration-200",
+              ].join(" ")}>
+                <span className="text-white text-[12px] font-semibold drop-shadow">
+                  입장하기 →
+                </span>
+              </div>
             </div>
 
             {/* 정보 영역 */}
