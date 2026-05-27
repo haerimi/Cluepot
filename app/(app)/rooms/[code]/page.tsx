@@ -44,7 +44,7 @@
  * stores, so it stays in sync without any prop drilling.
  */
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ScheduleDateModal } from "./_components/ScheduleDateModal";
@@ -750,8 +750,8 @@ export default function RoomPage() {
     participant();
 
     async function checkAndWatch() {
-      // 1. 만료 되었는지 확인
-      const result = await validateRoom(roomCode);
+      // 방이 존재하는지만 확인 (초대코드 만료 여부와 무관하게 기존 멤버는 접속 유지)
+      const { exists } = await checkRoomExists(roomCode);
 
       if (!result.valid && !isExpired) {
         setIsExpired(true);
@@ -759,7 +759,6 @@ export default function RoomPage() {
         return;
       }
 
-      // 2. 유효한 roomCode -> activeRooms에 추가
       useRoomStore.getState().addActiveRoom(roomCode);
       setLinkExpiresAt(result.expiresAt!);
 
@@ -792,7 +791,6 @@ export default function RoomPage() {
   ).length;
   const totalCount = participants.length;
   const allReady = totalCount > 0 && readyCount === totalCount;
-  console.log(readyCount, totalCount, allReady);
   /*
 
    * hasResults drives the grid transition.
