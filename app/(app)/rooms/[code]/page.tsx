@@ -53,7 +53,6 @@ import {
   DistanceTolerance,
   AtmospherePreference,
 } from "@/types/participant";
-import { Category } from "@/types/room";
 import { Button } from "@/app/components/ui/Button";
 import { Badge } from "@/app/components/ui/Badge";
 import { ParticipantCard } from "@/app/components/ParticipantCard";
@@ -790,13 +789,25 @@ export default function RoomPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          participants: participants.map(p => ({
-            nickname: p.user.nickname,
-            abstractLocation: p.abstractLocation ?? '',
-            transports: p.transports,
-            distanceTolerance: p.distanceTolerance ?? 'medium',
-            atmospherePreference: p.atmospherePreference ?? 'quiet',
-          })),
+          participants: participants.map(p => {
+            // 현재 유저는 DB 값이 아닌 로컬 상태를 사용 (savePreference 후 participants 재fetch 없이도 정확)
+            if (isMe(p)) {
+              return {
+                nickname: p.user.nickname,
+                abstractLocation: myLocation,
+                transports: myTransports,
+                distanceTolerance: myDistance ?? 'medium',
+                atmospherePreference: myAtmosphere ?? 'quiet',
+              };
+            }
+            return {
+              nickname: p.user.nickname,
+              abstractLocation: p.abstractLocation ?? '',
+              transports: p.transports,
+              distanceTolerance: p.distanceTolerance ?? 'medium',
+              atmospherePreference: p.atmospherePreference ?? 'quiet',
+            };
+          }),
           category,
           excludePlaces: excludedPlaces,   // server key와 일치
         })
