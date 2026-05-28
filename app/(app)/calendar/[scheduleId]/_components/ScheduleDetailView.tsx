@@ -136,7 +136,7 @@ function EditModal({
         <div className="sm:hidden w-10 h-1 bg-hairline rounded-full mx-auto mb-5" />
 
         <h2 className="text-[20px] font-black text-ink tracking-tight mb-6">
-          일정 수정
+          날짜·시간 수정
         </h2>
 
         <div className="space-y-4">
@@ -485,11 +485,18 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
             {isCreator ? (
               <div className="flex items-center gap-2 shrink-0 mt-1">
                 <button
+                  onClick={() => setShowEdit(true)}
+                  className="h-9 px-3 rounded-lg border border-hairline text-[13px] font-medium text-ink-muted
+                             hover:border-hairline-strong hover:text-ink transition-colors"
+                >
+                  날짜·시간
+                </button>
+                <button
                   onClick={() => setShowReplace(true)}
                   className="h-9 px-3 rounded-lg border border-hairline text-[13px] font-medium text-ink-muted
                              hover:border-hairline-strong hover:text-ink transition-colors"
                 >
-                  수정
+                  장소 변경
                 </button>
                 <button
                   onClick={() => setShowDelete(true)}
@@ -614,7 +621,7 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
         <EditModal
           schedule={schedule}
           onClose={() => setShowEdit(false)}
-          onSaved={() => { }}
+          onSaved={() => router.refresh()}
         />
       )}
       {showDelete && (
