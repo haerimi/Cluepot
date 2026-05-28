@@ -16,28 +16,20 @@ const TRANSPORTS: TransportOption[] = [
 ];
 
 interface TransportPickerProps {
-  value: Transport[];
-  onChange: (transports: Transport[]) => void;
+  value: Transport | null;
+  onChange: (transport: Transport) => void;
 }
 
 export function TransportPicker({ value, onChange }: TransportPickerProps) {
-  function toggle(transport: Transport) {
-    if (value.includes(transport)) {
-      onChange(value.filter((t) => t !== transport));
-    } else {
-      onChange([...value, transport]);
-    }
-  }
-
   return (
     <div className="flex gap-2">
       {TRANSPORTS.map((t) => {
-        const isSelected = value.includes(t.value);
+        const isSelected = value === t.value;
         return (
           <button
             key={t.value}
             type="button"
-            onClick={() => toggle(t.value)}
+            onClick={() => onChange(t.value)}
             title={t.label}
             aria-pressed={isSelected}
             className={[

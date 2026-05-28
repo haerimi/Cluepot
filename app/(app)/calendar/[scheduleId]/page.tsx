@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { getScheduleById } from "@/app/actions/schedule";
 import { ScheduleDetailView } from "./_components/ScheduleDetailView";
 
@@ -8,6 +9,6 @@ interface Props {
 export default async function ScheduleDetailPage({ params }: Props) {
   const { scheduleId } = await params;
   const schedule = await getScheduleById(scheduleId);
-  if (!schedule) return <p>일정을 찾을 수 없어요.</p>;
+  if (!schedule) redirect("/calendar");
   return <ScheduleDetailView schedule={schedule} />;
 }

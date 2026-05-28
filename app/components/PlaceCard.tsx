@@ -181,11 +181,11 @@ function DetailDrawer({
               </span>
             </div>
 
-            {intelligence.pros.length > 0 && (
-              <div className={intelligence.cons.length > 0 ? "mb-3" : ""}>
+            {(intelligence.pros ?? []).length > 0 && (
+              <div className={(intelligence.cons ?? []).length > 0 ? "mb-3" : ""}>
                 <p className="text-[10px] font-bold text-[#27A644] tracking-wide mb-2">좋은 점</p>
                 <ul className="space-y-1.5">
-                  {intelligence.pros.map((pro) => (
+                  {(intelligence.pros ?? []).map((pro) => (
                     <li key={pro} className="flex items-start gap-2">
                       <span className="text-[10px] text-success mt-0.75 shrink-0 font-bold">✓</span>
                       <span className="text-[12px] text-ink-muted leading-[1.6]">{pro}</span>
@@ -195,11 +195,11 @@ function DetailDrawer({
               </div>
             )}
 
-            {intelligence.cons.length > 0 && (
+            {(intelligence.cons ?? []).length > 0 && (
               <div>
                 <p className="text-[10px] font-bold text-[#D97706] tracking-wide mb-2">참고할 점</p>
                 <ul className="space-y-1.5">
-                  {intelligence.cons.map((con) => (
+                  {(intelligence.cons ?? []).map((con) => (
                     <li key={con} className="flex items-start gap-2">
                       <span className="text-[10px] text-warning mt-0.75 shrink-0">△</span>
                       <span className="text-[12px] text-ink-muted leading-[1.6]">{con}</span>
