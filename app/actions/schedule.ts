@@ -282,10 +282,17 @@ export async function updateMemberStatus(
 ): Promise<void> {
   const userId = await getCurrentUserId();
 
+  // 일정이 이미 삭제된 경우 (장소 변경 등) 조용히 무시
+  const scheduleExists = await prisma.schedule.findUnique({
+    where: { id: scheduleId },
+    select: { id: true },
+  });
+  if (!scheduleExists) return;
 
-  await prisma.scheduleMember.update({
+  await prisma.scheduleMember.upsert({
     where: { scheduleId_userId: { scheduleId, userId } },
-    data: { status },
+    update: { status },
+    create: { scheduleId, userId, status },
   });
 
   revalidatePath(`/calendar/${scheduleId}`);
@@ -309,7 +316,13 @@ export async function cancelSchedule(scheduleId: string): Promise<void> {
   // 2. 일정 삭제
   await prisma.schedule.delete({ where: { id: scheduleId } });
 
-  // 3. 참가자 선호 초기화 (유저는 유지, 선호만 리셋)
+  // 3. 방 상태를 "재선정 중"으로 변경 — 참가자들이 빈 화면 대신 안내를 볼 수 있음
+  await prisma.room.update({
+    where: { roomCode: schedule.roomCode },
+    data: { status: "reselecting" },
+  });
+
+  // 4. 참가자 선호 초기화 (유저는 유지, 선호만 리셋)
   await prisma.participant.updateMany({
     where: { roomCode: schedule.roomCode },
     data: {

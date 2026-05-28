@@ -613,7 +613,7 @@ export default function RoomPage() {
 
   /* ── Local form state ── */
   const [myLocation, setMyLocation] = useState("");
-  const [myTransports, setMyTransports] = useState<Transport[]>([]);
+  const [myTransports, setMyTransports] = useState<Transport | null>(null);
   const [myDistance, setMyDistance] = useState<DistanceTolerance | null>(null);
   const [myAtmosphere, setMyAtmosphere] = useState<AtmospherePreference | null>(
     null,
@@ -645,6 +645,7 @@ export default function RoomPage() {
   const setSchedule = useScheduleStore((s) => s.setSchedule);
   const [participants, setParticipants] = useState<ParticipantWithUser[]>([]);
   const [isHost, setIsHost] = useState(false);
+  const [roomStatus, setRoomStatus] = useState<string>("waiting");
   const [isLoading, setIsLoading] = useState(true);
   const [isExpired, setIsExpired] = useState(false);
   const [linkExpiresAt, setLinkExpiresAt] = useState<string | null>(null);
@@ -657,7 +658,7 @@ export default function RoomPage() {
 
   useEffect(() => {
     async function participant() {
-      const { isHost: host, savedPreference, linkExpiresAt: expiry, category: roomCategory } = await joinRoom(roomCode);
+      const { isHost: host, savedPreference, linkExpiresAt: expiry, category: roomCategory, roomStatus: status } = await joinRoom(roomCode);
       const { participants: fetchedParticipants } =
         await getParticipants(roomCode);
 
@@ -665,11 +666,12 @@ export default function RoomPage() {
       setParticipants(fetchedParticipants);
       setLinkExpiresAt(expiry);  // joinRoom에서 바로 세팅 → 시트 즉시 표시 가능
       setCategory(roomCategory);
+      setRoomStatus(status);
 
       // 새로고침해도 이전에 저장한 선호 복원
       if (savedPreference) {
         setMyLocation(savedPreference.abstractLocation);
-        setMyTransports(savedPreference.transports as Transport[]);
+        setMyTransports((savedPreference.transports[0] as Transport) ?? null);
         if (savedPreference.distanceTolerance)
           setMyDistance(savedPreference.distanceTolerance as DistanceTolerance);
         if (savedPreference.atmospherePreference)
@@ -752,8 +754,8 @@ export default function RoomPage() {
       setLocationError("지역명을 입력해주세요");
       return;
     }
-    if (myTransports.length === 0) {
-      setLocationError("교통수단을 하나 이상 선택해주세요");
+    if (myTransports === null) {
+      setLocationError("교통수단을 선택해주세요");
       return;
     }
     if (!myDistance) {
@@ -771,7 +773,7 @@ export default function RoomPage() {
       abstractLocation: myLocation,
       lat: 0,
       lng: 0,
-      transports: myTransports,
+      transports: myTransports ? [myTransports] : [],
       distanceTolerance: myDistance ?? undefined,
       atmospherePreference: myAtmosphere ?? undefined,
     });
@@ -790,13 +792,25 @@ export default function RoomPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          participants: participants.map(p => ({
-            nickname: p.user.nickname,
-            abstractLocation: p.abstractLocation ?? '',
-            transports: p.transports,
-            distanceTolerance: p.distanceTolerance ?? 'medium',
-            atmospherePreference: p.atmospherePreference ?? 'quiet',
-          })),
+          participants: participants.map(p => {
+            // 현재 유저는 DB 값이 아닌 로컬 상태를 사용 (savePreference 후 participants 재fetch 없이도 정확)
+            if (isMe(p)) {
+              return {
+                nickname: p.user.nickname,
+                abstractLocation: myLocation,
+                transports: myTransports ? [myTransports] : [],
+                distanceTolerance: myDistance ?? 'medium',
+                atmospherePreference: myAtmosphere ?? 'quiet',
+              };
+            }
+            return {
+              nickname: p.user.nickname,
+              abstractLocation: p.abstractLocation ?? '',
+              transports: p.transports,
+              distanceTolerance: p.distanceTolerance ?? 'medium',
+              atmospherePreference: p.atmospherePreference ?? 'quiet',
+            };
+          }),
           category,
           excludePlaces: excludedPlaces,   // server key와 일치
         })
@@ -1056,6 +1070,16 @@ export default function RoomPage() {
         {/* ── Left pane ─────────────────────────────────────────────── */}
         {/* flex-1 fills the flex-col parent on mobile; ignored by grid on desktop */}
         <div className="flex-1  min-w-0  flex flex-col overflow-y-auto lg:border-r border-hairline pb-36 lg:pb-0">
+          {/* 재선정 배너 — 호스트는 이미 장소를 고르는 중이므로 참가자에게만 표시 */}
+          {roomStatus === "reselecting" && !isHost && (
+            <div className="mx-6 lg:mx-10 mt-6 px-4 py-3 rounded-xl bg-[#FFF7ED] border border-[#FED7AA] flex items-start gap-3">
+              <span className="text-[18px] shrink-0 mt-0.5">✨</span>
+              <div>
+                <p className="text-[13px] font-semibold text-[#92400E]">호스트가 새 장소를 고르고 있어요</p>
+                <p className="text-[12px] text-[#B45309] mt-0.5">잠시 후 새로운 장소가 확정되면 알림을 받게 돼요.</p>
+              </div>
+            </div>
+          )}
           {/* Content changes based on whether results have arrived */}
           {hasResults ? (
             /* ── Room summary (after results) ── */
@@ -1109,8 +1133,8 @@ export default function RoomPage() {
                           }
                           transports={
                             isMe(p)
-                              ? locationSaved
-                                ? myTransports
+                              ? locationSaved && myTransports
+                                ? [myTransports]
                                 : []
                               : (p.transports as Transport[])
                           }
@@ -1164,10 +1188,10 @@ export default function RoomPage() {
                     <div className="mb-6">
                       <div className="flex items-center justify-between mb-3">
                         <label className="text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase">
-                          이동 가능한 교통수단
+                          이동 수단
                         </label>
                         <span className="text-[10px] text-ink-tertiary">
-                          여러 개 선택 가능
+                          오늘 이용할 수단 하나
                         </span>
                       </div>
                       <TransportPicker

@@ -71,9 +71,10 @@ type StatusVariant = "warning" | "accent" | "success" | "muted";
 
 const STATUS_CONFIG: Record<string, { label: string; variant: StatusVariant }> =
   {
-    waiting: { label: "대기 중", variant: "warning" },
-    voting: { label: "추천 중", variant: "accent" },
-    done: { label: "확정됨", variant: "success" },
+    waiting:     { label: "대기 중",      variant: "warning" },
+    voting:      { label: "추천 중",      variant: "accent" },
+    done:        { label: "확정됨",       variant: "success" },
+    reselecting: { label: "장소 재선정 중", variant: "warning" },
   };
 
 const FALLBACK_STATUS = {
