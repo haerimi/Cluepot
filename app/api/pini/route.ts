@@ -1,7 +1,5 @@
 import { GoogleGenAI, Type, ThinkingLevel } from "@google/genai";
 
-export const maxDuration = 60;
-
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 interface ParticipantInput {
