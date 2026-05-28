@@ -797,7 +797,7 @@ export default function RoomPage() {
               return {
                 nickname: p.user.nickname,
                 abstractLocation: myLocation,
-                transports: myTransports,
+                transports: myTransports ? [myTransports] : [],
                 distanceTolerance: myDistance ?? 'medium',
                 atmospherePreference: myAtmosphere ?? 'quiet',
               };

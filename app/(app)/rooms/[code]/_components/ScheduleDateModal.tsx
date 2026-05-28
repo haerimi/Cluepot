@@ -15,6 +15,20 @@ export interface ScheduleDateModalProps {
   isSubmitting?: boolean;
 }
 
+function initTime() {
+  const now = new Date();
+  let h = now.getHours();
+  let m = Math.round(now.getMinutes() / 5) * 5;
+  if (m === 60) { m = 0; h = (h + 1) % 24; }
+  const ampm = h < 12 ? "오전" : "오후";
+  const h12 = h % 12;
+  return {
+    ampm: ampm as "오전" | "오후",
+    hour: String(h12 === 0 ? 12 : h12),
+    minute: String(m).padStart(2, "0"),
+  };
+}
+
 export function ScheduleDateModal({
   placeName,
   onSubmit,
@@ -22,42 +36,50 @@ export function ScheduleDateModal({
   isSubmitting = false,
 }: ScheduleDateModalProps) {
   const today = new Date().toISOString().slice(0, 10);
+  const init = initTime();
 
   const [title, setTitle] = useState(placeName);
   const [date, setDate] = useState(today);
-  const [time, setTime] = useState("18:00");
+  const [ampm, setAmpm] = useState<"오전" | "오후">(init.ampm);
+  const [hour, setHour] = useState(init.hour);
+  const [minute, setMinute] = useState(init.minute);
   const [memo, setMemo] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit() {
-    if (!date) { setError("날짜를 선택해주세요"); return; }
-    if (!time) { setError("시간을 선택해주세요"); return; }
-    if (!title.trim()) { setError("일정 제목을 입력해주세요"); return; }
-    setError(null);
-    onSubmit({ title: title.trim(), scheduledAt: `${date}T${time}`, memo });
+  function getTime24() {
+    let h = parseInt(hour);
+    if (ampm === "오전" && h === 12) h = 0;
+    else if (ampm === "오후" && h !== 12) h += 12;
+    return `${String(h).padStart(2, "0")}:${minute}`;
   }
 
+  function handleSubmit() {
+    if (!date) { setError("날짜를 선택해주세요"); return; }
+    if (!title.trim()) { setError("일정 제목을 입력해주세요"); return; }
+    setError(null);
+    onSubmit({ title: title.trim(), scheduledAt: `${date}T${getTime24()}`, memo });
+  }
+
+  const selectClass =
+    "h-11 px-2 rounded-xl border border-hairline bg-canvas text-[14px] text-ink text-center " +
+    "outline-none transition-all focus:ring-2 focus:ring-accent focus:border-accent focus:bg-white";
+
   return (
-    /* Backdrop */
     <div
       className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
       style={{ animation: "section-fade 0.2s ease-out both" }}
     >
-      {/* Dim */}
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
         onClick={onCancel}
       />
 
-      {/* Sheet / Card */}
       <div
         className="relative w-full sm:max-w-[440px] bg-white rounded-t-[24px] sm:rounded-2xl shadow-xl px-6 pt-6 pb-8 sm:pb-7"
         style={{ animation: "cinematic-up 0.3s cubic-bezier(0.16,1,0.3,1) both" }}
       >
-        {/* Drag handle — mobile only */}
         <div className="sm:hidden w-10 h-1 bg-hairline rounded-full mx-auto mb-5" />
 
-        {/* Header */}
         <div className="mb-6">
           <p className="text-[10px] font-bold text-ink-tertiary tracking-[2px] uppercase mb-2">
             일정 확정
@@ -85,6 +107,7 @@ export function ScheduleDateModal({
 
           {/* Date + Time row */}
           <div className="flex gap-3">
+            {/* Date */}
             <div className="flex-1">
               <label className="block text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase mb-2">
                 날짜
@@ -98,17 +121,49 @@ export function ScheduleDateModal({
                            outline-none transition-all focus:ring-2 focus:ring-accent focus:border-accent focus:bg-white"
               />
             </div>
-            <div className="w-[130px]">
+
+            {/* Time */}
+            <div className="flex-1">
               <label className="block text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase mb-2">
                 시간
               </label>
-              <input
-                type="time"
-                value={time}
-                onChange={(e) => { setTime(e.target.value); setError(null); }}
-                className="w-full h-11 px-3 rounded-xl border border-hairline bg-canvas text-[14px] text-ink
-                           outline-none transition-all focus:ring-2 focus:ring-accent focus:border-accent focus:bg-white"
-              />
+              <div className="flex items-center gap-1.5">
+                {/* AM/PM */}
+                <select
+                  value={ampm}
+                  onChange={(e) => setAmpm(e.target.value as "오전" | "오후")}
+                  className={selectClass}
+                >
+                  <option value="오전">오전</option>
+                  <option value="오후">오후</option>
+                </select>
+
+                {/* Hour */}
+                <select
+                  value={hour}
+                  onChange={(e) => setHour(e.target.value)}
+                  className={selectClass}
+                >
+                  {Array.from({ length: 12 }, (_, i) => String(i + 1)).map((h) => (
+                    <option key={h} value={h}>{h}</option>
+                  ))}
+                </select>
+
+                <span className="text-ink-tertiary font-bold text-[14px]">:</span>
+
+                {/* Minute */}
+                <select
+                  value={minute}
+                  onChange={(e) => setMinute(e.target.value)}
+                  className={selectClass}
+                >
+                  {Array.from({ length: 12 }, (_, i) =>
+                    String(i * 5).padStart(2, "0")
+                  ).map((m) => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
