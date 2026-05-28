@@ -53,7 +53,6 @@ import {
   DistanceTolerance,
   AtmospherePreference,
 } from "@/types/participant";
-import { Category } from "@/types/room";
 import { Button } from "@/app/components/ui/Button";
 import { Badge } from "@/app/components/ui/Badge";
 import { ParticipantCard } from "@/app/components/ParticipantCard";
@@ -798,7 +797,7 @@ export default function RoomPage() {
               return {
                 nickname: p.user.nickname,
                 abstractLocation: myLocation,
-                transports: myTransports ? [myTransports] : [],
+                transports: myTransports,
                 distanceTolerance: myDistance ?? 'medium',
                 atmospherePreference: myAtmosphere ?? 'quiet',
               };
