@@ -166,6 +166,11 @@ export function AppSidebar({ user }: Readonly<{ user: HydratedUser | null }>) {
           label="내 모임"
           icon={<RoomsIcon />}
           active={pathname.startsWith("/rooms")} />
+        <NavItem
+          href="room/join"
+          label="코드로 참가"
+          icon={<JoinCodeIcon />}
+          active={pathname.startsWith("/room/join")} />
       </nav>
 
       {/* ── PINI ambient text + user section — pinned to bottom ── */}
@@ -290,6 +295,19 @@ function RoomsIcon() {
       <rect x="7.5" y="1"   width="4.5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.4" />
       <rect x="1"   y="7.5" width="4.5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.4" />
       <rect x="7.5" y="7.5" width="4.5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.4" />
+    </svg>
+  );
+}
+
+function JoinCodeIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+      {/* # 가로선 */}
+      <path d="M1.5 4.5H11.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M1.5 8.5H11.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      {/* # 세로선 — 위아래로 살짝 기울어져 코드 느낌 */}
+      <path d="M4.5 2L3.5 11" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M9.5 2L8.5 11" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
     </svg>
   );
 }
