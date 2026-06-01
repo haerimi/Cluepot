@@ -100,7 +100,7 @@ export function ScheduleDateModal({
               type="text"
               value={title}
               onChange={(e) => { setTitle(e.target.value); setError(null); }}
-              className="w-full h-11 px-4 rounded-xl border border-hairline bg-canvas text-[14px] text-ink
+              className="w-full h-11 px-4 rounded-xl border border-hairline bg-canvas text-[16px] text-ink
                          outline-none transition-all focus:ring-2 focus:ring-accent focus:border-accent focus:bg-white"
             />
           </div>
@@ -117,7 +117,7 @@ export function ScheduleDateModal({
                 value={date}
                 min={today}
                 onChange={(e) => { setDate(e.target.value); setError(null); }}
-                className="w-full h-11 px-3 rounded-xl border border-hairline bg-canvas text-[14px] text-ink
+                className="w-full h-11 px-3 rounded-xl border border-hairline bg-canvas text-[16px] text-ink
                            outline-none transition-all focus:ring-2 focus:ring-accent focus:border-accent focus:bg-white"
               />
             </div>
@@ -178,7 +178,7 @@ export function ScheduleDateModal({
               rows={2}
               placeholder="모임에 대한 메모를 남겨요"
               className="w-full px-4 py-3 rounded-xl border border-hairline bg-canvas text-[14px] text-ink
-                         placeholder:text-ink-tertiary resize-none
+                         placeholder:text-ink-tertiary resize-none text-[16px]
                          outline-none transition-all focus:ring-2 focus:ring-accent focus:border-accent focus:bg-white"
             />
           </div>

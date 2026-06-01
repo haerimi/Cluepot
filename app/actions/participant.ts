@@ -82,21 +82,13 @@ export async function savePreference(
 
   const userId = await getCurrentUserId();
 
-  // 만료된 방이거나 이미 나간 참가자면 저장 불가
   const participant = await prisma.participant.findUnique({
     where: { roomCode_userId: { roomCode, userId } },
-    include: { room: { select: { linkExpiresAt: true } } },
   });
   if (!participant || participant.leftAt !== null) {
     return {
       ok: false,
       reason: "이미 방에서 나간 상태라 선호를 저장할 수 없어요.",
-    };
-  }
-  if (participant.room.linkExpiresAt < new Date()) {
-    return {
-      ok: false,
-      reason: "모임 링크가 만료되어 선호를 저장할 수 없어요.",
     };
   }
 

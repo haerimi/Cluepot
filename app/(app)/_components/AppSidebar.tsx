@@ -21,6 +21,7 @@ import { useMapStore } from "@/store/map";
 import { useScheduleStore } from "@/store/schedule";
 import { logout } from "@/app/actions/auth";
 import type { HydratedUser } from "./AuthHydrator";
+import { HomeIcon, RoomsIcon, CalendarIcon, ProfileIcon, LogoutIcon, JoinCodeIcon } from "./AppTopNav";
 
 const AMBIENT_LINES = [
   "장소에는 이야기가 있어요",
@@ -165,12 +166,15 @@ export function AppSidebar({ user }: Readonly<{ user: HydratedUser | null }>) {
           href="/rooms"
           label="내 모임"
           icon={<RoomsIcon />}
-          active={pathname.startsWith("/rooms")} />
+          active={pathname.startsWith("/rooms")} 
+          />
+
         <NavItem
           href="/rooms/join"
           label="코드로 참가"
           icon={<JoinCodeIcon />}
-          active={pathname.startsWith("/rooms/join")} />
+          active={pathname.startsWith("/rooms/join")} 
+          />
       </nav>
 
       {/* ── PINI ambient text + user section — pinned to bottom ── */}
@@ -257,67 +261,5 @@ function NavItem({
       {icon}
       {label}
     </Link>
-  );
-}
-
-function HomeIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
-      <path d="M1 6.5L6.5 1L12 6.5V12H8.5V8.5H4.5V12H1V6.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function CalendarIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
-      <rect x="1" y="2.5" width="11" height="9.5" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
-      <path d="M1 5.5H12" stroke="currentColor" strokeWidth="1.4" />
-      <path d="M4 1V3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-      <path d="M9 1V3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function ProfileIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
-      <circle cx="6.5" cy="4.5" r="2.5" stroke="currentColor" strokeWidth="1.4" />
-      <path d="M1 12C1 9.79 3.52 8 6.5 8C9.48 8 12 9.79 12 12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function RoomsIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
-      <rect x="1"   y="1"   width="4.5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.4" />
-      <rect x="7.5" y="1"   width="4.5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.4" />
-      <rect x="1"   y="7.5" width="4.5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.4" />
-      <rect x="7.5" y="7.5" width="4.5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.4" />
-    </svg>
-  );
-}
-
-function JoinCodeIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
-      {/* # 가로선 */}
-      <path d="M1.5 4.5H11.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-      <path d="M1.5 8.5H11.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-      {/* # 세로선 — 위아래로 살짝 기울어져 코드 느낌 */}
-      <path d="M4.5 2L3.5 11" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-      <path d="M9.5 2L8.5 11" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function LogoutIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-      <path d="M5 2H2.5C1.95 2 1.5 2.45 1.5 3V11C1.5 11.55 1.95 12 2.5 12H5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-      <path d="M9.5 4.5L12.5 7L9.5 9.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M12.5 7H5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-    </svg>
   );
 }

@@ -166,7 +166,7 @@ export default function SignupPage() {
                 required
                 maxLength={20}
                 placeholder="모임에서 불릴 이름"
-                className="h-12 px-4 bg-white border border-[#E5E1D9] rounded-[10px] text-[15px] text-[#1C1A17] placeholder:text-[#C4C1BC] outline-none transition-all focus:border-[#7C5CFC] focus:shadow-[0_0_0_3px_rgba(124,92,252,0.10)]"
+                className="h-12 px-4 bg-white border border-[#E5E1D9] rounded-[10px] text-[16px] text-[#1C1A17] placeholder:text-[#C4C1BC] outline-none transition-all focus:border-[#7C5CFC] focus:shadow-[0_0_0_3px_rgba(124,92,252,0.10)]"
               />
             </div>
 
@@ -185,7 +185,7 @@ export default function SignupPage() {
                 autoComplete="email"
                 required
                 placeholder="name@example.com"
-                className="h-12 px-4 bg-white border border-[#E5E1D9] rounded-[10px] text-[15px] text-[#1C1A17] placeholder:text-[#C4C1BC] outline-none transition-all focus:border-[#7C5CFC] focus:shadow-[0_0_0_3px_rgba(124,92,252,0.10)]"
+                className="h-12 px-4 bg-white border border-[#E5E1D9] rounded-[10px] text-[16px] text-[#1C1A17] placeholder:text-[#C4C1BC] outline-none transition-all focus:border-[#7C5CFC] focus:shadow-[0_0_0_3px_rgba(124,92,252,0.10)]"
               />
             </div>
 
@@ -204,7 +204,7 @@ export default function SignupPage() {
                 autoComplete="new-password"
                 required
                 placeholder="8자 이상"
-                className="h-12 px-4 bg-white border border-[#E5E1D9] rounded-[10px] text-[15px] text-[#1C1A17] placeholder:text-[#C4C1BC] outline-none transition-all focus:border-[#7C5CFC] focus:shadow-[0_0_0_3px_rgba(124,92,252,0.10)]"
+                className="h-12 px-4 bg-white border border-[#E5E1D9] rounded-[10px] text-[16px] text-[#1C1A17] placeholder:text-[#C4C1BC] outline-none transition-all focus:border-[#7C5CFC] focus:shadow-[0_0_0_3px_rgba(124,92,252,0.10)]"
               />
               <p className="text-[11px] text-[#C4C1BC]">최소 8자 이상이어야 해요.</p>
             </div>

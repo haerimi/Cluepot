@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Category } from "@/types/room";
 import { Button } from "@/app/components/ui/Button";
@@ -8,6 +8,7 @@ import { CategoryPicker } from "@/app/components/CategoryPicker";
 import { useRoomStore } from "@/store/room";
 import { createRoom } from "@/app/actions/rooms";
 import { joinRoom } from "@/app/actions/participant";
+import { createClient } from "@/util/supabase/client";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -46,6 +47,12 @@ const STEP_LABELS: Record<Step, string> = {
 
 export default function CreateRoomPage() {
   const router = useRouter();
+
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data: { user } }) => {
+      if (!user) router.push("/login");
+    });
+  }, [router]);
 
   const [step, setStep] = useState<Step>(1);
   const [category, setCategory] = useState<Category | null>(null);
