@@ -151,7 +151,7 @@ function EditModal({
                 setTitle(e.target.value);
                 setError(null);
               }}
-              className="w-full h-11 px-4 rounded-xl border border-hairline bg-canvas text-[14px] text-ink
+              className="w-full h-11 px-4 rounded-xl border border-hairline bg-canvas text-[16px] text-ink
                          outline-none transition-all focus:ring-2 focus:ring-accent focus:border-accent focus:bg-white"
             />
           </div>
@@ -166,7 +166,7 @@ function EditModal({
                 setDt(e.target.value);
                 setError(null);
               }}
-              className="w-full h-11 px-4 rounded-xl border border-hairline bg-canvas text-[14px] text-ink
+              className="w-full h-11 px-4 rounded-xl border border-hairline bg-canvas text-[16px] text-ink
                          outline-none transition-all focus:ring-2 focus:ring-accent focus:border-accent focus:bg-white"
             />
           </div>
@@ -181,7 +181,7 @@ function EditModal({
               value={memo}
               onChange={(e) => setMemo(e.target.value)}
               rows={2}
-              className="w-full px-4 py-3 rounded-xl border border-hairline bg-canvas text-[14px] text-ink
+              className="w-full px-4 py-3 rounded-xl border border-hairline bg-canvas text-[16px] text-ink
                          resize-none outline-none transition-all focus:ring-2 focus:ring-accent focus:border-accent focus:bg-white"
             />
           </div>
@@ -464,7 +464,7 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
             모임 일정
           </Link>
 
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col gap-4">
             <div>
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-5 h-px bg-hairline-strong" />
@@ -475,7 +475,7 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
               <h1 className="text-[28px] lg:text-[36px] font-black text-ink tracking-tight leading-tight mb-2">
                 {schedule.title}
               </h1>
-              <p className="text-[14px] text-ink-subtle">{date}</p>
+              <p className="text-[16px] text-ink-subtle">{date}</p>
               <p className="text-[22px] lg:text-[28px] font-black text-accent tracking-tight mt-1">
                 {time}
               </p>
@@ -483,7 +483,7 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
 
             {/* Creator actions */}
             {isCreator ? (
-              <div className="flex items-center gap-2 shrink-0 mt-1">
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowEdit(true)}
                   className="h-9 px-3 rounded-lg border border-hairline text-[13px] font-medium text-ink-muted
@@ -507,7 +507,7 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-2 shrink-0 mt-1">
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowLeave(true)}
                   className="h-9 px-3 rounded-lg border border-hairline text-[13px] font-medium text-ink-muted

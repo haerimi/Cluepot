@@ -22,7 +22,7 @@ interface NavItem {
   readonly icon: React.ReactNode;
 }
 
-function HomeIcon() {
+export function HomeIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 13 13" fill="none" aria-hidden="true">
       <path d="M1 6.5L6.5 1L12 6.5V12H8.5V8.5H4.5V12H1V6.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
@@ -30,7 +30,7 @@ function HomeIcon() {
   );
 }
 
-function CalendarIcon() {
+export function CalendarIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 13 13" fill="none" aria-hidden="true">
       <rect x="1" y="2.5" width="11" height="9.5" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
@@ -41,7 +41,7 @@ function CalendarIcon() {
   );
 }
 
-function RoomsIcon() {
+export function RoomsIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 13 13" fill="none" aria-hidden="true">
       <rect x="1" y="1" width="4.5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.4" />
@@ -52,7 +52,7 @@ function RoomsIcon() {
   );
 }
 
-function ProfileIcon() {
+export function ProfileIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 13 13" fill="none" aria-hidden="true">
       <circle cx="6.5" cy="4.5" r="2.5" stroke="currentColor" strokeWidth="1.4" />
@@ -61,12 +61,25 @@ function ProfileIcon() {
   );
 }
 
-function LogoutIcon() {
+export function LogoutIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
       <path d="M5 2H2.5C1.95 2 1.5 2.45 1.5 3V11C1.5 11.55 1.95 12 2.5 12H5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
       <path d="M9.5 4.5L12.5 7L9.5 9.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M12.5 7H5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function JoinCodeIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+      {/* # 가로선 */}
+      <path d="M1.5 4.5H11.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M1.5 8.5H11.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      {/* # 세로선 — 위아래로 살짝 기울어져 코드 느낌 */}
+      <path d="M4.5 2L3.5 11" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M9.5 2L8.5 11" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
     </svg>
   );
 }
@@ -79,11 +92,12 @@ export function AppTopNav({ user }: Readonly<{ user: HydratedUser | null }>) {
 
   const navItems: NavItem[] = [
     { href: "/rooms/create", label: "일정 만들기", icon: <HomeIcon /> },
-    { href: "/calendar", label: "내 일정", icon: <CalendarIcon /> },
+    { href: "/calendar", label: "내 일정", icon: <CalendarIcon /> }, 
     { href: "/rooms", label: "내 모임", icon: <RoomsIcon /> },
     ...(user
       ? [{ href: "/profile", label: "프로필", icon: <ProfileIcon /> }]
       : []),
+    { href: "/rooms/join", label: "코드로 참가", icon: <JoinCodeIcon /> }, 
   ];
 
   function closeMenu() {

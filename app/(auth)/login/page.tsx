@@ -171,7 +171,7 @@ export default function LoginPage() {
                 autoComplete="email"
                 required
                 placeholder="name@example.com"
-                className="h-12 px-4 bg-white border border-[#E5E1D9] rounded-[10px] text-[15px] text-[#1C1A17] placeholder:text-[#C4C1BC] outline-none transition-all focus:border-[#7C5CFC] focus:shadow-[0_0_0_3px_rgba(124,92,252,0.10)]"
+                className="h-12 px-4 bg-white border border-[#E5E1D9] rounded-[10px] text-[16px] text-[#1C1A17] placeholder:text-[#C4C1BC] outline-none transition-all focus:border-[#7C5CFC] focus:shadow-[0_0_0_3px_rgba(124,92,252,0.10)]"
               />
             </div>
 
@@ -190,7 +190,7 @@ export default function LoginPage() {
                 autoComplete="current-password"
                 required
                 placeholder="••••••••"
-                className="h-12 px-4 bg-white border border-[#E5E1D9] rounded-[10px] text-[15px] text-[#1C1A17] placeholder:text-[#C4C1BC] outline-none transition-all focus:border-[#7C5CFC] focus:shadow-[0_0_0_3px_rgba(124,92,252,0.10)]"
+                className="h-12 px-4 bg-white border border-[#E5E1D9] rounded-[10px] text-[16px] text-[#1C1A17] placeholder:text-[#C4C1BC] outline-none transition-all focus:border-[#7C5CFC] focus:shadow-[0_0_0_3px_rgba(124,92,252,0.10)]"
               />
             </div>
 
@@ -209,7 +209,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={pending}
-              className="mt-2 h-12 w-full rounded-[10px] bg-[#7C5CFC] text-white text-[15px] font-semibold transition-all hover:bg-[#6B4AEF] active:bg-[#5A38E3] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="mt-2 h-12 w-full rounded-[10px] bg-[#7C5CFC] text-white text-[16px] font-semibold transition-all hover:bg-[#6B4AEF] active:bg-[#5A38E3] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               style={{
                 boxShadow: "0 1px 3px rgba(124,92,252,0.35)",
               }}

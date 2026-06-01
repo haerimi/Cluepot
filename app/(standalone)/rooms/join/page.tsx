@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/app/components/ui/Button";
@@ -16,6 +16,12 @@ export default function JoinRoomPage() {
   const [isJoining, setIsJoining] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data: { user } }) => {
+      if (!user) router.push("/login");
+    });
+  }, [router]);
+
   const normalizedCode = code.trim().toUpperCase();
   const isValid = normalizedCode.length >= 4;
 
@@ -28,14 +34,6 @@ export default function JoinRoomPage() {
     if (!validate.valid) {
       setError(validate.reason ?? "유효하지 않은 코드예요.");
       setIsJoining(false);
-      return;
-    }
-
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      router.push("/login");
       return;
     }
 

@@ -646,14 +646,12 @@ export default function RoomPage() {
   const [isHost, setIsHost] = useState(false);
   const [roomStatus, setRoomStatus] = useState<string>("waiting");
   const [isLoading, setIsLoading] = useState(true);
-  const [isExpired, setIsExpired] = useState(false);
   const [linkExpiresAt, setLinkExpiresAt] = useState<string | null>(null);
   const [showLinkSheet, setShowLinkSheet] = useState(false);
   const [category, setCategory] = useState<string>('');
 
   const currentUserId = useUserStore((s) => s.userInfo?.myId);
   const isMe = (p: ParticipantWithUser) => p.userId === currentUserId;
-  const expiryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     async function participant() {
@@ -696,15 +694,6 @@ export default function RoomPage() {
         });
       }
 
-      const remaining = new Date(expiry).getTime() - Date.now();
-      if (remaining <= 0) {
-        setIsExpired(true);
-      } else {
-        expiryTimerRef.current = setTimeout(() => {
-          setIsExpired(true);
-        }, remaining);
-      }
-
       setIsLoading(false);
     }
 
@@ -724,11 +713,10 @@ export default function RoomPage() {
     checkAndWatch();
 
     return () => {
-      if (expiryTimerRef.current) clearTimeout(expiryTimerRef.current);
       useScheduleStore.getState().clearSchedule();
       useMapStore.getState().clearMap();
     };
-  }, [roomCode, isExpired]);
+  }, [roomCode]);
 
   const readyCount = participants.filter((p) =>
     p.userId === currentUserId ? locationSaved : Boolean(p.abstractLocation),
@@ -912,11 +900,7 @@ export default function RoomPage() {
     await extendRoomLink(roomCode, isHost);
     const newExpiry = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString();
     setLinkExpiresAt(newExpiry);
-    setIsExpired(false);
     setShowLinkSheet(false);
-
-    // 타이머 재설정
-    if (expiryTimerRef.current) clearTimeout(expiryTimerRef.current);
   }
 
   /* ── Confirmed view ── */
@@ -940,76 +924,6 @@ export default function RoomPage() {
           lat={scheduleInfo.lat}
           lng={scheduleInfo.lng}
         />
-      </>
-    );
-  }
-
-  /* ── Expired view ── */
-  if (isExpired) {
-    return (
-      <>
-        <header className="flex items-center justify-between px-6 lg:px-10 h-14 border-b border-hairline shrink-0">
-          <Badge variant="warning" dot>링크 만료됨</Badge>
-          <Badge variant="muted">{roomCode}</Badge>
-        </header>
-
-        <div className="flex-1 flex flex-col items-center justify-center px-6 text-center"
-          style={{ animation: "fade-up 0.4s ease-out both" }}>
-
-          {/* Icon */}
-          <div className="w-16 h-16 rounded-full bg-[#FFF8E1] flex items-center justify-center text-[32px] mb-8">
-            ⏰
-          </div>
-
-          <h2 className="text-[26px] lg:text-[32px] font-black text-ink tracking-tight mb-3">
-            모임 링크가 만료됐어요
-          </h2>
-
-          {isHost ? (
-            /* ── 호스트 ── */
-            <>
-              <p className="text-[14px] text-ink-subtle leading-relaxed mb-10 max-w-[320px]">
-                링크 유효 시간이 지났어요.<br />연장하면 참가자들이 다시 입장할 수 있어요.
-              </p>
-              <Button variant="primary" size="lg" onClick={handleExtend}>
-                4시간 연장하기
-              </Button>
-              <button
-                onClick={() => router.push("/")}
-                className="mt-4 text-[13px] text-ink-subtle hover:text-ink transition-colors"
-              >
-                홈으로 돌아가기
-              </button>
-            </>
-          ) : (
-            /* ── 참가자 ── */
-            <>
-              <p className="text-[14px] text-ink-subtle leading-relaxed mb-10 max-w-[320px]">
-                호스트가 링크를 연장하면<br />자동으로 다시 입장할 수 있어요.
-              </p>
-              <div className="flex items-center gap-3 py-3.5 px-5 bg-white rounded-xl border border-hairline">
-                <div className="flex gap-[3px] shrink-0">
-                  {([0, 0.15, 0.3] as const).map((d) => (
-                    <div
-                      key={d}
-                      className="w-1.5 h-1.5 rounded-full bg-accent"
-                      style={{ animation: `dot-bounce 1.2s ease-in-out ${d}s infinite` }}
-                    />
-                  ))}
-                </div>
-                <p className="text-[13px] font-medium text-ink-muted">
-                  호스트 연장 대기 중
-                </p>
-              </div>
-              <button
-                onClick={() => router.push("/")}
-                className="mt-6 text-[13px] text-ink-subtle hover:text-ink transition-colors"
-              >
-                홈으로 돌아가기
-              </button>
-            </>
-          )}
-        </div>
       </>
     );
   }
@@ -1181,7 +1095,7 @@ export default function RoomPage() {
                         }}
                         placeholder="예: 강남구, 홍대, 잠실"
                         className={[
-                          "w-full h-12 px-4 rounded-xl border text-[15px]",
+                          "w-full h-12 px-4 rounded-xl border text-[16px]",
                           "placeholder:text-ink-tertiary",
                           "outline-none transition-all duration-150",
                           "focus:ring-2 focus:ring-accent focus:ring-offset-0 focus:border-accent",
