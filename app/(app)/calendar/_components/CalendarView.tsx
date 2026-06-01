@@ -164,7 +164,7 @@ function MonthEmptyState() {
         모임을 만들고 피니로 장소를 확정하면 여기에 기록돼요
       </p>
       <Link
-        href="/room/create"
+        href="/rooms/create"
         className="inline-flex items-center h-10 px-5 bg-ink text-white text-[13px] font-semibold rounded-full hover:bg-ink-muted transition-colors"
       >
         새 모임 만들기

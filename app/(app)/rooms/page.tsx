@@ -17,10 +17,10 @@ export default async function RoomsPage() {
             새 모임을 만들거나 코드로 참가해보세요
           </p>
           <div className="flex gap-3 mt-2">
-            <Link href="/room/create">
+            <Link href="/rooms/create">
               <Button variant="primary" size="md">모임 만들기</Button>
             </Link>
-            <Link href="/room/join">
+            <Link href="/rooms/join">
               <Button variant="secondary" size="md">코드로 참가</Button>
             </Link>
           </div>
