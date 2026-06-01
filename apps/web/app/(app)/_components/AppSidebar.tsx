@@ -87,14 +87,14 @@ export function AppSidebar({ user }: Readonly<{ user: HydratedUser | null }>) {
     idle: "bg-hairline-strong",
     waiting: "bg-hairline-strong",
     results: "bg-accent",
-    confirmed: "bg-[#27A644]",
+    confirmed: "bg-success",
   };
 
   const phaseText: Record<SessionPhase, string> = {
     idle: "text-ink-subtle",
     waiting: "text-ink-subtle",
     results: "text-accent",
-    confirmed: "text-[#27A644]",
+    confirmed: "text-success",
   };
 
   const displayName = user?.nickname || user?.email?.split("@")[0] || "";

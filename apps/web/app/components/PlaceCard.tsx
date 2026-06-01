@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * PlaceCard — editorial hierarchy (desktop-first)
@@ -168,8 +168,8 @@ function DetailDrawer({
           <div
             className="rounded-xl p-4"
             style={{
-              backgroundColor: isSelected ? "rgba(124,92,252,0.04)" : "#F7F6F2",
-              border: `1px solid ${isSelected ? "rgba(124,92,252,0.12)" : "#EAE7DF"}`,
+              backgroundColor: isSelected ? "rgba(114,152,199,0.04)" : "#F7F6F2",
+              border: `1px solid ${isSelected ? "rgba(114,152,199,0.12)" : "#EAE7DF"}`,
             }}
           >
             <div className="flex items-center justify-between mb-3">
@@ -183,7 +183,7 @@ function DetailDrawer({
 
             {(intelligence.pros ?? []).length > 0 && (
               <div className={(intelligence.cons ?? []).length > 0 ? "mb-3" : ""}>
-                <p className="text-[10px] font-bold text-[#27A644] tracking-wide mb-2">좋은 점</p>
+                <p className="text-[10px] font-bold text-success tracking-wide mb-2">좋은 점</p>
                 <ul className="space-y-1.5">
                   {(intelligence.pros ?? []).map((pro) => (
                     <li key={pro} className="flex items-start gap-2">
@@ -197,7 +197,7 @@ function DetailDrawer({
 
             {(intelligence.cons ?? []).length > 0 && (
               <div>
-                <p className="text-[10px] font-bold text-[#D97706] tracking-wide mb-2">참고할 점</p>
+                <p className="text-[10px] font-bold text-warning tracking-wide mb-2">참고할 점</p>
                 <ul className="space-y-1.5">
                   {(intelligence.cons ?? []).map((con) => (
                     <li key={con} className="flex items-start gap-2">
@@ -251,8 +251,8 @@ export function PlaceCard({
         "rounded-2xl border transition-all duration-200 overflow-hidden",
         "flex flex-col h-full justify-between",
         isSelected
-          ? "bg-accent-light border-accent shadow-[0_0_0_1px_#7C5CFC,0_4px_16px_rgba(124,92,252,0.12)]"
-          : "bg-white border-hairline shadow-[0_1px_4px_rgba(28,26,23,0.06)] hover:border-hairline-strong hover:shadow-[0_4px_16px_rgba(28,26,23,0.08)]",
+          ? "bg-accent-light border-accent shadow-[0_0_0_1px_#7298C7,0_4px_16px_rgba(114,152,199,0.12)]"
+          : "bg-white border-hairline shadow-[0_1px_4px_rgba(26,32,51,0.06)] hover:border-hairline-strong hover:shadow-[0_4px_16px_rgba(26,32,51,0.08)]",
       ].join(" ")}
       style={{ animationDelay }}
     >
@@ -266,7 +266,7 @@ export function PlaceCard({
             </span>
             {rating !== undefined && (
               <span className="flex items-center gap-1 text-[12px] font-medium text-ink-muted">
-                <span className="text-[#F59E0B]">★</span>
+                <span className="text-star">★</span>
                 {rating.toFixed(1)}
               </span>
             )}
@@ -281,8 +281,8 @@ export function PlaceCard({
 
         {/* ── 2. PINI voice — primary section ── */}
         <div>
-          <p className="text-[10px] font-bold text-accent tracking-[1.5px] uppercase mb-2.5">
-            피니가 선택한 이유
+          <p className="flex items-center gap-1.5 text-[10px] font-bold text-accent tracking-[1.5px] uppercase mb-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-butter shrink-0" />{"피니가 선택한 이유"}
           </p>
           <p
             className="text-[14px] text-ink-muted leading-[1.8]"
@@ -318,7 +318,7 @@ export function PlaceCard({
           "flex items-center justify-center gap-2",
           isSelected
             ? "bg-accent text-white"
-            : "bg-[#F4F2EE] text-ink-muted hover:bg-[#EEECE6]",
+            : "bg-canvas text-ink-muted hover:bg-surface-warm",
         ].join(" ")}
       >
         {isSelected ? "✓ 선택됨" : "이 장소 선택하기"}

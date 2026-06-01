@@ -9,5 +9,8 @@
   },
   "devDependencies": {
     "turbo": "^2.5.4"
+  },
+  "dependencies": {
+    "pnpm": "^11.5.0"
   }
 }
