@@ -67,7 +67,7 @@
 ### AI / 외부 API
 | 분류 | 기술 |
 |------|------|
-| AI 추론 | Google Gemini 2.0 Flash Lite (ThinkingLevel.MEDIUM) |
+| AI 추론 | Google Gemini 3.1 Flash Lite (ThinkingLevel.MEDIUM) |
 | 장소 검색 | Kakao Local API |
 | 지오코딩 | Kakao Geocoding API |
 | 리뷰 수집 | Naver Blog Search API |
