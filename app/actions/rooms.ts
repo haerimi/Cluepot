@@ -1,20 +1,11 @@
 "use server";
 
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { createClient } from "@/util/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { getCurrentUserId } from "@/lib/auth";
 
 function generateCode(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
-}
-
-async function supabaseCreateClient() {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
-
-  return supabase;
 }
 
 export async function createRoom(
@@ -62,13 +53,7 @@ export async function checkRoomExists(
 }
 
 export async function leaveRoom(roomCode: string): Promise<void> {
-  const supabase = await supabaseCreateClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const userId = user.id;
+  const userId = await getCurrentUserId();
 
   const participant = await prisma.participant.findUnique({
     where: { roomCode_userId: { roomCode, userId } },
@@ -102,15 +87,7 @@ export async function leaveRoom(roomCode: string): Promise<void> {
 }
 
 export async function getMyRooms() {
-  const supabase = await supabaseCreateClient();
-
-  // userId 가져오기
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const userId = user.id;
+  const userId = await getCurrentUserId();
 
   return await prisma.participant.findMany({
     where: { userId: userId, leftAt: null },

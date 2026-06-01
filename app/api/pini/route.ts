@@ -330,12 +330,27 @@ ${participantDesc}
 
     // 이미 추천된 장소 제외
     const excludeSet = new Set((excludePlaces ?? []).map((n) => n.replace(/\s+/g, "")));
-    const candidates = kakaoPlaces.filter(
+    let candidates = kakaoPlaces.filter(
         (p) => !excludeSet.has(p.place_name.replace(/\s+/g, ""))
     );
 
+    // 후보가 부족하면 반경을 2배로 늘려 재검색
+    if (candidates.length < 2 && validCoords.length >= 1) {
+        const validParticipants = participantsWithCoord.filter(
+            (p): p is typeof p & { coord: GeoCoord } => p.coord !== null
+        );
+        const center = computeWeightedCentroid(validParticipants);
+        const wider = await searchKakaoPlacesByCoord(categoryKo, center.lat, center.lng, 4000);
+        const widerCandidates = wider.filter(
+            (p) => !excludeSet.has(p.place_name.replace(/\s+/g, ""))
+        );
+        if (widerCandidates.length >= candidates.length) {
+            candidates = widerCandidates;
+        }
+    }
+
     if (candidates.length < 2) {
-        throw new Error("추천 가능한 새로운 장소가 부족해요. 범위를 바꿔서 다시 시도해보세요.");
+        throw new Error("이 근처에서 새로운 장소를 더 이상 찾지 못했어요. 처음부터 다시 시도해주세요.");
     }
 
     console.log("카카오 후보 장소:", candidates.map((p) => p.place_name));

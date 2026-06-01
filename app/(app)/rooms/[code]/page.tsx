@@ -767,7 +767,7 @@ export default function RoomPage() {
     }
     setLocationError(null);
 
-    await savePreference({
+    const result = await savePreference({
       roomCode,
       abstractLocation: myLocation,
       lat: 0,
@@ -776,6 +776,10 @@ export default function RoomPage() {
       distanceTolerance: myDistance ?? undefined,
       atmospherePreference: myAtmosphere ?? undefined,
     });
+    if (!result.ok) {
+      setLocationError(result.reason);
+      return;
+    }
     setLocationSaved(true);
   }
 
@@ -819,6 +823,11 @@ export default function RoomPage() {
         const body = await res.text();
         let msg = 'AI 추천 중 오류가 발생했어요.';
         try { msg = (JSON.parse(body) as { error?: string }).error ?? msg; } catch { /* ignore */ }
+        // 근처 장소가 소진된 경우 제외 목록을 초기화해서 다음 시도에서 재시작할 수 있게 함
+        if (msg.includes('더 이상 찾지 못했어요') || msg.includes('처음부터 다시')) {
+          setExcludedPlaces([]);
+          msg = '이미 모든 근처 장소를 추천해드렸어요. 더 넓은 범위에서 다시 검색할게요!';
+        }
         setPiniError(msg);
         return;
       }
@@ -843,7 +852,7 @@ export default function RoomPage() {
   }
 
   function handleConfirmPlace() {
-    if (!selectedPlace.placeId) return;
+    if (!selectedPlace || !selectedPlace.placeId) return;
     setShowDateModal(true);
   }
 
@@ -852,7 +861,7 @@ export default function RoomPage() {
     scheduledAt: string;
     memo: string;
   }) {
-    if (!selectedPlace.placeId) return;
+    if (!selectedPlace || !selectedPlace.placeId) return;
     setIsScheduleSubmitting(true);
 
     const { id } = await createSchedule({
@@ -1088,9 +1097,9 @@ export default function RoomPage() {
               readyCount={readyCount}
               totalCount={totalCount}
               selectedPlaceName={
-                selectedPlace.placeId ? selectedPlace.placeName : null
+                selectedPlace && selectedPlace.placeId ? selectedPlace.placeName : null
               }
-              onConfirm={selectedPlace.placeId ? handleConfirmPlace : undefined}
+              onConfirm={selectedPlace && selectedPlace.placeId ? handleConfirmPlace : undefined}
               onRerun={handleRerun}
               currentUserId={currentUserId}
               onResetPreference={handleResetPlace}
@@ -1373,10 +1382,10 @@ export default function RoomPage() {
               open
               onClose={() => { }}
               places={piniPlaces}
-              selectedPlaceId={selectedPlace.placeId}
+              selectedPlaceId={selectedPlace?.placeId ?? null}
               onSelectPlace={handleSelectPlace}
               onRegenerate={handleRerun}
-              onConfirm={selectedPlace.placeId ? handleConfirmPlace : undefined}
+              onConfirm={selectedPlace?.placeId ? handleConfirmPlace : undefined}
               isLoading={piniLoading}
               error={piniError}
               participantCount={participants.length}
@@ -1460,10 +1469,10 @@ export default function RoomPage() {
           open={piniOpen}
           onClose={() => setPiniOpen(false)}
           places={piniPlaces}
-          selectedPlaceId={selectedPlace.placeId}
+          selectedPlaceId={selectedPlace?.placeId ?? null}
           onSelectPlace={handleSelectPlace}
           onRegenerate={handleRerun}
-          onConfirm={selectedPlace.placeId ? handleConfirmPlace : undefined}
+          onConfirm={selectedPlace?.placeId ? handleConfirmPlace : undefined}
           isLoading={piniLoading}
           error={piniError}
           participantCount={participants.length}
@@ -1471,7 +1480,7 @@ export default function RoomPage() {
       </div>
 
       {/* ── Date / time modal — shown after place selection ── */}
-      {showDateModal && selectedPlace.placeId && (
+      {showDateModal && selectedPlace && selectedPlace.placeId && (
         <ScheduleDateModal
           placeName={selectedPlace.placeName}
           placeAddress={selectedPlace.placeAddress}

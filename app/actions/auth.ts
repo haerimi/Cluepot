@@ -64,15 +64,21 @@ export async function signup(
     return { error: "계정을 만들 수 없어요. 다시 시도해주세요." };
   }
 
-  // Supabase user ID를 그대로 Prisma users 테이블에 동기화
-  await prisma.user.create({
-    data: {
-      id: data.user!.id,   // Supabase UUID를 PK로 사용
-      email,
-      nickname,
-    },
-  });
+  if (!data.user) return { error: "확인 메일을 확인해주세요." };
 
+  try {
+    await prisma.user.upsert({
+      // upsert로 재시도에도 안전하게
+      where: { id: data.user.id },
+      update: {},
+      create: { id: data.user.id, email, nickname },
+    });
+  } catch {
+    // Supabase 계정은 이미 생겼으니 로그인으로 안내
+    return {
+      error: "계정 정보 저장에 실패했어요. 잠시 후 로그인을 시도해주세요.",
+    };
+  }
   redirect("/");
 }
 

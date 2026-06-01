@@ -146,7 +146,7 @@ export function AppSidebar({ user }: Readonly<{ user: HydratedUser | null }>) {
 
       {/* ── Navigation ── */}
       <nav className="px-3 py-4 flex flex-col gap-0.5">
-        <NavItem href="/room/create" label="일정 만들기" icon={<HomeIcon />} active={pathname === "/"} />
+        <NavItem href="/room/create" label="일정 만들기" icon={<HomeIcon />} active={pathname.startsWith("/room/create")} />
         <NavItem
           href="/calendar"
           label="내 일정"
@@ -167,7 +167,7 @@ export function AppSidebar({ user }: Readonly<{ user: HydratedUser | null }>) {
           icon={<RoomsIcon />}
           active={pathname.startsWith("/rooms")} />
         <NavItem
-          href="room/join"
+          href="/room/join"
           label="코드로 참가"
           icon={<JoinCodeIcon />}
           active={pathname.startsWith("/room/join")} />

@@ -20,7 +20,7 @@ interface MapState {
   places: Place[]; // 추천 장소 목록
   recommendedPlaces: RecommendedPlace[];
   midPoint: MidPoint | null; // 참가자들의 중간지점
-  selectedPlace: RecommendedPlace; // 투표/선택된 장소
+  selectedPlace: RecommendedPlace | null; // 투표/선택된 장소 (선택 전은 null)
 }
 
 interface MapActions {
@@ -34,24 +34,7 @@ const initialState: MapState = {
   places: [],
   recommendedPlaces: [],
   midPoint: null,
-  selectedPlace: {
-    placeId: "",
-    placeName: "",
-    placeAddress: "",
-    category: "restaurant",
-    lat: 0,
-    lng: 0,
-    fairnessScore: 0,
-    balanceTag: "most_balanced",
-    reasoning: "",
-    perParticipantTime: [],
-    atmosphereMatch: "",
-    reviewIntelligence: {
-      authenticCount: 0,
-      pros: [],
-      cons: [],
-    },
-  }
+  selectedPlace: null,
 };
 
 export const useMapStore = create<MapState & MapActions>((set) => ({
