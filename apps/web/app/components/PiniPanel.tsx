@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * PiniPanel — two rendering modes
@@ -110,9 +110,9 @@ function AnalysisSummary({ count }: AnalysisSummaryProps) {
       className="mb-7"
       style={{ animation: "fade-up 0.5s cubic-bezier(0.16,1,0.3,1) both" }}
     >
-      <p className="text-[10px] font-bold text-ink-tertiary tracking-[2px] uppercase mb-2">
+      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-butter text-ink text-[10px] font-bold tracking-[2px] uppercase mb-2">
         PINI 추천
-      </p>
+      </span>
       <p className="text-[14px] text-ink-muted leading-relaxed">
         실제 방문자 후기와 <span className="text-ink font-semibold">{count}명의 이동</span>을 균형 있게 고려한 장소예요
       </p>
@@ -236,9 +236,9 @@ function ConfirmBar({ onConfirm, padded = false }: ConfirmBarProps) {
         onClick={onConfirm}
         className="w-full h-13 rounded-[10px] bg-accent text-white text-[15px] font-semibold
                    flex items-center justify-center gap-2
-                   hover:bg-accent-hover active:bg-[#5A38E3]
-                   shadow-[0_1px_3px_rgba(124,92,252,0.3)]
-                   hover:shadow-[0_2px_8px_rgba(124,92,252,0.35)]
+                   hover:bg-accent-hover active:bg-accent-active
+                   shadow-[0_1px_3px_rgba(114,152,199,0.3)]
+                   hover:shadow-[0_2px_8px_rgba(114,152,199,0.35)]
                    transition-all duration-150"
       >
         ✓ 이 장소로 정하기
@@ -296,7 +296,7 @@ export function PiniPanel({
               {([0, 0.2, 0.4] as const).map((d) => (
                 <div
                   key={d}
-                  className="w-1 h-1 rounded-full bg-accent/60"
+                  className="w-1 h-1 rounded-full bg-butter"
                   style={{ animation: `dot-bounce 1.4s ease-in-out ${d}s infinite` }}
                 />
               ))}
@@ -350,7 +350,7 @@ export function PiniPanel({
           "lg:w-full lg:max-w-2xl lg:max-h-[85vh] lg:rounded-2xl",
         ].join(" ")}
         style={{
-          boxShadow: "0 -8px 48px rgba(28,26,23,0.16), 0 -2px 8px rgba(28,26,23,0.08)",
+          boxShadow: "0 -8px 48px rgba(26,32,51,0.16), 0 -2px 8px rgba(26,32,51,0.08)",
         }}
       >
         {/* Mobile drag handle */}
@@ -370,7 +370,7 @@ export function PiniPanel({
                   {([0, 0.2, 0.4] as const).map((d) => (
                     <div
                       key={d}
-                      className="w-1.5 h-1.5 rounded-full bg-accent"
+                      className="w-1.5 h-1.5 rounded-full bg-butter"
                       style={{ animation: `dot-bounce 1.4s ease-in-out ${d}s infinite` }}
                     />
                   ))}
