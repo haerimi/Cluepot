@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -97,15 +97,15 @@ export default function CreateRoomPage() {
   }
 
   return (
-    <div className="min-h-dvh overflow-x-hidden overflow-y-auto bg-[#F4F2EE] flex flex-col">
+    <div className="min-h-dvh overflow-x-hidden overflow-y-auto bg-canvas flex flex-col">
       {/* ── Header ── */}
-      <header className="flex items-center gap-4 px-4 sm:px-6 lg:px-16 h-14 border-b border-[#E5E1D9] shrink-0">
+      <header className="flex items-center gap-4 px-4 sm:px-6 lg:px-16 h-14 border-b border-hairline shrink-0">
         {step < 4 && (
           <button
             onClick={() =>
               step === 1 ? router.back() : setStep((s) => (s - 1) as Step)
             }
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-[#E5E1D9] text-[#4A4740] hover:bg-[#F0EDE7] transition-colors shrink-0"
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-hairline text-ink-muted hover:bg-surface-warm transition-colors shrink-0"
             aria-label="뒤로 가기"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -120,21 +120,21 @@ export default function CreateRoomPage() {
           </button>
         )}
 
-        <span className="text-[18px] font-black text-[#1C1A17] tracking-tight">
-          Clue<span className="text-[#7C5CFC]">Pot</span>
+        <span className="text-[18px] font-black text-ink tracking-tight">
+          Clue<span className="text-accent">Pot</span>
         </span>
       </header>
 
       {/* ── Step Indicator ── */}
       {step < 4 && (
-        <div className="flex items-center px-4 sm:px-6 lg:px-16 h-12 border-b border-[#E5E1D9] shrink-0">
+        <div className="flex items-center px-4 sm:px-6 lg:px-16 h-12 border-b border-hairline shrink-0">
           {([1, 2, 3] as const).map((s, i) => (
             <div key={s} className="flex items-center">
               {i > 0 && (
                 <div
                   className={[
                     "w-6 sm:w-12 lg:w-20 h-px mx-1 sm:mx-3 transition-colors duration-300",
-                    s <= step ? "bg-[#7C5CFC]" : "bg-[#E5E1D9]",
+                    s <= step ? "bg-accent" : "bg-hairline",
                   ].join(" ")}
                 />
               )}
@@ -144,10 +144,10 @@ export default function CreateRoomPage() {
                   className={[
                     "w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold transition-all duration-300 shrink-0",
                     s < step
-                      ? "bg-[#7C5CFC] text-white"
+                      ? "bg-accent text-white"
                       : s === step
-                      ? "bg-[#1C1A17] text-white"
-                      : "bg-[#E5E1D9] text-[#908D87]",
+                      ? "bg-ink text-white"
+                      : "bg-hairline text-ink-subtle",
                   ].join(" ")}
                 >
                   {s < step ? "✓" : s}
@@ -156,7 +156,7 @@ export default function CreateRoomPage() {
                 <span
                   className={[
                     "text-[12px] font-medium transition-colors duration-200 hidden sm:block",
-                    s === step ? "text-[#1C1A17]" : "text-[#908D87]",
+                    s === step ? "text-ink" : "text-ink-subtle",
                   ].join(" ")}
                 >
                   {STEP_LABELS[s]}
@@ -177,15 +177,15 @@ export default function CreateRoomPage() {
               style={{ animation: "cinematic-up 0.5s ease-out both" }}
             >
               <div className="mb-10">
-                <p className="text-[11px] font-bold text-[#7C5CFC] tracking-[3px] uppercase mb-4">
+                <p className="text-[11px] font-bold text-accent tracking-[3px] uppercase mb-4">
                   Step 01
                 </p>
 
-                <h1 className="text-[30px] sm:text-[36px] lg:text-[48px] font-black text-[#1C1A17] leading-[1.0] tracking-[-1.5px] mb-3 break-keep">
+                <h1 className="text-[30px] sm:text-[36px] lg:text-[48px] font-black text-ink leading-[1.0] tracking-[-1.5px] mb-3 break-keep">
                   어떤 만남인가요?
                 </h1>
 
-                <p className="text-[14px] lg:text-[15px] text-[#908D87] leading-relaxed break-keep">
+                <p className="text-[14px] lg:text-[15px] text-ink-subtle leading-relaxed break-keep">
                   장소 카테고리를 선택해주세요
                 </p>
               </div>
@@ -194,7 +194,7 @@ export default function CreateRoomPage() {
 
               <div className="mt-auto pt-10">
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="h-px flex-1 bg-[#E5E1D9]" />
+                  <div className="h-px flex-1 bg-hairline" />
                 </div>
 
                 <Button
@@ -217,17 +217,17 @@ export default function CreateRoomPage() {
               style={{ animation: "cinematic-up 0.5s ease-out both" }}
             >
               <div className="mb-10">
-                <p className="text-[11px] font-bold text-[#7C5CFC] tracking-[3px] uppercase mb-4">
+                <p className="text-[11px] font-bold text-accent tracking-[3px] uppercase mb-4">
                   Step 02
                 </p>
 
-                <h1 className="text-[30px] sm:text-[36px] lg:text-[48px] font-black text-[#1C1A17] leading-[1.0] tracking-[-1.5px] mb-3 break-keep">
+                <h1 className="text-[30px] sm:text-[36px] lg:text-[48px] font-black text-ink leading-[1.0] tracking-[-1.5px] mb-3 break-keep">
                   모임 이름을
                   <br />
                   지어주세요
                 </h1>
 
-                <p className="text-[14px] lg:text-[15px] text-[#908D87] leading-relaxed break-keep">
+                <p className="text-[14px] lg:text-[15px] text-ink-subtle leading-relaxed break-keep">
                   참가자들에게 보여질 모임 이름이에요
                 </p>
               </div>
@@ -251,16 +251,16 @@ export default function CreateRoomPage() {
                   }`}
                   maxLength={30}
                   autoFocus
-                  className="w-full h-14 px-4 rounded-xl border text-[16px] font-medium outline-none transition-all duration-150 border-[#E5E1D9] bg-white focus:ring-2 focus:ring-[#7C5CFC] focus:border-[#7C5CFC] min-w-0"
+                  className="w-full h-14 px-4 rounded-xl border text-[16px] font-medium outline-none transition-all duration-150 border-hairline bg-white focus:ring-2 focus:ring-[#7298C7] focus:border-accent min-w-0"
                 />
 
-                <p className="text-[11px] text-[#908D87] mt-2 text-right">
+                <p className="text-[11px] text-ink-subtle mt-2 text-right">
                   {name.length} / 30
                 </p>
               </div>
 
               <div className="mt-auto pt-10">
-                <div className="h-px bg-[#E5E1D9] mb-6" />
+                <div className="h-px bg-hairline mb-6" />
 
                 <Button
                   variant="primary"
@@ -282,17 +282,17 @@ export default function CreateRoomPage() {
               style={{ animation: "cinematic-up 0.5s ease-out both" }}
             >
               <div className="mb-10">
-                <p className="text-[11px] font-bold text-[#7C5CFC] tracking-[3px] uppercase mb-4">
+                <p className="text-[11px] font-bold text-accent tracking-[3px] uppercase mb-4">
                   Step 03 · PINI Mode
                 </p>
 
-                <h1 className="text-[30px] sm:text-[36px] lg:text-[48px] font-black text-[#1C1A17] leading-[1.0] tracking-[-1.5px] mb-4 break-keep">
+                <h1 className="text-[30px] sm:text-[36px] lg:text-[48px] font-black text-ink leading-[1.0] tracking-[-1.5px] mb-4 break-keep">
                   피니가
                   <br />
                   공정하게 조율해요
                 </h1>
 
-                <p className="text-[14px] lg:text-[15px] text-[#908D87] leading-[1.75] break-keep">
+                <p className="text-[14px] lg:text-[15px] text-ink-subtle leading-[1.75] break-keep">
                   참가자가 각자 선호를 입력하면,
                   <br />
                   피니가 모두를 위한 장소를 찾아줘요
@@ -303,7 +303,7 @@ export default function CreateRoomPage() {
                 {PINI_FEATURES.map((f, i) => (
                   <div
                     key={f.title}
-                    className="flex items-start gap-4 sm:gap-5 p-4 sm:p-5 bg-white rounded-2xl border border-[#E5E1D9] hover:border-[#D0CCC4] transition-colors min-w-0 overflow-hidden"
+                    className="flex items-start gap-4 sm:gap-5 p-4 sm:p-5 bg-white rounded-2xl border border-hairline hover:border-hairline-strong transition-colors min-w-0 overflow-hidden"
                     style={{
                       animation: `fade-up 0.4s ease-out ${
                         0.06 + i * 0.09
@@ -315,11 +315,11 @@ export default function CreateRoomPage() {
                     </span>
 
                     <div className="min-w-0 flex-1">
-                      <p className="text-[14px] font-bold text-[#1C1A17] mb-1 break-keep">
+                      <p className="text-[14px] font-bold text-ink mb-1 break-keep">
                         {f.title}
                       </p>
 
-                      <p className="text-[13px] text-[#908D87] leading-[1.6] break-keep">
+                      <p className="text-[13px] text-ink-subtle leading-[1.6] break-keep">
                         {f.desc}
                       </p>
                     </div>
@@ -327,16 +327,16 @@ export default function CreateRoomPage() {
                 ))}
               </div>
 
-              <div className="flex items-center gap-3 px-4 sm:px-5 py-4 bg-[#F0ECFF] rounded-xl border border-[#7C5CFC]/20 mb-10 min-w-0">
+              <div className="flex items-center gap-3 px-4 sm:px-5 py-4 bg-accent-light rounded-xl border border-accent/20 mb-10 min-w-0">
                 <span className="text-[16px] shrink-0">🤝</span>
 
-                <p className="text-[13px] text-[#7C5CFC] font-medium leading-[1.6] break-keep min-w-0">
+                <p className="text-[13px] text-accent font-medium leading-[1.6] break-keep min-w-0">
                   다수결이 아닙니다. 모두의 상황을 고려해요.
                 </p>
               </div>
 
               <div className="mt-auto">
-                <div className="h-px bg-[#E5E1D9] mb-6" />
+                <div className="h-px bg-hairline mb-6" />
 
                 <Button
                   variant="primary"
@@ -357,21 +357,21 @@ export default function CreateRoomPage() {
               className="flex flex-col items-center flex-1 pt-4 lg:pt-8 min-w-0 w-full"
               style={{ animation: "cinematic-up 0.6s ease-out both" }}
             >
-              <div className="w-20 h-20 rounded-full bg-[#F0ECFF] flex items-center justify-center text-[40px] mb-8 shrink-0">
+              <div className="w-20 h-20 rounded-full bg-accent-light flex items-center justify-center text-[40px] mb-8 shrink-0">
                 🎉
               </div>
 
-              <h1 className="text-[28px] sm:text-[32px] lg:text-[40px] font-black text-[#1C1A17] tracking-tight text-center mb-3 break-keep">
+              <h1 className="text-[28px] sm:text-[32px] lg:text-[40px] font-black text-ink tracking-tight text-center mb-3 break-keep">
                 모임이 만들어졌어요!
               </h1>
 
-              <p className="text-[14px] lg:text-[15px] text-[#908D87] text-center mb-12 leading-relaxed break-keep">
+              <p className="text-[14px] lg:text-[15px] text-ink-subtle text-center mb-12 leading-relaxed break-keep">
                 아래 코드를 참가자들에게 공유해주세요
               </p>
 
               {/* Room Code */}
-              <div className="w-full bg-white rounded-2xl border border-[#E5E1D9] shadow-[0_4px_24px_rgba(28,26,23,0.08)] p-5 sm:p-8 mb-5 overflow-hidden min-w-0">
-                <p className="text-[11px] font-bold text-[#C4C1BC] tracking-[3px] uppercase text-center mb-5">
+              <div className="w-full bg-white rounded-2xl border border-hairline shadow-[0_4px_24px_rgba(26,32,51,0.08)] p-5 sm:p-8 mb-5 overflow-hidden min-w-0">
+                <p className="text-[11px] font-bold text-ink-subtle tracking-[3px] uppercase text-center mb-5">
                   모임 코드
                 </p>
 
@@ -382,7 +382,7 @@ export default function CreateRoomPage() {
                       sm:text-[40px]
                       lg:text-[56px]
                       font-black
-                      text-[#1C1A17]
+                      text-ink
                       tracking-[2px]
                       sm:tracking-[6px]
                       font-mono
@@ -396,7 +396,7 @@ export default function CreateRoomPage() {
 
                   <button
                     onClick={handleCopy}
-                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-[#F0EDE7] hover:bg-[#E5E1D9] text-[#4A4740] transition-colors text-[18px] shrink-0"
+                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface-warm hover:bg-hairline text-ink-muted transition-colors text-[18px] shrink-0"
                     aria-label="코드 복사"
                   >
                     {copied ? "✓" : "📋"}
@@ -404,7 +404,7 @@ export default function CreateRoomPage() {
                 </div>
 
                 {copied && (
-                  <p className="text-[12px] text-[#27A644] text-center mt-3 font-medium">
+                  <p className="text-[12px] text-success text-center mt-3 font-medium">
                     클립보드에 복사됐어요!
                   </p>
                 )}
@@ -412,7 +412,7 @@ export default function CreateRoomPage() {
 
               {/* Badges */}
               <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-10 sm:mb-12 text-center">
-                <span className="text-[13px] text-[#908D87]">
+                <span className="text-[13px] text-ink-subtle">
                   {category === "restaurant" && "🍽 맛집"}
                   {category === "cafe" && "☕ 카페"}
                   {category === "bar" && "🍺 술집"}
@@ -420,14 +420,14 @@ export default function CreateRoomPage() {
                   {category === "dessert" && "🍰 디저트"}
                 </span>
 
-                <div className="w-px h-3 bg-[#D0CCC4]" />
+                <div className="w-px h-3 bg-hairline-strong" />
 
-                <span className="text-[13px] text-[#7C5CFC] font-semibold">
+                <span className="text-[13px] text-accent font-semibold">
                   🔍 PINI 협력 조율
                 </span>
               </div>
 
-              <div className="h-px w-full bg-[#E5E1D9] mb-8" />
+              <div className="h-px w-full bg-hairline mb-8" />
 
               <div className="flex flex-col gap-3 w-full mt-auto min-w-0">
                 <Button

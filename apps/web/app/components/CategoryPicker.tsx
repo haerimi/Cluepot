@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Category } from "@/types/room";
 
@@ -39,7 +39,7 @@ export function CategoryPicker({ value, onChange }: CategoryPickerProps) {
               "relative flex flex-col items-start gap-1 p-4 rounded-xl border text-left transition-all duration-150",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
               isSelected
-                ? "bg-accent-light border-accent shadow-[0_0_0_1px_#7C5CFC]"
+                ? "bg-accent-light border-accent shadow-[0_0_0_1px_#7298C7]"
                 : "bg-white border-hairline hover:border-hairline-strong hover:bg-surface-2",
               isAloneInRow ? "col-span-2" : "",
             ]
