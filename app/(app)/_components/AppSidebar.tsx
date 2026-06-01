@@ -32,7 +32,7 @@ const AMBIENT_LINES = [
 
 type SessionPhase = "idle" | "waiting" | "results" | "confirmed";
 
-const ROOM_PATH_RE = /^\/room\/([^/]+)/i;
+const ROOM_PATH_RE = /^\/rooms\/([^/]+)/i;
 
 function derivePhase(
   scheduleConfirmed: boolean,
@@ -146,7 +146,7 @@ export function AppSidebar({ user }: Readonly<{ user: HydratedUser | null }>) {
 
       {/* ── Navigation ── */}
       <nav className="px-3 py-4 flex flex-col gap-0.5">
-        <NavItem href="/room/create" label="일정 만들기" icon={<HomeIcon />} active={pathname === "/"} />
+        <NavItem href="/rooms/create" label="일정 만들기" icon={<HomeIcon />} active={pathname.startsWith("/rooms/create")} />
         <NavItem
           href="/calendar"
           label="내 일정"
@@ -167,10 +167,10 @@ export function AppSidebar({ user }: Readonly<{ user: HydratedUser | null }>) {
           icon={<RoomsIcon />}
           active={pathname.startsWith("/rooms")} />
         <NavItem
-          href="room/join"
+          href="/rooms/join"
           label="코드로 참가"
           icon={<JoinCodeIcon />}
-          active={pathname.startsWith("/room/join")} />
+          active={pathname.startsWith("/rooms/join")} />
       </nav>
 
       {/* ── PINI ambient text + user section — pinned to bottom ── */}

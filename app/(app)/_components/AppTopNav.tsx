@@ -78,7 +78,7 @@ export function AppTopNav({ user }: Readonly<{ user: HydratedUser | null }>) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navItems: NavItem[] = [
-    { href: "/room/create", label: "일정 만들기", icon: <HomeIcon /> },
+    { href: "/rooms/create", label: "일정 만들기", icon: <HomeIcon /> },
     { href: "/calendar", label: "내 일정", icon: <CalendarIcon /> },
     { href: "/rooms", label: "내 모임", icon: <RoomsIcon /> },
     ...(user

@@ -22,7 +22,14 @@ export function KakaoMap({ lat, lng, placeName, className = "" }: KakaoMapProps)
   useEffect(() => {
     if (!containerRef.current) return;
 
+    // Guard against the component unmounting while the SDK load callback is
+    // still pending. Without this, `init` fires after unmount and tries to
+    // call `new Map(null)` on the now-detached containerRef, throwing
+    // "Cannot read properties of null".
+    let cancelled = false;
+
     function init() {
+      if (cancelled || !containerRef.current) return;
       const coords = new window.kakao.maps.LatLng(lat, lng);
       const map = new window.kakao.maps.Map(containerRef.current, {
         center: coords,
@@ -39,15 +46,19 @@ export function KakaoMap({ lat, lng, placeName, className = "" }: KakaoMapProps)
 
     if (window.kakao?.maps) {
       window.kakao.maps.load(init);
+      return () => { cancelled = true; };
     } else {
-      // SDK not yet loaded — wait for it
+      // SDK not yet loaded — poll until available
       const id = setInterval(() => {
         if (window.kakao?.maps) {
           clearInterval(id);
           window.kakao.maps.load(init);
         }
       }, 200);
-      return () => clearInterval(id);
+      return () => {
+        cancelled = true;
+        clearInterval(id);
+      };
     }
   }, [lat, lng, placeName]);
 

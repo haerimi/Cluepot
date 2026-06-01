@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -27,10 +26,6 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
-        <Script
-          src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_KEY}&libraries=services&autoload=false`}
-          strategy="afterInteractive"
-        />
         {children}
       </body>
     </html>

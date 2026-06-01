@@ -133,7 +133,7 @@ export default async function HomePage() {
         </span>
         <div className="flex items-center gap-4">
           <Link
-            href="/room/join"
+            href="/rooms/join"
             className="hidden sm:block text-[13px] font-medium text-[#908D87] hover:text-[#1C1A17] transition-colors"
           >
             코드로 참가
@@ -182,7 +182,7 @@ export default async function HomePage() {
           )}
 
           {!user && (
-            <Link href="/room/create">
+            <Link href="/rooms/create">
               <span className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#1C1A17] text-white text-[13px] font-semibold rounded-full hover:bg-[#2D2B28] transition-colors cursor-pointer">
                 새 모임 만들기
               </span>
@@ -228,7 +228,7 @@ export default async function HomePage() {
 
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-3 mb-12 lg:mb-16">
-            <Link href="/room/create">
+            <Link href="/rooms/create">
               <Button variant="primary" size="lg">
                 <svg width="16" height="16" viewBox="0 0 17 17" fill="none" aria-hidden="true">
                   <path d="M8.5 2.5V14.5M2.5 8.5H14.5" stroke="white" strokeWidth="2" strokeLinecap="round" />
@@ -236,7 +236,7 @@ export default async function HomePage() {
                 새 모임 만들기
               </Button>
             </Link>
-            <Link href="/room/join">
+            <Link href="/rooms/join">
               <Button variant="secondary" size="lg">
                 코드로 참가하기
               </Button>
@@ -488,7 +488,7 @@ export default async function HomePage() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/room/create">
+            <Link href="/rooms/create">
               <Button variant="primary" size="lg" className="sm:min-w-[200px]">
                 <svg width="16" height="16" viewBox="0 0 17 17" fill="none" aria-hidden="true">
                   <path d="M8.5 2.5V14.5M2.5 8.5H14.5" stroke="white" strokeWidth="2" strokeLinecap="round" />
@@ -496,7 +496,7 @@ export default async function HomePage() {
                 새 모임 만들기
               </Button>
             </Link>
-            <Link href="/room/join">
+            <Link href="/rooms/join">
               <Button variant="secondary" size="lg" className="sm:min-w-[200px]">
                 코드로 참가하기
               </Button>

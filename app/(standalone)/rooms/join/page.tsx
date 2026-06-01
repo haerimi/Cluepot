@@ -131,7 +131,7 @@ export default function JoinRoomPage() {
           <div className="text-center">
             <span className="text-[13px] text-[#908D87]">모임이 없나요? </span>
             <Link
-              href="/room/create"
+              href="/rooms/create"
               className="text-[13px] font-semibold text-[#7C5CFC] underline-offset-2 hover:underline"
             >
               새로 만들기
