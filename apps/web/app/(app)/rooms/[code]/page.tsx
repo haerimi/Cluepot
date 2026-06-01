@@ -146,7 +146,7 @@ function ScheduleView({
     <div className="w-full flex-1">
       <div className="mx-auto flex min-h-[calc(100dvh-56px)] max-w-[576px] flex-col px-6 py-12 items-center">
         {/* Icon */}
-        <div className="w-16 h-16 rounded-full bg-[#E8F5EC] flex items-center justify-center text-[32px] mb-8">
+        <div className="w-16 h-16 rounded-full bg-success-bg flex items-center justify-center text-[32px] mb-8">
           ✅
         </div>
 
@@ -169,7 +169,7 @@ function ScheduleView({
             {placeName}
           </h3>
           <p className="text-[13px] text-ink-subtle mb-5">{placeAddress}</p>
-          <div className="h-px bg-[#F0EDE7] mb-5" />
+          <div className="h-px bg-surface-warm mb-5" />
           <div className="flex gap-2">
             <button
               onClick={() => window.open(handleViewMap(placeName, lat, lng), '_blank')}
@@ -256,7 +256,7 @@ function RoomSummaryPane({
   currentUserId,
 }: RoomSummaryPaneProps) {
   return (
-    <div className="h-full overflow-y-auto px-6 lg:px-8 py-8 bg-[#FAF9F6] border-r border-hairline">
+    <div className="h-full overflow-y-auto px-6 lg:px-8 py-8 bg-surface border-r border-hairline">
       {/* Participants compact */}
       <div className="mb-6">
         <p className="text-[10px] font-bold text-ink-tertiary tracking-[2px] uppercase mb-4">
@@ -286,7 +286,7 @@ function RoomSummaryPane({
                 <span
                   className={[
                     "w-2 h-2 rounded-full shrink-0",
-                    isReady ? "bg-[#27A644]" : "bg-[#D0CCC4]",
+                    isReady ? "bg-success" : "bg-hairline-strong",
                   ].join(" ")}
                 />
               </div>
@@ -375,7 +375,7 @@ function PiniAmbientSidebar({
   currentUserId,
 }: PiniAmbientSidebarProps) {
   return (
-    <div className="h-full overflow-y-auto px-8 py-10 bg-[#FAF9F6] flex flex-col">
+    <div className="h-full overflow-y-auto px-8 py-10 bg-surface flex flex-col">
       {/* Header */}
       <div className="mb-7">
         <h2 className="text-[15px] font-black text-ink tracking-tight mb-1.5">
@@ -400,7 +400,7 @@ function PiniAmbientSidebar({
               <div
                 className={[
                   "w-2 h-2 rounded-full shrink-0",
-                  isReady ? "bg-[#27A644]" : "bg-[#D0CCC4]",
+                  isReady ? "bg-success" : "bg-hairline-strong",
                 ].join(" ")}
               />
               <span className="text-[13px] text-ink-muted font-medium flex-1">
@@ -552,7 +552,7 @@ function RoomLinkSheet({
           <span className="text-[20px]">{copied ? "✓" : "📋"}</span>
         </button>
         {copied && (
-          <p className="text-[12px] text-[#27A644] text-center font-medium mb-3">
+          <p className="text-[12px] text-success text-center font-medium mb-3">
             클립보드에 복사됐어요!
           </p>
         )}
@@ -561,7 +561,7 @@ function RoomLinkSheet({
         <div
           className={[
             "flex items-center gap-3 px-4 py-3 rounded-xl mb-5",
-            warning ? "bg-[#FFF8E1]" : "bg-surface-3",
+            warning ? "bg-warning-fill" : "bg-surface-3",
           ].join(" ")}
         >
           <span className="text-[18px] shrink-0">{warning ? "⚠️" : "⏰"}</span>
@@ -572,7 +572,7 @@ function RoomLinkSheet({
             <p
               className={[
                 "text-[13px] font-semibold",
-                warning ? "text-[#E65100]" : "text-ink",
+                warning ? "text-warning-orange" : "text-ink",
               ].join(" ")}
             >
               {remainingText}
@@ -932,7 +932,7 @@ export default function RoomPage() {
   return (
     <>
       {/* ── Context header — spans the content area, not the sidebar ── */}
-      <header className="flex items-center justify-between px-6 lg:px-8 h-14 border-b border-hairline shrink-0 bg-[#FAF9F6]">
+      <header className="flex items-center justify-between px-6 lg:px-8 h-14 border-b border-hairline shrink-0 bg-surface">
         <div className="flex items-center gap-3">
           <span className="hidden sm:block text-[12px] font-medium text-ink-subtle">
             모임 대기실
@@ -994,11 +994,11 @@ export default function RoomPage() {
         <div className="flex-1  min-w-0  flex flex-col overflow-y-auto lg:border-r border-hairline pb-36 lg:pb-0">
           {/* 재선정 배너 — 호스트는 이미 장소를 고르는 중이므로 참가자에게만 표시 */}
           {roomStatus === "reselecting" && !isHost && (
-            <div className="mx-6 lg:mx-10 mt-6 px-4 py-3 rounded-xl bg-[#FFF7ED] border border-[#FED7AA] flex items-start gap-3">
+            <div className="mx-6 lg:mx-10 mt-6 px-4 py-3 rounded-xl bg-warning-bg-alt border border-warning-border flex items-start gap-3">
               <span className="text-[18px] shrink-0 mt-0.5">✨</span>
               <div>
-                <p className="text-[13px] font-semibold text-[#92400E]">호스트가 새 장소를 고르고 있어요</p>
-                <p className="text-[12px] text-[#B45309] mt-0.5">잠시 후 새로운 장소가 확정되면 알림을 받게 돼요.</p>
+                <p className="text-[13px] font-semibold text-warning-text">호스트가 새 장소를 고르고 있어요</p>
+                <p className="text-[12px] text-warning-amber mt-0.5">잠시 후 새로운 장소가 확정되면 알림을 받게 돼요.</p>
               </div>
             </div>
           )}
@@ -1100,7 +1100,7 @@ export default function RoomPage() {
                           "outline-none transition-all duration-150",
                           "focus:ring-2 focus:ring-accent focus:ring-offset-0 focus:border-accent",
                           locationError
-                            ? "border-[#DC2626] bg-[#FEF2F2]"
+                            ? "border-error bg-error-bg"
                             : "border-hairline bg-canvas focus:bg-white",
                         ].join(" ")}
                       />
@@ -1142,7 +1142,7 @@ export default function RoomPage() {
                                 "flex flex-col items-center gap-1 flex-1 py-3 rounded-[10px] border text-center transition-all duration-150",
                                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
                                 sel
-                                  ? "bg-accent-light border-accent shadow-[0_0_0_1px_#7C5CFC]"
+                                  ? "bg-accent-light border-accent shadow-[0_0_0_1px_#7298C7]"
                                   : "bg-canvas border-hairline hover:border-hairline-strong hover:bg-surface-2",
                               ].join(" ")}
                             >
@@ -1186,7 +1186,7 @@ export default function RoomPage() {
                                 "flex flex-col items-center gap-1 flex-1 py-3 rounded-[10px] border text-center transition-all duration-150",
                                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
                                 sel
-                                  ? "bg-accent-light border-accent shadow-[0_0_0_1px_#7C5CFC]"
+                                  ? "bg-accent-light border-accent shadow-[0_0_0_1px_#7298C7]"
                                   : "bg-canvas border-hairline hover:border-hairline-strong hover:bg-surface-2",
                               ].join(" ")}
                             >
@@ -1209,8 +1209,8 @@ export default function RoomPage() {
 
                     {locationError && (
                       <div className="flex items-center gap-2 mb-5">
-                        <span className="text-[#DC2626] text-[13px]">⚠️</span>
-                        <p className="text-[12px] text-[#DC2626]">
+                        <span className="text-error text-[13px]">⚠️</span>
+                        <p className="text-[12px] text-error">
                           {locationError}
                         </p>
                       </div>
@@ -1231,21 +1231,21 @@ export default function RoomPage() {
                 {/* Saved confirmation */}
                 {locationSaved && (
                   <div
-                    className="flex items-center gap-3 p-4 bg-[#E8F5EC] rounded-xl border border-[#27A644]/20 mb-6"
+                    className="flex items-center gap-3 p-4 bg-success-bg rounded-xl border border-success/20 mb-6"
                     style={{ animation: "fade-up 0.3s ease-out both" }}
                   >
                     <span className="text-[20px]">✅</span>
                     <div className="flex-1">
-                      <p className="text-[14px] font-semibold text-[#1A7A35]">
+                      <p className="text-[14px] font-semibold text-success-text">
                         선호가 저장됐어요!
                       </p>
-                      <p className="text-[12px] text-[#27A644]">
+                      <p className="text-[12px] text-success">
                         모든 참가자가 준비되면 PINI를 실행해요
                       </p>
                     </div>
                     <button
                       onClick={handleResetPlace}
-                      className="ml-auto text-[12px] text-[#1A7A35] underline underline-offset-2 shrink-0"
+                      className="ml-auto text-[12px] text-success-text underline underline-offset-2 shrink-0"
                     >
                       수정
                     </button>

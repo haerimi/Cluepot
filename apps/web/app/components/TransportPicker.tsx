@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Transport } from "@/types/participant";
 
@@ -36,8 +36,8 @@ export function TransportPicker({ value, onChange }: TransportPickerProps) {
               "relative flex flex-col items-center gap-1 flex-1 py-3 rounded-[10px] border text-center transition-all duration-150",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
               isSelected
-                ? "bg-accent-light border-accent shadow-[0_0_0_1px_#7C5CFC]"
-                : "bg-white border-[#E5E1D9] hover:border-[#D0CCC4] hover:bg-[#FAF9F6]",
+                ? "bg-accent-light border-accent shadow-[0_0_0_1px_#7298C7]"
+                : "bg-white border-hairline hover:border-hairline-strong hover:bg-surface",
             ]
               .filter(Boolean)
               .join(" ")}
@@ -59,7 +59,7 @@ export function TransportPicker({ value, onChange }: TransportPickerProps) {
             <span
               className={[
                 "text-[11px] font-medium leading-tight mt-0.5",
-                isSelected ? "text-accent" : "text-[#908D87]",
+                isSelected ? "text-accent" : "text-ink-subtle",
               ].join(" ")}
             >
               {t.label}

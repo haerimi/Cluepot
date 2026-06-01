@@ -125,7 +125,7 @@ function DeleteModal({
         <div className="sm:hidden w-10 h-1 bg-hairline rounded-full mx-auto mb-5" />
 
         {/* icon */}
-        <div className="w-12 h-12 rounded-full bg-[#FEF2F2] flex items-center justify-center mb-4 mx-auto">
+        <div className="w-12 h-12 rounded-full bg-error-bg flex items-center justify-center mb-4 mx-auto">
           <span className="text-[22px] leading-none">🗑️</span>
         </div>
 
@@ -149,7 +149,7 @@ function DeleteModal({
           <button
             onClick={onConfirm}
             disabled={isDeleting}
-            className="flex-1 h-11 rounded-xl bg-[#DC2626] text-white text-[14px] font-semibold hover:bg-[#B91C1C] transition-colors disabled:opacity-60"
+            className="flex-1 h-11 rounded-xl bg-error text-white text-[14px] font-semibold hover:bg-error-hover transition-colors disabled:opacity-60"
           >
             {confirmLabel(isDeleting, isHost)}
           </button>

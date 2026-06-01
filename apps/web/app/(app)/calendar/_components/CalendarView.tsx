@@ -61,14 +61,14 @@ function formatSelectedDate(year: number, month: number, day: number) {
 function StatusChip({ status }: { status: string }) {
   if (status === "accepted") {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#1A7A35] bg-[#E8F5EC] px-2 py-0.5 rounded-full">
+      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-success-text bg-success-bg px-2 py-0.5 rounded-full">
         수락
       </span>
     );
   }
   if (status === "declined") {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#DC2626] bg-[#FEF2F2] px-2 py-0.5 rounded-full">
+      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-error bg-error-bg px-2 py-0.5 rounded-full">
         거절
       </span>
     );

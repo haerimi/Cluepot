@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+﻿import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/util/supabase/server";
 import { logout } from "@/app/actions/auth";
@@ -34,22 +34,22 @@ export default async function ProfilePage() {
       {/* Page header */}
       <div className="mb-10">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-5 h-px bg-[#D0CCC4]" />
-          <span className="text-[10px] font-bold text-[#908D87] tracking-[3px] uppercase">
+          <div className="w-5 h-px bg-hairline-strong" />
+          <span className="text-[10px] font-bold text-ink-subtle tracking-[3px] uppercase">
             프로필
           </span>
         </div>
-        <h1 className="text-[32px] lg:text-[40px] font-black text-[#1C1A17] leading-tight tracking-[-1.5px]">
+        <h1 className="text-[32px] lg:text-[40px] font-black text-ink leading-tight tracking-[-1.5px]">
           내 계정
         </h1>
       </div>
 
       {/* Profile card */}
-      <div className="max-w-[480px] bg-white rounded-2xl border border-[#E5E1D9] shadow-[0_2px_8px_rgba(28,26,23,0.06)] overflow-hidden">
+      <div className="max-w-[480px] bg-white rounded-2xl border border-hairline shadow-[0_2px_8px_rgba(26,32,51,0.06)] overflow-hidden">
 
         {/* Avatar band */}
-        <div className="bg-[#1C1A17] px-8 py-8 flex items-center gap-5">
-          <div className="w-16 h-16 rounded-full bg-[#7C5CFC] flex items-center justify-center shrink-0">
+        <div className="bg-ink px-8 py-8 flex items-center gap-5">
+          <div className="w-16 h-16 rounded-full bg-accent flex items-center justify-center shrink-0">
             <span className="text-[24px] font-black text-white leading-none">
               {initial}
             </span>
@@ -60,7 +60,7 @@ export default async function ProfilePage() {
                 {nickname}
               </p>
             )}
-            <p className="text-[13px] text-[#908D87]">{email}</p>
+            <p className="text-[13px] text-ink-subtle">{email}</p>
           </div>
         </div>
 
@@ -72,11 +72,11 @@ export default async function ProfilePage() {
         </div>
 
         {/* Actions */}
-        <div className="px-6 py-5 bg-[#FAF9F6] border-t border-[#E5E1D9]">
+        <div className="px-6 py-5 bg-surface border-t border-hairline">
           <form action={logout}>
             <button
               type="submit"
-              className="h-10 px-5 text-[13px] font-medium text-[#DC2626] border border-[#FCA5A5] rounded-full bg-white hover:bg-[#FEF2F2] transition-colors cursor-pointer"
+              className="h-10 px-5 text-[13px] font-medium text-error border border-error-border rounded-full bg-white hover:bg-error-bg transition-colors cursor-pointer"
             >
               로그아웃
             </button>
@@ -90,10 +90,10 @@ export default async function ProfilePage() {
 function Row({ label, value }: Readonly<{ label: string; value: string }>) {
   return (
     <div className="flex items-center justify-between px-6 py-4 gap-4">
-      <span className="text-[11px] font-semibold text-[#C4C1BC] uppercase tracking-wider shrink-0">
+      <span className="text-[11px] font-semibold text-ink-subtle uppercase tracking-wider shrink-0">
         {label}
       </span>
-      <span className="text-[14px] text-[#1C1A17] text-right truncate">
+      <span className="text-[14px] text-ink text-right truncate">
         {value}
       </span>
     </div>
