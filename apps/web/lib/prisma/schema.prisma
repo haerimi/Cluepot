@@ -16,6 +16,7 @@ model User {
   participants     Participant[]
   schedules        ScheduleMember[]
   createdSchedules Schedule[]       @relation("ScheduleCreator")
+  imageUrl         String?
 
   @@map("users")
 }
@@ -30,6 +31,7 @@ model Room {
   participants  Participant[]
   schedule      Schedule?
   name          String        @default("")
+  imageUrl      String?
 
   @@map("rooms")
 }
