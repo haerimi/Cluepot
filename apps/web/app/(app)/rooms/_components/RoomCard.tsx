@@ -1,11 +1,12 @@
 "use client";
 
-import { createClient } from "@/util/supabase/client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Badge } from "@/app/components/ui/Badge";
-import { leaveRoom } from "@/app/actions/rooms";
+import { leaveRoom, updateRoom } from "@/app/actions/rooms";
+import { createClient } from "@/util/supabase/client";
+
 /* ── 타입 — getMyRooms() 반환값 기준 ──────────────────────────────────── */
 
 type RoomCardData = {
@@ -17,6 +18,7 @@ type RoomCardData = {
     linkExpiresAt: Date;
     name: string;
     schedule: { id: string } | null;
+    imageUrl: string | null;
   };
 };
 
@@ -82,29 +84,42 @@ const FALLBACK_STATUS = {
   variant: "muted" as StatusVariant,
 };
 
-/* ── 수정 확인 모달 ───────────────────────────────────────────────────── */
-function confirmEditLabel(isEditing: boolean) {
-  if (isEditing) return "처리 중…";
-  return "수정";
-}
+/* ── 수정 모달 ────────────────────────────────────────────────────────── */
 
-function EditModal({
-  isEditing,
+function EditRoomModal({
+  currentName,
+  catEmoji,
+  catFrom,
+  catTo,
   onCancel,
   onConfirm,
+  imageUrl,
 }: Readonly<{
+  currentName: string;
+  catEmoji: string;
+  catFrom: string;
+  catTo: string;
   onCancel: () => void;
-  onConfirm: () => void;
-  isEditing: boolean;
+  onConfirm: (name: string, file: File | null) => void;
+  imageUrl: string | null;
 }>) {
+  const [name, setName] = useState(currentName);
+  const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const selected = e.target.files?.[0];
+    if (!selected) return;
+    setFile(selected);
+    setPreviewUrl(URL.createObjectURL(selected));
+  }
 
   return (
-    /* fixed backdrop */
     <div
       className="fixed inset-0 z-50 flex items-end justify-center sm:items-center px-4"
       style={{ animation: "section-fade 0.2s ease-out both" }}
     >
-      {/* backdrop — click to cancel */}
+      {/* backdrop */}
       <button
         type="button"
         aria-label="취소"
@@ -112,42 +127,106 @@ function EditModal({
         onClick={onCancel}
       />
 
-      {/* sheet / dialog */}
+      {/* sheet */}
       <div
-        className="relative w-full max-w-90 bg-white rounded-t-[24px] sm:rounded-2xl shadow-xl px-6 pt-6 pb-8"
-        style={{
-          animation: "cinematic-up 0.3s cubic-bezier(0.16,1,0.3,1) both",
-        }}
+        className="relative w-full max-w-90 bg-white rounded-t-[24px] sm:rounded-2xl shadow-xl px-6 pt-6 pb-8 flex flex-col gap-5"
+        style={{ animation: "cinematic-up 0.3s cubic-bezier(0.16,1,0.3,1) both" }}
       >
-        {/* mobile drag handle */}
-        <div className="sm:hidden w-10 h-1 bg-hairline rounded-full mx-auto mb-5" />
+        {/* drag handle */}
+        <div className="sm:hidden w-10 h-1 bg-hairline rounded-full mx-auto -mb-1" />
 
-        {/* icon */}
-        <div className="w-12 h-12 rounded-full bg-error-bg flex items-center justify-center mb-4 mx-auto">
-          <span className="text-[22px] leading-none">✏️</span>
+        {/* 헤더 */}
+        <h3 className="text-[18px] font-black text-ink text-center tracking-tight">
+          모임 수정
+        </h3>
+
+        {/* 커버 사진 업로드 */}
+        <div className="flex flex-col gap-2">
+          <label className="text-[13px] font-semibold text-ink-subtle">
+            커버 사진
+          </label>
+          <label className="cursor-pointer group">
+            <input
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={handleFileChange}
+            />
+            {/* 미리보기 / 플레이스홀더 */}
+            {previewUrl ? (
+              <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-hairline">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={previewUrl}
+                  alt="커버 미리보기"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                  <span className="opacity-0 group-hover:opacity-100 text-white text-[12px] font-semibold transition-opacity">
+                    사진 변경
+                  </span>
+                </div>
+              </div>
+            ) : imageUrl ? (
+              <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-hairline">
+                <img
+                  src={imageUrl}
+                  alt="커버 미리보기"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                  <span className="opacity-0 group-hover:opacity-100 text-white text-[12px] font-semibold transition-opacity">
+                    사진 변경
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div
+                className={`w-full aspect-video rounded-xl bg-linear-to-br ${catFrom} ${catTo}
+                  flex flex-col items-center justify-center gap-2 border border-hairline
+                  group-hover:brightness-95 transition-all`}
+              >
+                <span className="text-[32px]">{catEmoji}</span>
+                <span className="text-[12px] font-semibold text-black/40 bg-white/60 rounded-full px-3 py-0.5">
+                  사진 선택
+                </span>
+              </div>
+            )}
+          </label>
         </div>
 
-        <h3 className="text-[18px] font-black text-ink text-center mb-2 tracking-tight">
-          모임을 수정할까요?
-        </h3>
-        <p className="text-[13px] text-ink-subtle text-center leading-relaxed mb-7">
-          모임을 수정하면 참가자 모두에게 변경 사항이 적용돼요.
-        </p>
+        {/* 모임 이름 */}
+        <div className="flex flex-col gap-2">
+          <label
+            htmlFor="edit-room-name"
+            className="text-[13px] font-semibold text-ink-subtle"
+          >
+            모임 이름
+          </label>
+          <input
+            id="edit-room-name"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            maxLength={30}
+            placeholder="모임 이름을 입력하세요"
+            className="h-11 rounded-xl border border-hairline px-3.5 text-[14px] text-ink placeholder:text-ink-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition"
+          />
+        </div>
 
-        <div className="flex gap-2">
+        {/* 버튼 */}
+        <div className="flex gap-2 pt-1">
           <button
             onClick={onCancel}
-            disabled={isEditing}
-            className="flex-1 h-11 rounded-xl border border-hairline text-[14px] font-semibold text-ink-muted hover:bg-surface-3 transition-colors disabled:opacity-60"
+            className="flex-1 h-11 rounded-xl border border-hairline text-[14px] font-semibold text-ink-muted hover:bg-surface-3 transition-colors"
           >
             취소
           </button>
           <button
-            onClick={onConfirm}
-            disabled={isEditing}
-            className="flex-1 h-11 rounded-xl bg-accent-hover text-white text-[14px] font-semibold hover:bg-accent-active transition-colors disabled:opacity-60"
+            onClick={() => onConfirm(name, file)}
+            className="flex-1 h-11 rounded-xl bg-accent-hover text-white text-[14px] font-semibold hover:bg-accent-active transition-colors"
           >
-            {confirmEditLabel(isEditing)}
+            저장
           </button>
         </div>
       </div>
@@ -240,40 +319,11 @@ export function RoomCard({ data }: Readonly<{ data: RoomCardData }>) {
 
   const [confirming, setConfirming] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [confirmingEdit, setConfirmingEdit] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   const cat = CATEGORY_CONFIG[room.category] ?? FALLBACK_CATEGORY;
   const status =
     STATUS_CONFIG[room.schedule ? "done" : room.status] ?? FALLBACK_STATUS;
-
-  const [file, setFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-
-
-  // 파일 선택 이벤트 처리
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0]; // 선택한 파일 객체
-    if (!selectedFile) return;
-
-    setFile(selectedFile);
-  };
-
-  // 파일 제출 처리
-  const handleSubmit = async () => {
-    if (!file) return;
-    const safeFileName = file.name
-      .replace(/\s/g, "_")// 공백 제거
-      .replace(/[^\w.-]/g, "");// 특수문자/한글 제거
-
-    const filePath = `room_image/${Date.now()}-${safeFileName}`;
-
-    const supabase = createClient();
-    await supabase.auth.getUser();
-    const { data, error } = await supabase.storage
-      .from("cluepot")
-      .upload(filePath, file);
-  };
 
   async function handleDelete() {
     setIsDeleting(true);
@@ -282,12 +332,26 @@ export function RoomCard({ data }: Readonly<{ data: RoomCardData }>) {
     router.refresh();
   }
 
-  async function handleEdit() {
-    setIsEditing(true);
-    setConfirmingEdit(false);
+  async function handleEditConfirm(title: string, file: File | null) {
+    let imageUrl: string | undefined;
+
+    if (file) {
+      const supabase = createClient();
+      const safeName = file.name.replace(/\s/g, "_").replace(/[^\w.-]/g, "");
+      const path = `room_image/${Date.now()}_${safeName}`;
+      const { error } = await supabase.storage.from("cluepot").upload(path, file);
+      if (error) {
+        console.error("이미지 업로드 실패:", error);
+        alert("이미지 업로드에 실패했어요. 다시 시도해주세요.");
+        return;
+      }
+      const { data } = supabase.storage.from("cluepot").getPublicUrl(path);
+      imageUrl = data.publicUrl;
+    }
+    await updateRoom(room.roomCode, title, imageUrl ?? null);
+    setEditModalOpen(false);
     router.refresh();
   }
-
 
   return (
     <>
@@ -302,10 +366,16 @@ export function RoomCard({ data }: Readonly<{ data: RoomCardData }>) {
               className={`relative aspect-3/3 bg-linear-to-br ${cat.from} ${cat.to}
                 flex flex-col items-center justify-center gap-2`}
             >
-              <span className="text-[44px] drop-shadow-sm">{cat.emoji}</span>
-              <span className="font-mono text-[11px] font-bold text-black/40 tracking-[3px] uppercase">
-                {room.roomCode}
-              </span>
+              {!room.imageUrl ? (
+                <>
+                  <span className="text-[44px] drop-shadow-sm">{cat.emoji}</span>
+                  <span className="font-mono text-[11px] font-bold text-black/40 tracking-[3px] uppercase">
+                    {room.roomCode}
+                  </span>
+                </>
+              ) : (
+                <img src={room.imageUrl} alt={`${room.name} 커버`} className="w-full h-full object-cover" />
+              )}
 
               {/* 호버 오버레이 */}
               <div
@@ -349,7 +419,8 @@ export function RoomCard({ data }: Readonly<{ data: RoomCardData }>) {
         >
           🗑️
         </button>
-        <button onClick={() => setConfirmingEdit(true)}
+        <button
+          onClick={() => setEditModalOpen(true)}
           className="absolute top-1.5 right-11 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white transition-colors text-[16px] touch-manipulation"
           aria-label="모임 수정"
         >
@@ -357,7 +428,7 @@ export function RoomCard({ data }: Readonly<{ data: RoomCardData }>) {
         </button>
       </div>
 
-      {/* ── 삭제 확인 모달 — fixed, 카드 밖에 렌더링 ── */}
+      {/* ── 삭제 확인 모달 ── */}
       {confirming && (
         <DeleteModal
           isHost={isHost}
@@ -367,17 +438,18 @@ export function RoomCard({ data }: Readonly<{ data: RoomCardData }>) {
         />
       )}
 
-      {/* ── 수정 모달  ── */}
-      {confirmingEdit && (
-        <EditModal
-          isEditing={isEditing}
-          onCancel={() => setConfirmingEdit(false)}
-          onConfirm={handleEdit}
+      {/* ── 수정 모달 ── */}
+      {editModalOpen && (
+        <EditRoomModal
+          currentName={room.name}
+          catEmoji={cat.emoji}
+          catFrom={cat.from}
+          catTo={cat.to}
+          onCancel={() => setEditModalOpen(false)}
+          onConfirm={handleEditConfirm}
+          imageUrl={room.imageUrl}
         />
       )}
-
-      <input type="file" onChange={handleFileChange} />
-      <button onClick={handleSubmit}>업로드</button>
     </>
   );
 }

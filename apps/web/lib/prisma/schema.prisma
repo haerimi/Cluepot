@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
 }
 
 model User {
@@ -16,7 +16,6 @@ model User {
   participants     Participant[]
   schedules        ScheduleMember[]
   createdSchedules Schedule[]       @relation("ScheduleCreator")
-  imageUrl         String?
 
   @@map("users")
 }
@@ -28,29 +27,29 @@ model Room {
   status        String        @default("waiting")
   linkExpiresAt DateTime      @default(dbgenerated("(now() + '04:00:00'::interval)")) @map("link_expires_at")
   createdAt     DateTime      @default(now()) @map("created_at")
-  participants  Participant[]
-  schedule      Schedule?
   name          String        @default("")
   imageUrl      String?
+  participants  Participant[]
+  schedule      Schedule?
 
   @@map("rooms")
 }
 
 model Participant {
-  id               String    @id @default(uuid())
-  roomCode         String    @map("room_code")
-  userId           String    @map("user_id")
-  abstractLocation String    @map("abstract_location")
+  id                   String    @id @default(uuid())
+  roomCode             String    @map("room_code")
+  userId               String    @map("user_id")
+  abstractLocation     String    @map("abstract_location")
   lat                  Float
   lng                  Float
-  transports           String[]  @default([])
-  distanceTolerance    String?   @map("distance_tolerance")
-  atmospherePreference String?   @map("atmosphere_preference")
   isHost               Boolean   @default(false) @map("is_host")
-  leftAt           DateTime? @map("left_at")
-  createdAt        DateTime  @default(now()) @map("created_at")
-  room             Room      @relation(fields: [roomCode], references: [roomCode], onDelete: Cascade)
-  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leftAt               DateTime? @map("left_at")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  atmospherePreference String?   @map("atmosphere_preference")
+  distanceTolerance    String?   @map("distance_tolerance")
+  transports           String[]  @default([])
+  room                 Room      @relation(fields: [roomCode], references: [roomCode], onDelete: Cascade)
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([roomCode, userId])
   @@map("participants")
@@ -66,11 +65,11 @@ model Schedule {
   lng          Float
   scheduledAt  DateTime         @map("scheduled_at")
   memo         String?
-  createdBy    String?          @map("created_by")
   createdAt    DateTime         @default(now()) @map("created_at")
+  createdBy    String?          @map("created_by")
   members      ScheduleMember[]
+  creator      User?            @relation("ScheduleCreator", fields: [createdBy], references: [id])
   room         Room             @relation(fields: [roomCode], references: [roomCode], onDelete: Cascade)
-  creator      User?            @relation("ScheduleCreator", fields: [createdBy], references: [id], onDelete: SetNull)
 
   @@map("schedules")
 }
