@@ -1,11 +1,11 @@
 "use client";
 
+import { createClient } from "@/util/supabase/client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Badge } from "@/app/components/ui/Badge";
 import { leaveRoom } from "@/app/actions/rooms";
-
 /* ── 타입 — getMyRooms() 반환값 기준 ──────────────────────────────────── */
 
 type RoomCardData = {
@@ -70,17 +70,90 @@ const FALLBACK_CATEGORY = {
 type StatusVariant = "warning" | "accent" | "success" | "muted";
 
 const STATUS_CONFIG: Record<string, { label: string; variant: StatusVariant }> =
-  {
-    waiting:     { label: "대기 중",      variant: "warning" },
-    voting:      { label: "추천 중",      variant: "accent" },
-    done:        { label: "확정됨",       variant: "success" },
-    reselecting: { label: "장소 재선정 중", variant: "warning" },
-  };
+{
+  waiting: { label: "대기 중", variant: "warning" },
+  voting: { label: "추천 중", variant: "accent" },
+  done: { label: "확정됨", variant: "success" },
+  reselecting: { label: "장소 재선정 중", variant: "warning" },
+};
 
 const FALLBACK_STATUS = {
   label: "알 수 없음",
   variant: "muted" as StatusVariant,
 };
+
+/* ── 수정 확인 모달 ───────────────────────────────────────────────────── */
+function confirmEditLabel(isEditing: boolean) {
+  if (isEditing) return "처리 중…";
+  return "수정";
+}
+
+function EditModal({
+  isEditing,
+  onCancel,
+  onConfirm,
+}: Readonly<{
+  onCancel: () => void;
+  onConfirm: () => void;
+  isEditing: boolean;
+}>) {
+
+  return (
+    /* fixed backdrop */
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center px-4"
+      style={{ animation: "section-fade 0.2s ease-out both" }}
+    >
+      {/* backdrop — click to cancel */}
+      <button
+        type="button"
+        aria-label="취소"
+        className="absolute inset-0 bg-black/40 backdrop-blur-[2px] w-full h-full cursor-default"
+        onClick={onCancel}
+      />
+
+      {/* sheet / dialog */}
+      <div
+        className="relative w-full max-w-90 bg-white rounded-t-[24px] sm:rounded-2xl shadow-xl px-6 pt-6 pb-8"
+        style={{
+          animation: "cinematic-up 0.3s cubic-bezier(0.16,1,0.3,1) both",
+        }}
+      >
+        {/* mobile drag handle */}
+        <div className="sm:hidden w-10 h-1 bg-hairline rounded-full mx-auto mb-5" />
+
+        {/* icon */}
+        <div className="w-12 h-12 rounded-full bg-error-bg flex items-center justify-center mb-4 mx-auto">
+          <span className="text-[22px] leading-none">✏️</span>
+        </div>
+
+        <h3 className="text-[18px] font-black text-ink text-center mb-2 tracking-tight">
+          모임을 수정할까요?
+        </h3>
+        <p className="text-[13px] text-ink-subtle text-center leading-relaxed mb-7">
+          모임을 수정하면 참가자 모두에게 변경 사항이 적용돼요.
+        </p>
+
+        <div className="flex gap-2">
+          <button
+            onClick={onCancel}
+            disabled={isEditing}
+            className="flex-1 h-11 rounded-xl border border-hairline text-[14px] font-semibold text-ink-muted hover:bg-surface-3 transition-colors disabled:opacity-60"
+          >
+            취소
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={isEditing}
+            className="flex-1 h-11 rounded-xl bg-accent-hover text-white text-[14px] font-semibold hover:bg-accent-active transition-colors disabled:opacity-60"
+          >
+            {confirmEditLabel(isEditing)}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /* ── 삭제 확인 모달 ───────────────────────────────────────────────────── */
 
@@ -167,10 +240,40 @@ export function RoomCard({ data }: Readonly<{ data: RoomCardData }>) {
 
   const [confirming, setConfirming] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [confirmingEdit, setConfirmingEdit] = useState(false);
 
   const cat = CATEGORY_CONFIG[room.category] ?? FALLBACK_CATEGORY;
   const status =
     STATUS_CONFIG[room.schedule ? "done" : room.status] ?? FALLBACK_STATUS;
+
+  const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+
+
+  // 파일 선택 이벤트 처리
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0]; // 선택한 파일 객체
+    if (!selectedFile) return;
+
+    setFile(selectedFile);
+  };
+
+  // 파일 제출 처리
+  const handleSubmit = async () => {
+    if (!file) return;
+    const safeFileName = file.name
+      .replace(/\s/g, "_")// 공백 제거
+      .replace(/[^\w.-]/g, "");// 특수문자/한글 제거
+
+    const filePath = `room_image/${Date.now()}-${safeFileName}`;
+
+    const supabase = createClient();
+    await supabase.auth.getUser();
+    const { data, error } = await supabase.storage
+      .from("cluepot")
+      .upload(filePath, file);
+  };
 
   async function handleDelete() {
     setIsDeleting(true);
@@ -178,6 +281,13 @@ export function RoomCard({ data }: Readonly<{ data: RoomCardData }>) {
     setConfirming(false);
     router.refresh();
   }
+
+  async function handleEdit() {
+    setIsEditing(true);
+    setConfirmingEdit(false);
+    router.refresh();
+  }
+
 
   return (
     <>
@@ -234,10 +344,16 @@ export function RoomCard({ data }: Readonly<{ data: RoomCardData }>) {
         {/* ── 삭제 버튼 — 44px touch target ── */}
         <button
           onClick={() => setConfirming(true)}
-          className="absolute top-1.5 right-1.5 z-10 w-11 h-11 flex items-center justify-center rounded-full bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white transition-colors text-[16px] touch-manipulation"
+          className="absolute top-1.5 right-1.5 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white transition-colors text-[16px] touch-manipulation"
           aria-label="모임 삭제"
         >
           🗑️
+        </button>
+        <button onClick={() => setConfirmingEdit(true)}
+          className="absolute top-1.5 right-11 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white transition-colors text-[16px] touch-manipulation"
+          aria-label="모임 수정"
+        >
+          ✏️
         </button>
       </div>
 
@@ -250,6 +366,18 @@ export function RoomCard({ data }: Readonly<{ data: RoomCardData }>) {
           onConfirm={handleDelete}
         />
       )}
+
+      {/* ── 수정 모달  ── */}
+      {confirmingEdit && (
+        <EditModal
+          isEditing={isEditing}
+          onCancel={() => setConfirmingEdit(false)}
+          onConfirm={handleEdit}
+        />
+      )}
+
+      <input type="file" onChange={handleFileChange} />
+      <button onClick={handleSubmit}>업로드</button>
     </>
   );
 }
