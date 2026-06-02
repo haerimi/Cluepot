@@ -32,7 +32,9 @@ function formatDateTime(iso: string) {
 }
 
 function toInputDatetime(iso: string) {
-  return iso.slice(0, 16); // "YYYY-MM-DDTHH:mm"
+  const d = new Date(iso);
+  const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+  return kst.toISOString().slice(0, 16);
 }
 
 /* ── Participant chip ────────────────────────────────────────────────────── */
@@ -109,7 +111,7 @@ function EditModal({
     start(async () => {
       await updateSchedule(schedule.id, {
         title: title.trim(),
-        scheduledAt: dt,
+        scheduledAt: `${dt}:00+09:00`,
         memo: memo || null,
       });
       onSaved();

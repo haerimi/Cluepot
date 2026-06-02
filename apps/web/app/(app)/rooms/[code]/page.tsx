@@ -918,7 +918,7 @@ export default function RoomPage() {
           placeName={scheduleInfo.placeName}
           placeAddress={scheduleInfo.placeAddress}
           roomCode={roomCode}
-          onReset={() => router.push("/room/create")}
+          onReset={() => router.push("/rooms/create")}
           participants={participants}
           currentUserId={currentUserId}
           lat={scheduleInfo.lat}
