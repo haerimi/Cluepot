@@ -58,3 +58,5 @@ apps/web/lib/generated/
 
 # docs
 docs/
+!docs/erd.md
+!docs/prd.md
