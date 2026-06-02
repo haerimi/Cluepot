@@ -414,14 +414,14 @@ export function RoomCard({ data }: Readonly<{ data: RoomCardData }>) {
         {/* ── 삭제 버튼 — 44px touch target ── */}
         <button
           onClick={() => setConfirming(true)}
-          className="absolute top-1.5 right-1.5 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white transition-colors text-[16px] touch-manipulation"
+          className="absolute top-2.5 right-2.5 z-10 px-2 py-0.5 flex items-center justify-center rounded-full bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white transition-colors text-[10px] touch-manipulation"
           aria-label="모임 삭제"
         >
           🗑️
         </button>
         <button
           onClick={() => setEditModalOpen(true)}
-          className="absolute top-1.5 right-11 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white transition-colors text-[16px] touch-manipulation"
+          className="absolute top-2.5 right-12 z-10 px-2 py-0.5 flex items-center justify-center rounded-full bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white transition-colors text-[10px] touch-manipulation"
           aria-label="모임 수정"
         >
           ✏️
