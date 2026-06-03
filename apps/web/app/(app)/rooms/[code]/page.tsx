@@ -658,10 +658,14 @@ export default function RoomPage() {
   const isMe = (p: ParticipantWithUser) => p.userId === currentUserId;
 
   useEffect(() => {
+    let active = true;
+
     async function participant() {
       const { isHost: host, savedPreference, linkExpiresAt: expiry, category: roomCategory, roomStatus: status } = await joinRoom(roomCode);
       const { participants: fetchedParticipants } =
         await getParticipants(roomCode);
+
+      if (!active) return;
 
       setIsHost(host);
       setParticipants(fetchedParticipants);
@@ -684,6 +688,7 @@ export default function RoomPage() {
 
       // 이 방에 이미 확정된 일정이 있으면 ScheduleView로 복원 (Zustand 리셋 대응)
       const existing = await getScheduleByRoomCode(roomCode);
+      if (!active) return;
       if (existing) {
         useScheduleStore.getState().setSchedule({
           scheduleId: existing.id,
@@ -704,6 +709,8 @@ export default function RoomPage() {
     async function checkAndWatch() {
       const { exists } = await checkRoomExists(roomCode);
 
+      if (!active) return;
+
       if (!exists) {
         useRoomStore.getState().removeActiveRoom(roomCode);
         router.push("/");
@@ -717,6 +724,7 @@ export default function RoomPage() {
     checkAndWatch();
 
     return () => {
+      active = false;
       useScheduleStore.getState().clearSchedule();
       useMapStore.getState().clearMap();
     };
@@ -901,7 +909,7 @@ export default function RoomPage() {
   }
 
   async function handleExtend() {
-    await extendRoomLink(roomCode, isHost);
+    await extendRoomLink(roomCode);
     const newExpiry = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString();
     setLinkExpiresAt(newExpiry);
     setShowLinkSheet(false);

@@ -12,15 +12,18 @@ export async function createRoom(
   category: string,
   name: string,
 ): Promise<{ roomCode: string; roomId: string }> {
+  const userId = await getCurrentUserId();  
   const roomCode = generateCode();
 
-  const room = await prisma.room.create({
-    data: {
-      roomCode,
-      category,
-      name,
-      linkExpiresAt: new Date(Date.now() + 4 * 60 * 60 * 1000)
-    },
+  const room = await prisma.$transaction(async (tx) => {
+    const room = await tx.room.create({
+      data: { roomCode, category, name, linkExpiresAt: new Date(Date.now() + 4 * 60 * 60 * 1000) },
+    });
+    // 방 생성과 동시에 호스트 등록 → 이후 joinRoom에서 count가 항상 ≥1
+    await tx.participant.create({
+      data: { roomCode, userId, isHost: true, abstractLocation: "", lat: 0, lng: 0 },
+    });
+    return room;
   });
 
   return { roomCode: room.roomCode, roomId: room.id };
@@ -101,26 +104,31 @@ export async function getMyRooms() {
   });
 }
 
-export async function extendRoomLink(roomCode: string, isHost: boolean) {
-  if (!isHost) {
-    return;
-  }
+export async function extendRoomLink(roomCode: string) {
+  const userId = await getCurrentUserId();
+  const me = await prisma.participant.findUnique({
+    where: { roomCode_userId: { roomCode, userId } },
+    select: { isHost: true },
+  });
+  if (!me?.isHost) return;
 
   return await prisma.room.update({
     where: { roomCode },
-    data: {
-      linkExpiresAt: new Date(Date.now() + 4 * 60 * 60 * 1000)
-    }
-  })
+    data: { linkExpiresAt: new Date(Date.now() + 4 * 60 * 60 * 1000) },
+  });
 }
 
 export async function updateRoom(roomCode: string, name: string, imageUrl: string | null) {
-   await prisma.room.update({
+  const userId = await getCurrentUserId();
+  const me = await prisma.participant.findUnique({
+    where: { roomCode_userId: { roomCode, userId } },
+    select: { id: true },
+  });
+  if (!me) throw new Error("이 방의 참가자가 아닙니다.");
+
+  await prisma.room.update({
     where: { roomCode },
-    data: {
-      name,
-      ...(imageUrl !== null && { imageUrl }),
-    },
+    data: { name, ...(imageUrl !== null && { imageUrl }) },
   });
   revalidatePath("/rooms");
 }

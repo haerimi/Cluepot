@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/app/components/ui/Button";
 
 export interface ScheduleDateModalProps {
@@ -23,7 +23,7 @@ function initTime() {
   const ampm = h < 12 ? "오전" : "오후";
   const h12 = h % 12;
   return {
-    ampm: ampm as "오전" | "오후",
+    ampm,
     hour: String(h12 === 0 ? 12 : h12),
     minute: String(m).padStart(2, "0"),
   };
@@ -34,7 +34,7 @@ export function ScheduleDateModal({
   onSubmit,
   onCancel,
   isSubmitting = false,
-}: ScheduleDateModalProps) {
+}: Readonly<ScheduleDateModalProps>) {
   const today = new Date().toISOString().slice(0, 10);
   const init = initTime();
 
@@ -46,8 +46,17 @@ export function ScheduleDateModal({
   const [memo, setMemo] = useState("");
   const [error, setError] = useState<string | null>(null);
 
+  // Esc 키로 모달 닫기 (제출 중에는 닫기 방지)
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape" && !isSubmitting) onCancel();
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isSubmitting, onCancel]);
+
   function getTime24() {
-    let h = parseInt(hour);
+    let h = Number.parseInt(hour, 10);
     if (ampm === "오전" && h === 12) h = 0;
     else if (ampm === "오후" && h !== 12) h += 12;
     return `${String(h).padStart(2, "0")}:${minute}`;
@@ -69,13 +78,18 @@ export function ScheduleDateModal({
       className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
       style={{ animation: "section-fade 0.2s ease-out both" }}
     >
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
-        onClick={onCancel}
+      {/* backdrop — button으로 교체해 키보드 접근성 확보 */}
+      <button
+        type="button"
+        aria-label="닫기"
+        className="absolute inset-0 bg-black/40 backdrop-blur-[2px] w-full h-full cursor-default"
+        onClick={isSubmitting ? undefined : onCancel}
       />
 
-      <div
-        className="relative w-full sm:max-w-[440px] bg-white rounded-t-[24px] sm:rounded-2xl shadow-xl px-6 pt-6 pb-8 sm:pb-7"
+      <dialog
+        open
+        aria-labelledby="schedule-date-modal-title"
+        className="relative w-full sm:max-w-[440px] bg-white rounded-t-[24px] sm:rounded-2xl shadow-xl px-6 pt-6 pb-8 sm:pb-7 m-0 p-0"
         style={{ animation: "cinematic-up 0.3s cubic-bezier(0.16,1,0.3,1) both" }}
       >
         <div className="sm:hidden w-10 h-1 bg-hairline rounded-full mx-auto mb-5" />
@@ -84,19 +98,23 @@ export function ScheduleDateModal({
           <p className="text-[10px] font-bold text-ink-tertiary tracking-[2px] uppercase mb-2">
             일정 확정
           </p>
-          <h2 className="text-[22px] font-black text-ink tracking-tight leading-tight">
+          <h2 id="schedule-date-modal-title" className="text-[22px] font-black text-ink tracking-tight leading-tight">
             언제 만날까요?
           </h2>
           <p className="text-[13px] text-ink-subtle mt-1">{placeName}</p>
         </div>
 
         <div className="space-y-5">
-          {/* Title */}
+          {/* 일정 이름 */}
           <div>
-            <label className="block text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase mb-2">
+            <label
+              htmlFor="schedule-title"
+              className="block text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase mb-2"
+            >
               일정 이름
             </label>
             <input
+              id="schedule-title"
               type="text"
               value={title}
               onChange={(e) => { setTitle(e.target.value); setError(null); }}
@@ -105,14 +123,18 @@ export function ScheduleDateModal({
             />
           </div>
 
-          {/* Date + Time row */}
+          {/* 날짜 + 시간 행 */}
           <div className="flex gap-3">
-            {/* Date */}
+            {/* 날짜 */}
             <div className="flex-1">
-              <label className="block text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase mb-2">
+              <label
+                htmlFor="schedule-date"
+                className="block text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase mb-2"
+              >
                 날짜
               </label>
               <input
+                id="schedule-date"
                 type="date"
                 value={date}
                 min={today}
@@ -122,14 +144,15 @@ export function ScheduleDateModal({
               />
             </div>
 
-            {/* Time */}
-            <div className="flex-1">
-              <label className="block text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase mb-2">
+            {/* 시간 — 관련 select 3개를 fieldset으로 묶어 레이블 연결 */}
+            <fieldset className="flex-1 border-0 p-0 m-0">
+              <legend className="block text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase mb-2">
                 시간
-              </label>
+              </legend>
               <div className="flex items-center gap-1.5">
-                {/* AM/PM */}
+                <label htmlFor="schedule-ampm" className="sr-only">오전/오후</label>
                 <select
+                  id="schedule-ampm"
                   value={ampm}
                   onChange={(e) => setAmpm(e.target.value as "오전" | "오후")}
                   className={selectClass}
@@ -138,8 +161,9 @@ export function ScheduleDateModal({
                   <option value="오후">오후</option>
                 </select>
 
-                {/* Hour */}
+                <label htmlFor="schedule-hour" className="sr-only">시</label>
                 <select
+                  id="schedule-hour"
                   value={hour}
                   onChange={(e) => setHour(e.target.value)}
                   className={selectClass}
@@ -149,10 +173,11 @@ export function ScheduleDateModal({
                   ))}
                 </select>
 
-                <span className="text-ink-tertiary font-bold text-[14px]">:</span>
+                <span className="text-ink-tertiary font-bold text-[14px]" aria-hidden="true">:</span>
 
-                {/* Minute */}
+                <label htmlFor="schedule-minute" className="sr-only">분</label>
                 <select
+                  id="schedule-minute"
                   value={minute}
                   onChange={(e) => setMinute(e.target.value)}
                   className={selectClass}
@@ -164,15 +189,20 @@ export function ScheduleDateModal({
                   ))}
                 </select>
               </div>
-            </div>
+            </fieldset>
           </div>
 
-          {/* Memo */}
+          {/* 메모 */}
           <div>
-            <label className="block text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase mb-2">
-              메모 <span className="text-ink-tertiary font-normal normal-case tracking-normal">(선택)</span>
+            <label
+              htmlFor="schedule-memo"
+              className="block text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase mb-2"
+            >
+              메모{" "}
+              <span className="text-ink-tertiary font-normal normal-case tracking-normal">(선택)</span>
             </label>
             <textarea
+              id="schedule-memo"
               value={memo}
               onChange={(e) => setMemo(e.target.value)}
               rows={2}
@@ -185,7 +215,7 @@ export function ScheduleDateModal({
 
           {error && (
             <p className="text-[12px] text-error flex items-center gap-1.5">
-              <span>⚠️</span>{error}
+              <span aria-hidden="true">⚠️</span>{error}
             </p>
           )}
         </div>
@@ -204,7 +234,7 @@ export function ScheduleDateModal({
             취소
           </Button>
         </div>
-      </div>
+      </dialog>
     </div>
   );
 }

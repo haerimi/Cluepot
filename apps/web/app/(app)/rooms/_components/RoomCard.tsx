@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Badge } from "@/app/components/ui/Badge";
@@ -100,18 +100,48 @@ function EditRoomModal({
   catFrom: string;
   catTo: string;
   onCancel: () => void;
-  onConfirm: (name: string, file: File | null) => void;
+  onConfirm: (name: string, file: File | null) => Promise<void>;
   imageUrl: string | null;
 }>) {
   const [name, setName] = useState(currentName);
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  // previewUrl이 교체되거나 모달이 닫힐 때 Object URL을 해제해 메모리 누수 방지
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  // Esc 키로 모달 닫기
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape" && !isSaving) onCancel();
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isSaving, onCancel]);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = e.target.files?.[0];
     if (!selected) return;
     setFile(selected);
     setPreviewUrl(URL.createObjectURL(selected));
+  }
+
+  async function handleSave() {
+    setSaveError(null);
+    setIsSaving(true);
+    try {
+      await onConfirm(name, file);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "저장에 실패했어요. 다시 시도해주세요.");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
@@ -124,74 +154,70 @@ function EditRoomModal({
         type="button"
         aria-label="취소"
         className="absolute inset-0 bg-black/40 backdrop-blur-[2px] w-full h-full cursor-default"
-        onClick={onCancel}
+        onClick={isSaving ? undefined : onCancel}
       />
 
       {/* sheet */}
-      <div
-        className="relative w-full max-w-90 bg-white rounded-t-[24px] sm:rounded-2xl shadow-xl px-6 pt-6 pb-8 flex flex-col gap-5"
+      <dialog
+        open
+        aria-labelledby="edit-room-modal-title"
+        className="relative w-full max-w-90 bg-white rounded-t-[24px] sm:rounded-2xl shadow-xl px-6 pt-6 pb-8 flex flex-col gap-5 m-0 p-0"
         style={{ animation: "cinematic-up 0.3s cubic-bezier(0.16,1,0.3,1) both" }}
       >
         {/* drag handle */}
         <div className="sm:hidden w-10 h-1 bg-hairline rounded-full mx-auto -mb-1" />
 
         {/* 헤더 */}
-        <h3 className="text-[18px] font-black text-ink text-center tracking-tight">
+        <h3 id="edit-room-modal-title" className="text-[18px] font-black text-ink text-center tracking-tight">
           모임 수정
         </h3>
 
         {/* 커버 사진 업로드 */}
         <div className="flex flex-col gap-2">
-          <label className="text-[13px] font-semibold text-ink-subtle">
+          <label htmlFor="edit-room-cover" className="text-[13px] font-semibold text-ink-subtle">
             커버 사진
           </label>
-          <label className="cursor-pointer group">
+          <label htmlFor="edit-room-cover" className="cursor-pointer group">
             <input
+              id="edit-room-cover"
               type="file"
               accept="image/*"
               className="sr-only"
               onChange={handleFileChange}
             />
-            {/* 미리보기 / 플레이스홀더 */}
-            {previewUrl ? (
-              <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-hairline">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={previewUrl}
-                  alt="커버 미리보기"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                  <span className="opacity-0 group-hover:opacity-100 text-white text-[12px] font-semibold transition-opacity">
-                    사진 변경
+            {/* 미리보기 / 플레이스홀더 — 중첩 삼항 대신 displayUrl로 분리 */}
+            {(() => {
+              const displayUrl = previewUrl ?? imageUrl;
+              if (displayUrl) {
+                return (
+                  <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-hairline">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={displayUrl}
+                      alt="커버 미리보기"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                      <span className="opacity-0 group-hover:opacity-100 text-white text-[12px] font-semibold transition-opacity">
+                        사진 변경
+                      </span>
+                    </div>
+                  </div>
+                );
+              }
+              return (
+                <div
+                  className={`w-full aspect-video rounded-xl bg-linear-to-br ${catFrom} ${catTo}
+                    flex flex-col items-center justify-center gap-2 border border-hairline
+                    group-hover:brightness-95 transition-all`}
+                >
+                  <span className="text-[32px]">{catEmoji}</span>
+                  <span className="text-[12px] font-semibold text-black/40 bg-white/60 rounded-full px-3 py-0.5">
+                    사진 선택
                   </span>
                 </div>
-              </div>
-            ) : imageUrl ? (
-              <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-hairline">
-                <img
-                  src={imageUrl}
-                  alt="커버 미리보기"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                  <span className="opacity-0 group-hover:opacity-100 text-white text-[12px] font-semibold transition-opacity">
-                    사진 변경
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <div
-                className={`w-full aspect-video rounded-xl bg-linear-to-br ${catFrom} ${catTo}
-                  flex flex-col items-center justify-center gap-2 border border-hairline
-                  group-hover:brightness-95 transition-all`}
-              >
-                <span className="text-[32px]">{catEmoji}</span>
-                <span className="text-[12px] font-semibold text-black/40 bg-white/60 rounded-full px-3 py-0.5">
-                  사진 선택
-                </span>
-              </div>
-            )}
+              );
+            })()}
           </label>
         </div>
 
@@ -215,21 +241,33 @@ function EditRoomModal({
         </div>
 
         {/* 버튼 */}
-        <div className="flex gap-2 pt-1">
-          <button
-            onClick={onCancel}
-            className="flex-1 h-11 rounded-xl border border-hairline text-[14px] font-semibold text-ink-muted hover:bg-surface-3 transition-colors"
-          >
-            취소
-          </button>
-          <button
-            onClick={() => onConfirm(name, file)}
-            className="flex-1 h-11 rounded-xl bg-accent-active text-white text-[14px] font-semibold hover:bg-accent-hover transition-colors"
-          >
-            저장
-          </button>
+        <div className="flex flex-col gap-1">
+          <div className="flex gap-2 pt-1">
+            <button
+              onClick={isSaving ? undefined : onCancel}
+              disabled={isSaving}
+              className="flex-1 h-11 rounded-xl border border-hairline text-[14px] font-semibold text-ink-muted hover:bg-surface-3 transition-colors disabled:opacity-50"
+            >
+              취소
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="flex-1 h-11 rounded-xl bg-accent-active text-white text-[14px] font-semibold hover:bg-accent-hover transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+            >
+              {isSaving ? (
+                <>
+                  <span className="w-3.5 h-3.5 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+                  저장 중...
+                </>
+              ) : "저장"}
+            </button>
+          </div>
+          {saveError && (
+            <p className="text-red-400 text-xs mt-1 text-center">{saveError}</p>
+          )}
         </div>
-      </div>
+      </dialog>
     </div>
   );
 }
@@ -252,6 +290,15 @@ function DeleteModal({
   onCancel: () => void;
   onConfirm: () => void;
 }>) {
+  // Esc 키로 모달 닫기 (삭제 중에는 닫기 방지)
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape" && !isDeleting) onCancel();
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isDeleting, onCancel]);
+
   return (
     /* fixed backdrop */
     <div
@@ -263,12 +310,14 @@ function DeleteModal({
         type="button"
         aria-label="취소"
         className="absolute inset-0 bg-black/40 backdrop-blur-[2px] w-full h-full cursor-default"
-        onClick={onCancel}
+        onClick={isDeleting ? undefined : onCancel}
       />
 
       {/* sheet / dialog */}
-      <div
-        className="relative w-full max-w-90 bg-white rounded-t-[24px] sm:rounded-2xl shadow-xl px-6 pt-6 pb-8"
+      <dialog
+        open
+        aria-labelledby="delete-modal-title"
+        className="relative w-full max-w-90 bg-white rounded-t-[24px] sm:rounded-2xl shadow-xl px-6 pt-6 pb-8 m-0 p-0"
         style={{
           animation: "cinematic-up 0.3s cubic-bezier(0.16,1,0.3,1) both",
         }}
@@ -281,7 +330,7 @@ function DeleteModal({
           <span className="text-[22px] leading-none">🗑️</span>
         </div>
 
-        <h3 className="text-[18px] font-black text-ink text-center mb-2 tracking-tight">
+        <h3 id="delete-modal-title" className="text-[18px] font-black text-ink text-center mb-2 tracking-tight">
           {isHost ? "모임을 삭제할까요?" : "모임에서 나갈까요?"}
         </h3>
         <p className="text-[13px] text-ink-subtle text-center leading-relaxed mb-7">
@@ -306,7 +355,7 @@ function DeleteModal({
             {confirmLabel(isDeleting, isHost)}
           </button>
         </div>
-      </div>
+      </dialog>
     </div>
   );
 }
@@ -332,7 +381,7 @@ export function RoomCard({ data }: Readonly<{ data: RoomCardData }>) {
     router.refresh();
   }
 
-  async function handleEditConfirm(title: string, file: File | null) {
+  async function handleEditConfirm(title: string, file: File | null): Promise<void> {
     let imageUrl: string | undefined;
 
     if (file) {
@@ -342,8 +391,7 @@ export function RoomCard({ data }: Readonly<{ data: RoomCardData }>) {
       const { error } = await supabase.storage.from("cluepot").upload(path, file);
       if (error) {
         console.error("이미지 업로드 실패:", error);
-        alert("이미지 업로드에 실패했어요. 다시 시도해주세요.");
-        return;
+        throw new Error("이미지 업로드에 실패했어요. 다시 시도해주세요.");
       }
       const { data } = supabase.storage.from("cluepot").getPublicUrl(path);
       imageUrl = data.publicUrl;

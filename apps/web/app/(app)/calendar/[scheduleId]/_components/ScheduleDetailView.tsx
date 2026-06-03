@@ -363,7 +363,6 @@ function ReplacePlaceConfirm({
 
   function handleConfirm() {
     start(async () => {
-      console.log(scheduleId)
       await cancelSchedule(scheduleId);
       router.push(`/rooms/${roomCode}`);
     })

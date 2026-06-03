@@ -45,20 +45,26 @@ export function KakaoMap({ lat, lng, placeName, className = "" }: KakaoMapProps)
     }
 
     if (window.kakao?.maps) {
+      // SDK already loaded — invoke the load callback immediately
       window.kakao.maps.load(init);
       return () => { cancelled = true; };
     } else {
-      // SDK not yet loaded — poll until available
-      const id = setInterval(() => {
-        if (window.kakao?.maps) {
-          clearInterval(id);
-          window.kakao.maps.load(init);
-        }
-      }, 200);
-      return () => {
-        cancelled = true;
-        clearInterval(id);
-      };
+      // SDK script is still loading — attach a one-time load listener to the
+      // existing <script> tag instead of polling with setInterval.
+      const script = document.querySelector<HTMLScriptElement>(
+        'script[src*="dapi.kakao.com/v2/maps"]'
+      );
+      if (script) {
+        const onLoad = () => {
+          if (!cancelled) window.kakao.maps.load(init);
+        };
+        script.addEventListener("load", onLoad, { once: true });
+        return () => {
+          cancelled = true;
+          script.removeEventListener("load", onLoad);
+        };
+      }
+      return () => { cancelled = true; };
     }
   }, [lat, lng, placeName]);
 
