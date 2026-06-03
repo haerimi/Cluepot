@@ -126,6 +126,7 @@ Client: React 19 + Zustand (지도·추천결과·일정 전역 상태)
 
 ## 6. ERD & PRD
 ### PRD
+[PRD.md로 이동](./PRD.md)
 
 ### ERD
 <img width="500" height="700" alt="ERD" src="https://github.com/user-attachments/assets/3e1567b2-71d9-4825-8435-a12bc41b00b6" />
