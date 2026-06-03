@@ -30,6 +30,15 @@ export function HomeIcon() {
   );
 }
 
+export function PlusIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+      <path d="M6.5 1V12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M1 6.5H12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function CalendarIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 13 13" fill="none" aria-hidden="true">
@@ -91,13 +100,10 @@ export function AppTopNav({ user }: Readonly<{ user: HydratedUser | null }>) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navItems: NavItem[] = [
-    { href: "/rooms/create", label: "일정 만들기", icon: <HomeIcon /> },
-    { href: "/calendar", label: "내 일정", icon: <CalendarIcon /> }, 
+    { href: "/calendar", label: "내 일정", icon: <CalendarIcon /> },
     { href: "/rooms", label: "내 모임", icon: <RoomsIcon /> },
-    ...(user
-      ? [{ href: "/profile", label: "프로필", icon: <ProfileIcon /> }]
-      : []),
-    { href: "/rooms/join", label: "코드로 참가", icon: <JoinCodeIcon /> }, 
+    { href: "/rooms/create", label: "일정 만들기", icon: <PlusIcon /> },
+    { href: "/rooms/join", label: "코드로 참가", icon: <JoinCodeIcon /> },
   ];
 
   function closeMenu() {
@@ -132,7 +138,13 @@ export function AppTopNav({ user }: Readonly<{ user: HydratedUser | null }>) {
               href="/profile"
               className="w-7 h-7 rounded-full bg-accent flex items-center justify-center shrink-0">
               <span className="text-[11px] font-bold text-white leading-none">
-                {initial}
+                {user.profileImage ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={user.profileImage} alt={user.nickname}
+                      className="w-full h-full object-cover rounded-full" />
+                  ) : (
+                    user.nickname.charAt(0)
+                  )}
               </span>
             </Link>
           )}
@@ -226,21 +238,26 @@ export function AppTopNav({ user }: Readonly<{ user: HydratedUser | null }>) {
             <div className="border-t border-hairline shrink-0">
               {user ? (
                 <div className="px-4 py-4 flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-accent flex items-center justify-center shrink-0">
-                    <span className="text-[13px] font-bold text-white leading-none">
-                      {initial}
-                    </span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    {displayName && (
-                      <p className="text-[13px] font-semibold text-ink truncate leading-tight">
-                        {displayName}
+                  <Link href="/profile" onClick={closeMenu} className="flex items-center gap-3 flex-1 min-w-0 group">
+                    <div className="w-9 h-9 rounded-full bg-accent flex items-center justify-center shrink-0 overflow-hidden group-hover:opacity-80 transition-opacity">
+                      {user.profileImage ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={user.profileImage} alt={user.nickname} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-[13px] font-bold text-white leading-none">{initial}</span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      {displayName && (
+                        <p className="text-[13px] font-semibold text-ink truncate leading-tight group-hover:text-accent transition-colors">
+                          {displayName}
+                        </p>
+                      )}
+                      <p className="text-[11px] text-ink-subtle truncate leading-tight">
+                        {user.email}
                       </p>
-                    )}
-                    <p className="text-[11px] text-ink-subtle truncate leading-tight">
-                      {user.email}
-                    </p>
-                  </div>
+                    </div>
+                  </Link>
                   <form action={logout}>
                     <button
                       type="submit"

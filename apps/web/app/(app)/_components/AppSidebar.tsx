@@ -21,7 +21,7 @@ import { useMapStore } from "@/store/map";
 import { useScheduleStore } from "@/store/schedule";
 import { logout } from "@/app/actions/auth";
 import type { HydratedUser } from "./AuthHydrator";
-import { HomeIcon, RoomsIcon, CalendarIcon, ProfileIcon, LogoutIcon, JoinCodeIcon } from "./AppTopNav";
+import { PlusIcon, RoomsIcon, CalendarIcon, ProfileIcon, LogoutIcon, JoinCodeIcon } from "./AppTopNav";
 
 const AMBIENT_LINES = [
   "장소에는 이야기가 있어요",
@@ -147,34 +147,10 @@ export function AppSidebar({ user }: Readonly<{ user: HydratedUser | null }>) {
 
       {/* ── Navigation ── */}
       <nav className="px-3 py-4 flex flex-col gap-0.5">
-        <NavItem href="/rooms/create" label="일정 만들기" icon={<HomeIcon />} active={pathname.startsWith("/rooms/create")} />
-        <NavItem
-          href="/calendar"
-          label="내 일정"
-          icon={<CalendarIcon />}
-          active={pathname.startsWith("/calendar")}
-        />
-        {user && (
-          <NavItem
-            href="/profile"
-            label="프로필"
-            icon={<ProfileIcon />}
-            active={pathname.startsWith("/profile")}
-          />
-        )}
-        <NavItem 
-          href="/rooms"
-          label="내 모임"
-          icon={<RoomsIcon />}
-          active={pathname.startsWith("/rooms")} 
-          />
-
-        <NavItem
-          href="/rooms/join"
-          label="코드로 참가"
-          icon={<JoinCodeIcon />}
-          active={pathname.startsWith("/rooms/join")} 
-          />
+        <NavItem href="/calendar" label="내 일정" icon={<CalendarIcon />} active={pathname.startsWith("/calendar")} />
+        <NavItem href="/rooms" label="내 모임" icon={<RoomsIcon />} active={pathname.startsWith("/rooms") && !pathname.startsWith("/rooms/create") && !pathname.startsWith("/rooms/join")} />
+        <NavItem href="/rooms/create" label="일정 만들기" icon={<PlusIcon />} active={pathname.startsWith("/rooms/create")} />
+        <NavItem href="/rooms/join" label="코드로 참가" icon={<JoinCodeIcon />} active={pathname.startsWith("/rooms/join")} />
       </nav>
 
       {/* ── PINI ambient text + user section — pinned to bottom ── */}
@@ -199,21 +175,26 @@ export function AppSidebar({ user }: Readonly<{ user: HydratedUser | null }>) {
 
         {user ? (
           <div className="px-4 py-4 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center shrink-0">
-              <span className="text-[12px] font-bold text-white leading-none">
-                {initial}
-              </span>
-            </div>
-            <div className="flex-1 min-w-0">
-              {displayName && (
-                <p className="text-[13px] font-semibold text-ink truncate leading-tight">
-                  {displayName}
+            <Link href="/profile" className="flex items-center gap-3 flex-1 min-w-0 group">
+              <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center shrink-0 overflow-hidden group-hover:opacity-80 transition-opacity">
+                {user.profileImage ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={user.profileImage} alt={user.nickname} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-[12px] font-bold text-white leading-none">{initial}</span>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                {displayName && (
+                  <p className="text-[13px] font-semibold text-ink truncate leading-tight group-hover:text-accent transition-colors">
+                    {displayName}
+                  </p>
+                )}
+                <p className="text-[11px] text-ink-subtle truncate leading-tight">
+                  {user.email}
                 </p>
-              )}
-              <p className="text-[11px] text-ink-subtle truncate leading-tight">
-                {user.email}
-              </p>
-            </div>
+              </div>
+            </Link>
             <form action={logout}>
               <button
                 type="submit"
