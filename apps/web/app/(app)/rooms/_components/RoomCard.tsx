@@ -224,7 +224,7 @@ function EditRoomModal({
           </button>
           <button
             onClick={() => onConfirm(name, file)}
-            className="flex-1 h-11 rounded-xl bg-accent-hover text-white text-[14px] font-semibold hover:bg-accent-active transition-colors"
+            className="flex-1 h-11 rounded-xl bg-accent-active text-white text-[14px] font-semibold hover:bg-accent-hover transition-colors"
           >
             저장
           </button>

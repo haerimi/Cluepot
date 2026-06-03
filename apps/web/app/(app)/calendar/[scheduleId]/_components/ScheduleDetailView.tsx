@@ -43,10 +43,12 @@ function ParticipantChip({
   nickname,
   status,
   isMe,
+  profileImage,
 }: {
   nickname: string;
   status: string;
   isMe: boolean;
+  profileImage: string | null;
 }) {
   const statusConfig = {
     accepted: { label: "수락", bg: "bg-success-bg", text: "text-success-text" },
@@ -60,11 +62,16 @@ function ParticipantChip({
     <div className="flex items-center gap-2.5 py-3 px-4 bg-white rounded-xl border border-hairline">
       <div
         className={[
-          "w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold shrink-0",
+          "w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold shrink-0 overflow-hidden",
           isMe ? "bg-accent text-white" : "bg-surface-3 text-ink-muted",
         ].join(" ")}
       >
-        {nickname.charAt(0)}
+        {profileImage ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={profileImage} alt={nickname} className="w-full h-full object-cover" />
+        ) : (
+          nickname.charAt(0)
+        )}
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-[13px] font-semibold text-ink truncate">
@@ -577,6 +584,7 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
                 nickname={m.nickname}
                 status={m.status}
                 isMe={m.userId === schedule.currentUserId}
+                profileImage={m.profileImage}
               />
             ))}
           </div>

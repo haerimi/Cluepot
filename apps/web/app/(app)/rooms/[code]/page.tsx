@@ -196,14 +196,16 @@ function ScheduleView({
                 className="flex items-center gap-2 bg-white border border-hairline rounded-full px-3 py-1.5"
               >
                 <div
-                  className={[
-                    "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold",
-                    p.userId === currentUserId
-                      ? "bg-accent text-white"
-                      : "bg-surface-3 text-ink-muted",
-                  ].join(" ")}
+                  className={
+                    "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold"}
                 >
-                  {p.user.nickname.charAt(0)}
+                  {p.user.profileImage ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={p.user.profileImage} alt={p.user.nickname}
+                      className="w-full h-full object-cover rounded-full" />
+                  ) : (
+                    p.user.nickname.charAt(0)
+                  )}
                 </div>
                 <span className="text-[12px] font-medium text-ink">
                   {p.user.nickname}
@@ -271,14 +273,16 @@ function RoomSummaryPane({
             return (
               <div key={p.id} className="flex items-center gap-2.5">
                 <div
-                  className={[
-                    "w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0",
-                    p.userId === currentUserId
-                      ? "bg-accent text-white"
-                      : "bg-surface-3 text-ink-muted",
-                  ].join(" ")}
+                  className={
+                    "w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0"}
                 >
-                  {p.user.nickname.charAt(0)}
+                  {p.user.profileImage ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={p.user.profileImage} alt={p.user.nickname}
+                      className="w-full h-full object-cover rounded-full" />
+                  ) : (
+                    p.user.nickname.charAt(0)
+                  )}
                 </div>
                 <span className="text-[13px] font-medium text-ink flex-1 truncate">
                   {p.user.nickname}
