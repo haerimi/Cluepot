@@ -16,6 +16,7 @@ interface ParticipantCardProps {
   readonly isReady: boolean;
   readonly isMe?: boolean;
   readonly animationDelay?: string;
+  readonly profileImage?: string | null;
 }
 
 export function ParticipantCard({
@@ -26,6 +27,7 @@ export function ParticipantCard({
   isReady,
   isMe = false,
   animationDelay = "0s",
+  profileImage,
 }: ParticipantCardProps) {
   const initials = nickname.charAt(0);
 
@@ -40,11 +42,16 @@ export function ParticipantCard({
       {/* Avatar */}
       <div
         className={[
-          "w-10 h-10 rounded-full flex items-center justify-center text-[15px] font-bold shrink-0",
+          "w-10 h-10 rounded-full flex items-center justify-center text-[15px] font-bold shrink-0 overflow-hidden",
           isMe ? "bg-accent text-white" : "bg-surface-3 text-ink-muted",
         ].join(" ")}
       >
-        {initials}
+        {profileImage ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={profileImage} alt={nickname} className="w-full h-full object-cover" />
+        ) : (
+          initials
+        )}
       </div>
 
       {/* Info */}

@@ -13,4 +13,5 @@ export interface Room {
   createdAt: Date
   participants: Participant[]
   schedule: Schedule
+  imageUrl: string
 }

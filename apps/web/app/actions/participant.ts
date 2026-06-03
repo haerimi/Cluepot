@@ -128,3 +128,4 @@ export async function getParticipants(roomCode: string): Promise<{
 
   return { participants };
 }
+

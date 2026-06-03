@@ -113,3 +113,14 @@ export async function extendRoomLink(roomCode: string, isHost: boolean) {
     }
   })
 }
+
+export async function updateRoom(roomCode: string, name: string, imageUrl: string | null) {
+   await prisma.room.update({
+    where: { roomCode },
+    data: {
+      name,
+      ...(imageUrl !== null && { imageUrl }),
+    },
+  });
+  revalidatePath("/rooms");
+}

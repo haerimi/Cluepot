@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/util/supabase/server";
 import { prisma } from "@/lib/prisma";
 
@@ -87,4 +88,41 @@ export async function logout(): Promise<never> {
   const supabase = createClient(cookieStore);
   await supabase.auth.signOut();
   redirect("/login");
+}
+
+export async function profileLogin() {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { nickname: true, profileImage: true },
+  });
+
+  const nickname = dbUser?.nickname ?? (user.user_metadata?.nickname as string | undefined) ?? "";
+  const email = user.email ?? "";
+  const initial = (nickname[0] ?? email[0] ?? "?").toUpperCase();
+  const joinedAt = new Date(user.created_at).toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  return { id: user.id, initial, joinedAt, nickname, email, profileImage: dbUser?.profileImage ?? null }
+}
+
+export async function updateUserInfo(id: string, nickname: string, imageUrl: string | null) {
+  await prisma.user.update({
+    where: { id },
+    data: {
+      nickname,
+      ...(imageUrl !== null && { profileImage: imageUrl }),
+    },
+  });
+  revalidatePath("/", "layout");
 }

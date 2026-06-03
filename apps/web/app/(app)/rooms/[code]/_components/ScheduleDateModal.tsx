@@ -57,7 +57,7 @@ export function ScheduleDateModal({
     if (!date) { setError("날짜를 선택해주세요"); return; }
     if (!title.trim()) { setError("일정 제목을 입력해주세요"); return; }
     setError(null);
-    onSubmit({ title: title.trim(), scheduledAt: `${date}T${getTime24()}`, memo });
+    onSubmit({ title: title.trim(), scheduledAt: `${date}T${getTime24()}:00+09:00`, memo });
   }
 
   const selectClass =
@@ -184,7 +184,7 @@ export function ScheduleDateModal({
           </div>
 
           {error && (
-            <p className="text-[12px] text-[#DC2626] flex items-center gap-1.5">
+            <p className="text-[12px] text-error flex items-center gap-1.5">
               <span>⚠️</span>{error}
             </p>
           )}

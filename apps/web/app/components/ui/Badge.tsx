@@ -1,6 +1,6 @@
-import { HTMLAttributes } from "react";
+﻿import { HTMLAttributes } from "react";
 
-type BadgeVariant = "default" | "accent" | "success" | "warning" | "muted";
+type BadgeVariant = "default" | "accent" | "butter" | "success" | "warning" | "muted";
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   variant?: BadgeVariant;
@@ -8,19 +8,21 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 }
 
 const variantStyles: Record<BadgeVariant, string> = {
-  default: "bg-[#F0EDE7] text-[#4A4740]",
+  default: "bg-surface-warm text-ink-muted",
   accent:  "bg-accent-light text-accent",
-  success: "bg-[#E8F5EC] text-[#1A7A35]",
-  warning: "bg-[#FEF3C7] text-[#92400E]",
-  muted:   "bg-[#F0EDE7] text-[#908D87]",
+  butter:  "bg-butter text-ink",
+  success: "bg-success-bg text-success-text",
+  warning: "bg-warning-bg text-warning-text",
+  muted:   "bg-surface-warm text-ink-subtle",
 };
 
 const dotColors: Record<BadgeVariant, string> = {
-  default: "bg-[#908D87]",
+  default: "bg-ink-subtle",
   accent:  "bg-accent",
-  success: "bg-[#27A644]",
-  warning: "bg-[#D97706]",
-  muted:   "bg-[#C4C1BC]",
+  butter:  "bg-ink",
+  success: "bg-success",
+  warning: "bg-warning",
+  muted:   "bg-ink-subtle",
 };
 
 export function Badge({

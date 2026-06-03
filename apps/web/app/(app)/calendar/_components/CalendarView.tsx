@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState, startTransition } from "react";
 import Link from "next/link";
 import type { ScheduleListItem } from "@/app/actions/schedule";
 
@@ -61,14 +61,14 @@ function formatSelectedDate(year: number, month: number, day: number) {
 function StatusChip({ status }: { status: string }) {
   if (status === "accepted") {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#1A7A35] bg-[#E8F5EC] px-2 py-0.5 rounded-full">
+      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-success-text bg-success-bg px-2 py-0.5 rounded-full">
         수락
       </span>
     );
   }
   if (status === "declined") {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#DC2626] bg-[#FEF2F2] px-2 py-0.5 rounded-full">
+      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-error bg-error-bg px-2 py-0.5 rounded-full">
         거절
       </span>
     );
@@ -180,12 +180,18 @@ interface CalendarViewProps {
 }
 
 export function CalendarView({ schedules }: CalendarViewProps) {
-  const today     = new Date();
-  const [year,  setYear]  = useState(today.getFullYear());
-  const [month, setMonth] = useState(today.getMonth());
-  const [selectedKey, setSelectedKey] = useState<string | null>(
-    toDateKey(today),
-  );
+  const [year,  setYear]  = useState(() => new Date().getFullYear());
+  const [month, setMonth] = useState(() => new Date().getMonth());
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [todayKey, setTodayKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    const key = toDateKey(new Date());
+    startTransition(() => {
+      setTodayKey(key);
+      setSelectedKey((prev) => prev ?? key);
+    });
+  }, []);
 
   /* Index schedules by date key */
   const byDate = useMemo(() => {
@@ -198,8 +204,7 @@ export function CalendarView({ schedules }: CalendarViewProps) {
     return map;
   }, [schedules]);
 
-  const cells      = useMemo(() => getCalendarCells(year, month), [year, month]);
-  const todayKey   = toDateKey(today);
+  const cells = useMemo(() => getCalendarCells(year, month), [year, month]);
 
   // 캘린더 날짜 셀 렌더링 -> selectedSchedules이 있으면 해당 날짜에 점 표시
   const selectedSchedules = selectedKey ? (byDate.get(selectedKey) ?? []) : [];

@@ -2,39 +2,60 @@
 
 @theme {
   /* ── Canvas / Surfaces ── */
-  --color-canvas: #F4F2EE;
-  --color-surface-1: #FFFFFF;
-  --color-surface-2: #FAF9F6;
-  --color-surface-3: #F0EDE7;
+  --color-canvas: #F4F5F0;
+  --color-surface: #F9FAF6;
+  --color-surface-warm: #F0EDE7;
+  --color-surface-subtle: #FDF6E3;
+  --color-dark: #1E2535;
 
-  /* ── Accent — Dusty Plum ── */
-  --color-accent: #7C5CFC;
-  --color-accent-hover: #6B4AEF;
-  --color-accent-muted: #A98BFD;
-  --color-accent-light: #F0ECFF;
+  /* ── Accent — Blue Grey (primary) + Morning Butter (secondary) ── */
+  --color-accent: #7298C7;
+  --color-accent-hover: #5C7FB5;
+  --color-accent-active: #4A6CA8;
+  --color-accent-muted: #9AB3D8;
+  --color-accent-light: #EEF3FA;
+  --color-butter: #F3D98F;
+
+  /* ── Buttons ── */
+  --color-btn-danger: #E07A7A;
+  --color-btn-disabled: #D0D8E4;
 
   /* ── Ink / Text ── */
-  --color-ink: #1C1A17;
-  --color-ink-muted: #4A4740;
-  --color-ink-subtle: #908D87;
-  --color-ink-tertiary: #C4C1BC;
+  --color-ink: #1A2033;
+  --color-ink-muted: #5A6A85;
+  --color-ink-subtle: #9AAABF;
+  --color-ink-inverse: #FFFFFF;
 
   /* ── Borders ── */
-  --color-hairline: #E5E1D9;
-  --color-hairline-strong: #D0CCC4;
+  --color-hairline: #E2E6EC;
+  --color-hairline-strong: #C8D0DC;
 
   /* ── Semantic ── */
   --color-success: #27A644;
   --color-success-bg: #E8F5EC;
+  --color-success-text: #1A7A35;
   --color-warning: #D97706;
   --color-warning-bg: #FEF3C7;
+  --color-warning-text: #92400E;
+  --color-error: #DC2626;
+  --color-error-hover: #B91C1C;
+  --color-error-bg: #FEF2F2;
+  --color-error-bg-alt: #FFF5F5;
+  --color-error-border: #FCA5A5;
+  --color-warning-bg-alt: #FFF7ED;
+  --color-warning-fill: #FFF8E1;
+  --color-warning-orange: #E65100;
+  --color-warning-amber: #B45309;
+  --color-warning-border: #FED7AA;
+  --color-success-bg-alt: #F0FAF2;
+  --color-star: #F59E0B;
 
   /* ── Shadows ── */
-  --shadow-xs: 0px 1px 2px 0px rgba(28, 26, 23, 0.06);
-  --shadow-sm: 0px 1px 3px 0px rgba(28, 26, 23, 0.08), 0px 1px 2px -1px rgba(28, 26, 23, 0.05);
-  --shadow-md: 0px 4px 12px -2px rgba(28, 26, 23, 0.10), 0px 2px 4px -2px rgba(28, 26, 23, 0.06);
-  --shadow-lg: 0px 10px 32px -4px rgba(28, 26, 23, 0.12), 0px 4px 8px -4px rgba(28, 26, 23, 0.08);
-  --shadow-xl: 0px 20px 48px -8px rgba(28, 26, 23, 0.15), 0px 8px 16px -6px rgba(28, 26, 23, 0.10);
+  --shadow-xs: 0px 1px 2px 0px rgba(26, 32, 51, 0.06);
+  --shadow-sm: 0px 1px 3px 0px rgba(26, 32, 51, 0.08), 0px 1px 2px -1px rgba(26, 32, 51, 0.05);
+  --shadow-md: 0px 4px 12px -2px rgba(26, 32, 51, 0.10), 0px 2px 4px -2px rgba(26, 32, 51, 0.06);
+  --shadow-lg: 0px 10px 32px -4px rgba(26, 32, 51, 0.12), 0px 4px 8px -4px rgba(26, 32, 51, 0.08);
+  --shadow-xl: 0px 20px 48px -8px rgba(26, 32, 51, 0.15), 0px 8px 16px -6px rgba(26, 32, 51, 0.10);
 
   /* ── Border Radius ── */
   --radius-xs: 4px;
@@ -58,8 +79,8 @@
 }
 
 :root {
-  --background: #F4F2EE;
-  --foreground: #1C1A17;
+  --background: #F4F5F0;
+  --foreground: #1A2033;
   --nav-height: 56px;
 }
 
@@ -92,14 +113,14 @@ body {
 /* ── Scrollbar ── */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #D0CCC4 transparent;
+  scrollbar-color: #9AB3D8 transparent;
 }
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #D0CCC4;
+  background: #9AB3D8;
   border-radius: 9999px;
 }
 
@@ -163,7 +184,7 @@ button {
 /* Cardinal-point node dots on the radar */
 @keyframes node-pulse {
   0%, 40%, 100% { opacity: 0.25; box-shadow: none; }
-  70%           { opacity: 1;    box-shadow: 0 0 8px rgba(124, 92, 252, 0.5); }
+  70%           { opacity: 1;    box-shadow: 0 0 8px rgba(114, 152, 199, 0.5); }
 }
 
 /* Thinking-dot bounce for "분석 중" chips */
@@ -210,8 +231,8 @@ button {
 
 /* CTA glow when PINI is ready to fire */
 @keyframes cta-glow {
-  0%, 100% { box-shadow: 0 1px 3px rgba(124, 92, 252, 0.3); }
-  50%      { box-shadow: 0 0 0 6px rgba(124, 92, 252, 0.12), 0 4px 16px rgba(124, 92, 252, 0.4); }
+  0%, 100% { box-shadow: 0 1px 3px rgba(114, 152, 199, 0.3); }
+  50%      { box-shadow: 0 0 0 6px rgba(114, 152, 199, 0.12), 0 4px 16px rgba(114, 152, 199, 0.4); }
 }
 
 /* Smooth text shimmer for loading labels */

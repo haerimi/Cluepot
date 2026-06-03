@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useState } from "react";
@@ -26,6 +26,15 @@ export function HomeIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 13 13" fill="none" aria-hidden="true">
       <path d="M1 6.5L6.5 1L12 6.5V12H8.5V8.5H4.5V12H1V6.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function PlusIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+      <path d="M6.5 1V12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M1 6.5H12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
     </svg>
   );
 }
@@ -91,13 +100,10 @@ export function AppTopNav({ user }: Readonly<{ user: HydratedUser | null }>) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navItems: NavItem[] = [
-    { href: "/rooms/create", label: "일정 만들기", icon: <HomeIcon /> },
-    { href: "/calendar", label: "내 일정", icon: <CalendarIcon /> }, 
+    { href: "/calendar", label: "내 일정", icon: <CalendarIcon /> },
     { href: "/rooms", label: "내 모임", icon: <RoomsIcon /> },
-    ...(user
-      ? [{ href: "/profile", label: "프로필", icon: <ProfileIcon /> }]
-      : []),
-    { href: "/rooms/join", label: "코드로 참가", icon: <JoinCodeIcon /> }, 
+    { href: "/rooms/create", label: "일정 만들기", icon: <PlusIcon /> },
+    { href: "/rooms/join", label: "코드로 참가", icon: <JoinCodeIcon /> },
   ];
 
   function closeMenu() {
@@ -112,7 +118,7 @@ export function AppTopNav({ user }: Readonly<{ user: HydratedUser | null }>) {
         style={{
           height: "52px",
           background: "rgba(250,249,246,0.96)",
-          borderBottom: "1px solid #E5E1D9",
+          borderBottom: "1px solid #E2E6EC",
           backdropFilter: "blur(8px)",
           WebkitBackdropFilter: "blur(8px)",
         }}
@@ -120,9 +126,9 @@ export function AppTopNav({ user }: Readonly<{ user: HydratedUser | null }>) {
         {/* Brand */}
         <Link
           href={user ? '/calendar' : '/'}
-          className="text-[16px] font-black text-[#1C1A17] tracking-tight hover:opacity-70 transition-opacity"
+          className="text-[16px] font-black text-ink tracking-tight hover:opacity-70 transition-opacity"
         >
-          Clue<span className="text-[#7C5CFC]">Pot</span>
+          Clue<span className="text-accent">Pot</span>
         </Link>
 
         <div className="flex items-center gap-2.5">
@@ -130,10 +136,16 @@ export function AppTopNav({ user }: Readonly<{ user: HydratedUser | null }>) {
           {user && (
             <Link
               href="/profile"
-              className="w-7 h-7 rounded-full bg-[#7C5CFC] flex items-center justify-center shrink-0">
-              <span className="text-[11px] font-bold text-white leading-none">
-                {initial}
-              </span>
+              className="w-7 h-7 rounded-full bg-accent flex items-center justify-center shrink-0 overflow-hidden">
+              {user.profileImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={user.profileImage} alt={user.nickname}
+                  className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-[11px] font-bold text-white leading-none">
+                  {user.nickname.charAt(0)}
+                </span>
+              )}
             </Link>
           )}
 
@@ -143,13 +155,13 @@ export function AppTopNav({ user }: Readonly<{ user: HydratedUser | null }>) {
             aria-label="메뉴 열기"
             aria-expanded={isMenuOpen}
             className="w-9 h-9 flex flex-col items-center justify-center gap-[5px] rounded-lg
-                       hover:bg-[#F0EDE7] active:bg-[#E5E1D9] transition-colors"
+                       hover:bg-surface-warm active:bg-hairline transition-colors"
           >
             {/* 메뉴 아이콘 */}
             <div className="flex flex-col gap-[4px]">
-              <span className="block w-[18px] h-px bg-[#1C1A17] opacity-90 rounded-full" />
-              <span className="block w-[18px] h-px bg-[#1C1A17] opacity-90 rounded-full" />
-              <span className="block w-[18px] h-px bg-[#1C1A17] opacity-90 rounded-full" />
+              <span className="block w-[18px] h-px bg-ink opacity-90 rounded-full" />
+              <span className="block w-[18px] h-px bg-ink opacity-90 rounded-full" />
+              <span className="block w-[18px] h-px bg-ink opacity-90 rounded-full" />
             </div>
           </button>
         </div>
@@ -171,19 +183,19 @@ export function AppTopNav({ user }: Readonly<{ user: HydratedUser | null }>) {
 
           {/* Drawer panel */}
           <div
-            className="relative w-[280px] h-full bg-[#FAF9F6] shadow-xl flex flex-col"
+            className="relative w-[280px] h-full bg-surface shadow-xl flex flex-col"
             style={{ animation: "reveal-right 0.25s cubic-bezier(0.16,1,0.3,1) both" }}
           >
             {/* Drawer header */}
-            <div className="flex items-center justify-between px-6 h-[52px] border-b border-[#E5E1D9] shrink-0">
-              <span className="text-[16px] font-black text-[#1C1A17] tracking-tight">
-                Clue<span className="text-[#7C5CFC]">Pot</span>
+            <div className="flex items-center justify-between px-6 h-[52px] border-b border-hairline shrink-0">
+              <span className="text-[16px] font-black text-ink tracking-tight">
+                Clue<span className="text-accent">Pot</span>
               </span>
               <button
                 onClick={closeMenu}
                 aria-label="닫기"
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-[#908D87]
-                           hover:text-[#1C1A17] hover:bg-[#F0EDE7] transition-colors text-[16px]"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-ink-subtle
+                           hover:text-ink hover:bg-surface-warm transition-colors text-[16px]"
               >
                 ✕
               </button>
@@ -204,14 +216,14 @@ export function AppTopNav({ user }: Readonly<{ user: HydratedUser | null }>) {
                     className={[
                       "flex items-center gap-3 px-3 py-3 rounded-xl text-[14px] font-medium transition-colors",
                       isActive
-                        ? "bg-[#F0ECFF] text-[#7C5CFC] font-semibold"
-                        : "text-[#4A4740] hover:bg-[#F0EDE7] hover:text-[#1C1A17]",
+                        ? "bg-accent-light text-accent font-semibold"
+                        : "text-ink-muted hover:bg-surface-warm hover:text-ink",
                     ].join(" ")}
                   >
                     <span
                       className={[
                         "shrink-0",
-                        isActive ? "text-[#7C5CFC]" : "text-[#908D87]",
+                        isActive ? "text-accent" : "text-ink-subtle",
                       ].join(" ")}
                     >
                       {item.icon}
@@ -223,30 +235,35 @@ export function AppTopNav({ user }: Readonly<{ user: HydratedUser | null }>) {
             </nav>
 
             {/* User section — pinned to bottom */}
-            <div className="border-t border-[#E5E1D9] shrink-0">
+            <div className="border-t border-hairline shrink-0">
               {user ? (
                 <div className="px-4 py-4 flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-[#7C5CFC] flex items-center justify-center shrink-0">
-                    <span className="text-[13px] font-bold text-white leading-none">
-                      {initial}
-                    </span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    {displayName && (
-                      <p className="text-[13px] font-semibold text-[#1C1A17] truncate leading-tight">
-                        {displayName}
+                  <Link href="/profile" onClick={closeMenu} className="flex items-center gap-3 flex-1 min-w-0 group">
+                    <div className="w-9 h-9 rounded-full bg-accent flex items-center justify-center shrink-0 overflow-hidden group-hover:opacity-80 transition-opacity">
+                      {user.profileImage ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={user.profileImage} alt={user.nickname} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-[13px] font-bold text-white leading-none">{initial}</span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      {displayName && (
+                        <p className="text-[13px] font-semibold text-ink truncate leading-tight group-hover:text-accent transition-colors">
+                          {displayName}
+                        </p>
+                      )}
+                      <p className="text-[11px] text-ink-subtle truncate leading-tight">
+                        {user.email}
                       </p>
-                    )}
-                    <p className="text-[11px] text-[#908D87] truncate leading-tight">
-                      {user.email}
-                    </p>
-                  </div>
+                    </div>
+                  </Link>
                   <form action={logout}>
                     <button
                       type="submit"
                       title="로그아웃"
-                      className="w-8 h-8 flex items-center justify-center rounded-lg text-[#908D87]
-                                 hover:text-[#4A4740] hover:bg-[#F0EDE7] transition-colors"
+                      className="w-8 h-8 flex items-center justify-center rounded-lg text-ink-subtle
+                                 hover:text-ink-muted hover:bg-surface-warm transition-colors"
                     >
                       <LogoutIcon />
                     </button>
@@ -258,8 +275,8 @@ export function AppTopNav({ user }: Readonly<{ user: HydratedUser | null }>) {
                     href="/login"
                     onClick={closeMenu}
                     className="flex items-center justify-center h-10 w-full rounded-xl
-                               border border-[#E5E1D9] text-[13px] font-medium text-[#4A4740]
-                               hover:text-[#1C1A17] hover:border-[#D0CCC4] transition-colors"
+                               border border-hairline text-[13px] font-medium text-ink-muted
+                               hover:text-ink hover:border-hairline-strong transition-colors"
                   >
                     로그인
                   </Link>

@@ -32,7 +32,9 @@ function formatDateTime(iso: string) {
 }
 
 function toInputDatetime(iso: string) {
-  return iso.slice(0, 16); // "YYYY-MM-DDTHH:mm"
+  const d = new Date(iso);
+  const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+  return kst.toISOString().slice(0, 16);
 }
 
 /* ── Participant chip ────────────────────────────────────────────────────── */
@@ -41,14 +43,16 @@ function ParticipantChip({
   nickname,
   status,
   isMe,
+  profileImage,
 }: {
   nickname: string;
   status: string;
   isMe: boolean;
+  profileImage: string | null;
 }) {
   const statusConfig = {
-    accepted: { label: "수락", bg: "bg-[#E8F5EC]", text: "text-[#1A7A35]" },
-    declined: { label: "거절", bg: "bg-[#FEF2F2]", text: "text-[#DC2626]" },
+    accepted: { label: "수락", bg: "bg-success-bg", text: "text-success-text" },
+    declined: { label: "거절", bg: "bg-error-bg", text: "text-error" },
     pending: { label: "보류", bg: "bg-surface-3", text: "text-ink-subtle" },
   } as const;
   const cfg =
@@ -58,11 +62,16 @@ function ParticipantChip({
     <div className="flex items-center gap-2.5 py-3 px-4 bg-white rounded-xl border border-hairline">
       <div
         className={[
-          "w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold shrink-0",
+          "w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold shrink-0 overflow-hidden",
           isMe ? "bg-accent text-white" : "bg-surface-3 text-ink-muted",
         ].join(" ")}
       >
-        {nickname.charAt(0)}
+        {profileImage ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={profileImage} alt={nickname} className="w-full h-full object-cover" />
+        ) : (
+          nickname.charAt(0)
+        )}
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-[13px] font-semibold text-ink truncate">
@@ -109,7 +118,7 @@ function EditModal({
     start(async () => {
       await updateSchedule(schedule.id, {
         title: title.trim(),
-        scheduledAt: dt,
+        scheduledAt: `${dt}:00+09:00`,
         memo: memo || null,
       });
       onSaved();
@@ -185,7 +194,7 @@ function EditModal({
                          resize-none outline-none transition-all focus:ring-2 focus:ring-accent focus:border-accent focus:bg-white"
             />
           </div>
-          {error && <p className="text-[12px] text-[#DC2626]">⚠️ {error}</p>}
+          {error && <p className="text-[12px] text-error">⚠️ {error}</p>}
         </div>
 
         <div className="mt-6 flex flex-col gap-2">
@@ -500,8 +509,8 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
                 </button>
                 <button
                   onClick={() => setShowDelete(true)}
-                  className="h-9 px-3 rounded-lg border border-[#FCA5A5] text-[13px] font-medium text-[#DC2626]
-                             hover:bg-[#FEF2F2] transition-colors"
+                  className="h-9 px-3 rounded-lg border border-error-border text-[13px] font-medium text-error
+                             hover:bg-error-bg transition-colors"
                 >
                   삭제
                 </button>
@@ -563,7 +572,7 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
               참가자 · {schedule.members.length}명
             </p>
             <div className="flex items-center gap-1.5 text-[11px] text-ink-tertiary">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#27A644]" />
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-success" />
               {schedule.members.filter((m) => m.status === "accepted").length}명
               수락
             </div>
@@ -575,6 +584,7 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
                 nickname={m.nickname}
                 status={m.status}
                 isMe={m.userId === schedule.currentUserId}
+                profileImage={m.profileImage}
               />
             ))}
           </div>
@@ -593,8 +603,8 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
                 className={[
                   "flex-1 h-11 rounded-xl text-[14px] font-semibold border transition-all",
                   myMember.status === "accepted"
-                    ? "bg-[#E8F5EC] border-[#27A644]/30 text-[#1A7A35]"
-                    : "bg-white border-hairline text-ink-muted hover:border-[#27A644]/30 hover:bg-[#F0FAF2]",
+                    ? "bg-success-bg border-success/30 text-success-text"
+                    : "bg-white border-hairline text-ink-muted hover:border-success/30 hover:bg-success-bg-alt",
                 ].join(" ")}
               >
                 {isPending ? "…" : "✓ 참석할게요"}
@@ -605,8 +615,8 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
                 className={[
                   "flex-1 h-11 rounded-xl text-[14px] font-semibold border transition-all",
                   myMember.status === "declined"
-                    ? "bg-[#FEF2F2] border-[#DC2626]/30 text-[#DC2626]"
-                    : "bg-white border-hairline text-ink-muted hover:border-[#DC2626]/30 hover:bg-[#FFF5F5]",
+                    ? "bg-error-bg border-error/30 text-error"
+                    : "bg-white border-hairline text-ink-muted hover:border-error/30 hover:bg-error-bg-alt",
                 ].join(" ")}
               >
                 {isPending ? "…" : "✕ 참석 못해요"}
