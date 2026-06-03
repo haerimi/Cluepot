@@ -44,7 +44,7 @@
  * stores, so it stays in sync without any prop drilling.
  */
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ScheduleDateModal } from "./_components/ScheduleDateModal";
