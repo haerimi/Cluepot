@@ -30,7 +30,7 @@ export default function JoinRoomPage() {
     setError(null);
     setIsJoining(true);
     const validate = await validateRoom(normalizedCode)
-    
+
     if (!validate.valid) {
       setError(validate.reason ?? "유효하지 않은 코드예요.");
       setIsJoining(false);
@@ -42,12 +42,27 @@ export default function JoinRoomPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-canvas flex flex-col lg:justify-center lg:items-center">
+    <div className="min-h-dvh bg-canvas flex flex-col items-center lg:justify-center">
       {/* Header */}
-      <header className="flex items-center gap-3 px-5 pt-safe pt-4 pb-3 w-full max-w-[480px] lg:px-0 lg:mb-4">
-        <Link href="/" className="text-[20px] font-black text-ink tracking-tight">
+      <header className="flex items-center gap-4 w-full max-w-120 px-5 h-14  border-b border-hairline shrink-0">
+        <button
+          onClick={() => router.back()}
+          className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-hairline text-ink-muted hover:bg-surface-warm transition-colors shrink-0"
+          aria-label="뒤로 가기"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path
+              d="M10 3L5 8L10 13"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+        <span className="text-[18px] font-black text-ink tracking-tight">
           Clue<span className="text-accent">Pot</span>
-        </Link>
+        </span>
       </header>
 
       <main className="flex-1 w-full max-w-[480px] px-5 pt-10 pb-8 flex flex-col lg:flex-none lg:bg-white lg:rounded-3xl lg:border lg:border-hairline lg:shadow-[0_12px_40px_rgba(26,32,51,0.04)] lg:p-10">
