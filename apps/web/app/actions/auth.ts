@@ -124,5 +124,5 @@ export async function updateUserInfo(id: string, nickname: string, imageUrl: str
       ...(imageUrl !== null && { profileImage: imageUrl }),
     },
   });
-  revalidatePath("/profile");
+  revalidatePath("/", "layout");
 }
