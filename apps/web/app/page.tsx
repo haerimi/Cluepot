@@ -213,7 +213,7 @@ export default async function HomePage() {
             <br />
             중심을
             <br />
-            <span className="text-accent">찾다</span>
+            <span className="text-accent relative -bottom-1">찾다</span>
           </h1>
 
           {/* Thin editorial rule */}
@@ -479,7 +479,7 @@ export default async function HomePage() {
           <h2 className="text-[40px] sm:text-[56px] lg:text-[72px] font-black text-ink leading-[0.93] tracking-[-2.5px] mb-10">
             모두가 만족하는
             <br />
-            <span className="text-accent">장소를 찾아요</span>
+            <span className="relative -bottom-1 text-accent">장소를 찾아요</span>
           </h2>
 
           <p className="text-[14px] lg:text-[15px] text-ink-subtle leading-[1.8] mb-12 max-w-[400px] mx-auto">
