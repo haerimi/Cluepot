@@ -15,12 +15,12 @@ export interface ScheduleDateModalProps {
   isSubmitting?: boolean;
 }
 
-function initTime() {
+function initTime(): { ampm: "오전" | "오후"; hour: string; minute: string } {
   const now = new Date();
   let h = now.getHours();
   let m = Math.round(now.getMinutes() / 5) * 5;
   if (m === 60) { m = 0; h = (h + 1) % 24; }
-  const ampm = h < 12 ? "오전" : "오후";
+  const ampm: "오전" | "오후" = h < 12 ? "오전" : "오후";
   const h12 = h % 12;
   return {
     ampm,
