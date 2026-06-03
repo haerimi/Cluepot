@@ -3,7 +3,7 @@
 import { logout, updateUserInfo } from "@/app/actions/auth";
 import { createClient } from "@/util/supabase/client";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type UserInfo = {
   id: string;
@@ -18,7 +18,7 @@ export default function ProfileClient({ user }: Readonly<{ user: UserInfo }>) {
   const router = useRouter();
   const [editModalOpen, setEditModalOpen] = useState(false);
 
-  async function handleEditInfo(nickname: string, file: File | null) {
+  async function handleEditInfo(nickname: string, file: File | null): Promise<void> {
     let imageUrl: string | undefined;
 
     if (file) {
@@ -28,8 +28,7 @@ export default function ProfileClient({ user }: Readonly<{ user: UserInfo }>) {
       const { error } = await supabase.storage.from("cluepot").upload(path, file);
       if (error) {
         console.error("이미지 업로드 실패:", error);
-        alert("이미지 업로드에 실패했어요. 다시 시도해주세요.");
-        return;
+        throw new Error("이미지 업로드에 실패했어요. 다시 시도해주세요.");
       }
       const { data } = supabase.storage.from("cluepot").getPublicUrl(path);
       imageUrl = data.publicUrl;
@@ -139,18 +138,48 @@ function EditProfileModal({
 }: Readonly<{
   currentNickname: string;
   onCancel: () => void;
-  onConfirm: (nickname: string, file: File | null) => void;
+  onConfirm: (nickname: string, file: File | null) => Promise<void>;
   imageUrl: string | null;
 }>) {
   const [name, setName] = useState(currentNickname);
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  // previewUrl이 교체되거나 모달이 닫힐 때 Object URL을 해제해 메모리 누수 방지
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  // Esc 키로 모달 닫기
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape" && !isSaving) onCancel();
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isSaving, onCancel]);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = e.target.files?.[0];
     if (!selected) return;
     setFile(selected);
     setPreviewUrl(URL.createObjectURL(selected));
+  }
+
+  async function handleSave() {
+    setSaveError(null);
+    setIsSaving(true);
+    try {
+      await onConfirm(name, file);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "저장에 실패했어요. 다시 시도해주세요.");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
@@ -162,14 +191,16 @@ function EditProfileModal({
         type="button"
         aria-label="취소"
         className="absolute inset-0 bg-black/40 backdrop-blur-[2px] w-full h-full cursor-default"
-        onClick={onCancel}
+        onClick={isSaving ? undefined : onCancel}
       />
-      <div
-        className="relative w-full max-w-90 bg-white rounded-t-[24px] sm:rounded-2xl shadow-xl px-6 pt-6 pb-8 flex flex-col gap-5"
+      <dialog
+        open
+        aria-labelledby="edit-profile-modal-title"
+        className="relative w-full max-w-90 bg-white rounded-t-[24px] sm:rounded-2xl shadow-xl px-6 pt-6 pb-8 flex flex-col gap-5 m-0 p-0"
         style={{ animation: "cinematic-up 0.3s cubic-bezier(0.16,1,0.3,1) both" }}
       >
         <div className="sm:hidden w-10 h-1 bg-hairline rounded-full mx-auto -mb-1" />
-        <h3 className="text-[18px] font-black text-ink text-center tracking-tight">
+        <h3 id="edit-profile-modal-title" className="text-[18px] font-black text-ink text-center tracking-tight">
           프로필 수정
         </h3>
 
@@ -214,21 +245,33 @@ function EditProfileModal({
           />
         </div>
 
-        <div className="flex gap-2 pt-1">
-          <button
-            onClick={onCancel}
-            className="flex-1 h-11 rounded-xl border border-hairline text-[14px] font-semibold text-ink-muted hover:bg-surface-3 transition-colors"
-          >
-            취소
-          </button>
-          <button
-            onClick={() => onConfirm(name, file)}
-            className="flex-1 h-11 rounded-xl bg-accent-active text-white text-[14px] font-semibold hover:bg-accent-hover transition-colors"
-          >
-            저장
-          </button>
+        <div className="flex flex-col gap-1">
+          <div className="flex gap-2 pt-1">
+            <button
+              onClick={isSaving ? undefined : onCancel}
+              disabled={isSaving}
+              className="flex-1 h-11 rounded-xl border border-hairline text-[14px] font-semibold text-ink-muted hover:bg-surface-3 transition-colors disabled:opacity-50"
+            >
+              취소
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="flex-1 h-11 rounded-xl bg-accent-active text-white text-[14px] font-semibold hover:bg-accent-hover transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+            >
+              {isSaving ? (
+                <>
+                  <span className="w-3.5 h-3.5 rounded-full border-2 border-white/40 border-t-white animate-spin"></span>
+                  <span>저장 중...</span>
+                </>
+              ) : "저장"}
+            </button>
+          </div>
+          {saveError && (
+            <p className="text-red-400 text-xs mt-1 text-center">{saveError}</p>
+          )}
         </div>
-      </div>
+      </dialog>
     </div>
   );
 }

@@ -90,7 +90,10 @@ const CATEGORY_KO: Record<string, string> = {
 async function geocodeLocation(location: string): Promise<GeoCoord | null> {
     const res = await fetch(
         `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(location)}&size=1`,
-        { headers: { Authorization: `KakaoAK ${process.env.KAKAO_REST_API_KEY}` } }
+        {
+            headers: { Authorization: `KakaoAK ${process.env.KAKAO_REST_API_KEY}` },
+            signal: AbortSignal.timeout(5000),
+        }
     );
     const data = await res.json();
     const doc = data.documents?.[0];
@@ -197,7 +200,10 @@ async function searchKakaoPlacesByCoord(
 ): Promise<KakaoPlace[]> {
     const res = await fetch(
         `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(category)}&y=${lat}&x=${lng}&radius=${radius}&size=10&sort=distance`,
-        { headers: { Authorization: `KakaoAK ${process.env.KAKAO_REST_API_KEY}` } }
+        {
+            headers: { Authorization: `KakaoAK ${process.env.KAKAO_REST_API_KEY}` },
+            signal: AbortSignal.timeout(5000),
+        }
     );
     const data = await res.json();
     return (data.documents ?? []) as KakaoPlace[];
@@ -208,7 +214,10 @@ async function searchKakaoPlacesByArea(category: string, area: string): Promise<
     const query = `${area} ${category}`;
     const res = await fetch(
         `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(query)}&size=10`,
-        { headers: { Authorization: `KakaoAK ${process.env.KAKAO_REST_API_KEY}` } }
+        {
+            headers: { Authorization: `KakaoAK ${process.env.KAKAO_REST_API_KEY}` },
+            signal: AbortSignal.timeout(5000),
+        }
     );
     const data = await res.json();
     return (data.documents ?? []) as KakaoPlace[];
@@ -224,6 +233,7 @@ async function fetchNaverBlogReviews(placeName: string): Promise<string[]> {
                 "X-Naver-Client-Id": process.env.NAVER_CLIENT_ID!,
                 "X-Naver-Client-Secret": process.env.NAVER_CLIENT_SECRET!,
             },
+            signal: AbortSignal.timeout(5000),
         }
     );
     const data = await res.json();
@@ -280,11 +290,6 @@ async function runPini(req: Request) {
         coord: participantCoords[i],
     }));
 
-    console.log(
-        "참가자 좌표:",
-        participantsWithCoord.map((p) => `${p.nickname}: ${p.coord?.lat},${p.coord?.lng}`)
-    );
-
     // ── Step 2: 중심 좌표 계산 → 장소 검색 ───────────────────────────────────
     const validCoords = participantCoords.filter((c): c is GeoCoord => c !== null);
     const categoryKo = CATEGORY_KO[category] ?? category;
@@ -297,11 +302,9 @@ async function runPini(req: Request) {
             (p): p is typeof p & { coord: GeoCoord } => p.coord !== null
         );
         const center = computeWeightedCentroid(validParticipants);
-        console.log("중심 좌표 (가중):", center);
         kakaoPlaces = await searchKakaoPlacesByCoord(categoryKo, center.lat, center.lng);
     } else {
         // fallback: 좌표를 전혀 못 얻은 경우 AI로 지역 추론
-        console.log("좌표 없음 → AI 지역 추론 fallback");
         const areaRes = await generateWithRetry({
             model: "gemini-3.1-flash-lite",
             contents: `
@@ -320,7 +323,6 @@ ${participantDesc}
             },
         });
         const targetArea = JSON.parse(areaRes.text!) as string;
-        console.log("타깃 지역 (AI fallback):", targetArea);
         kakaoPlaces = await searchKakaoPlacesByArea(categoryKo, targetArea);
     }
 
@@ -353,23 +355,26 @@ ${participantDesc}
         throw new Error("이 근처에서 새로운 장소를 더 이상 찾지 못했어요. 처음부터 다시 시도해주세요.");
     }
 
-    console.log("카카오 후보 장소:", candidates.map((p) => p.place_name));
+    // ── Step 3: 상위 5개 후보로 슬라이스 후 네이버 블로그 리뷰 수집 ─────────
+    // Gemini에 넘기는 후보를 미리 5개로 제한해 불필요한 외부 호출을 줄임
+    const topCandidates = candidates.slice(0, 5);
 
-    // ── Step 3: 후보 장소들의 네이버 블로그 리뷰 수집 ─────────────────────
-    const reviewResults = await Promise.all(
-        candidates.map((p) => fetchNaverBlogReviews(p.place_name))
+    // allSettled: 일부 리뷰 fetch 실패가 전체 요청을 중단시키지 않도록 격리
+    const reviewSettled = await Promise.allSettled(
+        topCandidates.map((p) => fetchNaverBlogReviews(p.place_name))
+    );
+    const reviewResults = reviewSettled.map((r) =>
+        r.status === "fulfilled" ? r.value : []
     );
 
     // 리뷰가 1개 이상인 장소 우선, 부족하면 전체 상위 5개
-    const withReviews = candidates
+    const withReviews = topCandidates
         .map((place, i) => ({ place, reviews: reviewResults[i] }))
         .filter((r) => r.reviews.length > 0);
 
     const analysisTargets = withReviews.length >= 2
         ? withReviews
-        : candidates.map((place, i) => ({ place, reviews: reviewResults[i] })).slice(0, 5);
-
-    console.log("리뷰 포함 장소:", analysisTargets.map((r) => r.place.place_name));
+        : topCandidates.map((place, i) => ({ place, reviews: reviewResults[i] }));
 
     // ── Step 4: AI가 리뷰 분석 후 장소 선정 ─────────────────────────────────
     const reviewText = analysisTargets
