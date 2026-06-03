@@ -7,7 +7,7 @@ import { Button } from "@/app/components/ui/Button";
 /* ── Enlarged cinematic hero visualization ───────────────────────────────── */
 function PiniHeroViz() {
   return (
-    <div className="relative w-full h-full min-h-[360px] lg:min-h-[560px] flex items-center justify-center overflow-hidden">
+    <div className="relative w-full h-full min-h-[500px] lg:min-h-[560px] flex items-center justify-center overflow-hidden">
 
       {/* Ambient glow */}
       <div
@@ -59,7 +59,7 @@ function PiniHeroViz() {
         style={{ animation: "float-slow 3.6s ease-in-out 1.1s infinite" }}
       >
         <div className="w-14 h-14 lg:w-18 lg:h-18 rounded-full bg-white border-2 border-hairline shadow-[0_4px_20px_rgba(26,32,51,0.12)] flex items-center justify-center">
-          <span className="text-2xl lg:text-3xl leading-none select-none">🐧</span>
+          <span className="relative -top-1 -left-0.3 text-3xl lg:text-3xl leading-none select-none">🐧</span>
         </div>
         <div className="px-3 py-1 bg-white rounded-full border border-hairline shadow-sm">
           <span className="text-[11px] lg:text-[13px] font-medium text-ink-subtle">마포구</span>
