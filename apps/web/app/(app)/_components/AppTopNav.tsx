@@ -136,16 +136,16 @@ export function AppTopNav({ user }: Readonly<{ user: HydratedUser | null }>) {
           {user && (
             <Link
               href="/profile"
-              className="w-7 h-7 rounded-full bg-accent flex items-center justify-center shrink-0">
-              <span className="text-[11px] font-bold text-white leading-none">
-                {user.profileImage ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={user.profileImage} alt={user.nickname}
-                      className="w-full h-full object-cover rounded-full" />
-                  ) : (
-                    user.nickname.charAt(0)
-                  )}
-              </span>
+              className="w-7 h-7 rounded-full bg-accent flex items-center justify-center shrink-0 overflow-hidden">
+              {user.profileImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={user.profileImage} alt={user.nickname}
+                  className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-[11px] font-bold text-white leading-none">
+                  {user.nickname.charAt(0)}
+                </span>
+              )}
             </Link>
           )}
 
