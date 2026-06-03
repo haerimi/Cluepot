@@ -18,13 +18,21 @@
 
 ## 2. 스크린샷
 
-| 랜딩 페이지 | 참가자 선호 입력 |
-|:-----------:|:---------------:|
-| ![랜딩](docs/screenshots/landing.png) | ![선호 입력](docs/screenshots/preference.png) |
+| 랜딩 페이지 |
+|:-----------: |
+|<img width="987" height="941" alt="cluepot_main_image" src="https://github.com/user-attachments/assets/fc70c3ec-d6cc-4652-9ce3-7448b48f47d8" />|
 
-| PINI 장소 추천 결과 | 일정 확정 화면 |
-|:-------------------:|:--------------:|
-| ![추천 결과](docs/screenshots/pini-result.png) | ![일정 확정](docs/screenshots/schedule.png) |
+| 선호 입력 |
+|:-----------: |
+|<img width="1920" height="1032" alt="cluepot_preference" src="https://github.com/user-attachments/assets/278b22b5-3efc-4473-a8cc-9183c1adaf5d" />|
+
+| PINI 장소 추천 결과 |
+|:-----------: |
+|<img width="1920" height="1032" alt="cluepot_pini_result" src="https://github.com/user-attachments/assets/44762e65-ba18-4efc-b9b6-d19a720d6e08" />|
+
+| 일정 확정 화면 |
+|:-----------: |
+|<img width="1920" height="1032" alt="cluepot_rooms_code(7)" src="https://github.com/user-attachments/assets/33d9d100-6113-4d25-b993-5eb6de4d61e1" />|
 
 <br/>
 
@@ -116,8 +124,11 @@ Client: React 19 + Zustand (지도·추천결과·일정 전역 상태)
 
 <br/>
 
-## 6. ERD
+## 6. ERD & PRD
+### PRD
+[PRD.md로 이동](./PRD.md)
 
+### ERD
 <img width="500" height="700" alt="ERD" src="https://github.com/user-attachments/assets/3e1567b2-71d9-4825-8435-a12bc41b00b6" />
 
 <br/>
