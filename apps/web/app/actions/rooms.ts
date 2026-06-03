@@ -122,9 +122,9 @@ export async function updateRoom(roomCode: string, name: string, imageUrl: strin
   const userId = await getCurrentUserId();
   const me = await prisma.participant.findUnique({
     where: { roomCode_userId: { roomCode, userId } },
-    select: { isHost: true },
+    select: { id: true },
   });
-  if (!me?.isHost) throw new Error("권한이 없어요.");
+  if (!me) throw new Error("이 방의 참가자가 아닙니다.");
 
   await prisma.room.update({
     where: { roomCode },
