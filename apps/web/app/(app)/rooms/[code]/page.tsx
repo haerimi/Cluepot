@@ -1071,6 +1071,7 @@ export default function RoomPage() {
                           }
                           isMe={isMe(p)}
                           animationDelay={`${idx * 0.06}s`}
+                          profileImage={p.user.profileImage}
                         />
                       ))}
                   </div>
