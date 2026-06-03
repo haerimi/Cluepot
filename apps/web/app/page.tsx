@@ -1,6 +1,7 @@
 ﻿import Link from "next/link";
 import { cookies } from "next/headers";
 import { createClient } from "@/util/supabase/server";
+import { prisma } from "@/lib/prisma";
 import { logout } from "@/app/actions/auth";
 import { Button } from "@/app/components/ui/Button";
 
@@ -118,10 +119,18 @@ export default async function HomePage() {
   const supabase = createClient(cookieStore);
   const { data: { user } } = await supabase.auth.getUser();
 
-  const displayName = (user?.user_metadata?.nickname as string | undefined)
+  const dbUser = user
+    ? await prisma.user.findUnique({
+        where: { id: user.id },
+        select: { nickname: true, profileImage: true },
+      })
+    : null;
+
+  const displayName = dbUser?.nickname
+    || (user?.user_metadata?.nickname as string | undefined)
     || user?.email?.split("@")[0]
     || "";
-  const initial = displayName[0]?.toUpperCase() ?? "?";
+  const profileImage = dbUser?.profileImage ?? null;
 
   return (
     <div className="min-h-dvh bg-canvas overflow-x-hidden">
@@ -158,10 +167,15 @@ export default async function HomePage() {
               {/* 유저 뱃지 + 로그아웃 */}
               <div className="flex items-center gap-2.5">
                 <div className="flex items-center gap-2 px-3 h-9 bg-white border border-hairline rounded-full">
-                  <div className="w-5 h-5 rounded-full bg-accent flex items-center justify-center shrink-0">
-                    <span className="text-[10px] font-bold text-white leading-none">{initial}</span>
+                  <div className="relative -left-0.5 w-5 h-5 rounded-full bg-accent flex items-center justify-center shrink-0 overflow-hidden">
+                    {profileImage ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={profileImage} alt={displayName} className=" w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-[8px] font-bold text-white leading-none">{displayName.charAt(0).toUpperCase()}</span>
+                    )}
                   </div>
-                  <span className="text-[13px] font-medium text-ink hidden sm:block">{displayName}</span>
+                  <span className="relative -left-0.5 text-[13px] font-medium text-ink hidden sm:block">{displayName}</span>
                 </div>
                 <form action={logout}>
                   <button
