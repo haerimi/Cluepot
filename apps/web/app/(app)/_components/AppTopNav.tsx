@@ -15,7 +15,6 @@ import type { HydratedUser } from "./AuthHydrator";
  * matching the desktop sidebar's link set so mobile users can reach every
  * page without needing the sidebar.
  */
-
 interface NavItem {
   readonly href: string;
   readonly label: string;
