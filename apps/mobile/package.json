@@ -4,8 +4,6 @@
   "version": "1.0.0",
   "dependencies": {
     "@expo/ui": "~56.0.15",
-    "@supabase/supabase-js": "^2.106.2",
-    "axios": "^1.16.1",
     "expo": "~56.0.8",
     "expo-constants": "~56.0.16",
     "expo-device": "~56.0.4",
@@ -27,8 +25,7 @@
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "4.25.2",
     "react-native-web": "~0.21.0",
-    "react-native-worklets": "0.8.3",
-    "zustand": "^5.0.14"
+    "react-native-worklets": "0.8.3"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",

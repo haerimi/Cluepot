@@ -1,8 +1,6 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
-export default function IndexScreen() {
-  // TODO: 세션 확인 후 로그인 상태면 /(app)/home, 아니면 /(auth)/login 으로 redirect
-
+export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>CluePot</Text>
