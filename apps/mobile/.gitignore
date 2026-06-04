@@ -39,6 +39,9 @@ yarn-error.*
 # npm lock (pnpm 사용)
 package-lock.json
 
+# editor settings
+.vscode/settings.json
+
 example
 
 # generated native folders
