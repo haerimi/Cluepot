@@ -119,9 +119,6 @@ export default function RoomScreen() {
     <View style={styles.container}>
       {/* 헤더 */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.back}>← 홈</Text>
-        </TouchableOpacity>
         <View style={[styles.badge, allReady ? styles.badgeReady : styles.badgeWaiting]}>
           <View style={[styles.badgeDot, allReady ? styles.dotReady : styles.dotWaiting]} />
           <Text style={[styles.badgeText, allReady ? styles.badgeTextReady : styles.badgeTextWaiting]}>
@@ -265,10 +262,9 @@ export default function RoomScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F5F0', paddingTop: 60 },
+  container: { flex: 1, backgroundColor: '#F4F5F0' },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F4F5F0' },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 20, marginBottom: 16 },
-  back: { fontSize: 15, color: '#5A6A85', fontWeight: '600' },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 20, paddingTop: 16, marginBottom: 16 },
   badge: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
   badgeReady: { backgroundColor: '#E6F7EF' },
   badgeWaiting: { backgroundColor: '#F0F2F5' },
