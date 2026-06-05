@@ -37,9 +37,6 @@ export default function JoinRoomScreen() {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={() => router.back()} style={styles.back}>
-        <Text style={styles.backText}>← 뒤로</Text>
-      </TouchableOpacity>
 
       <Text style={styles.eyebrow}>코드로 참가</Text>
       <Text style={styles.title}>모임 코드를{'\n'}입력해주세요</Text>
@@ -73,9 +70,7 @@ export default function JoinRoomScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F5F0', paddingTop: 60, paddingHorizontal: 24 },
-  back: { marginBottom: 32 },
-  backText: { fontSize: 15, color: '#5A6A85', fontWeight: '600' },
+  container: { flex: 1, backgroundColor: '#F4F5F0', paddingTop: 20, paddingHorizontal: 24 },
   eyebrow: { fontSize: 11, fontWeight: '700', color: '#7298C7', letterSpacing: 3, textTransform: 'uppercase', marginBottom: 10 },
   title: { fontSize: 30, fontWeight: '900', color: '#1A2033', lineHeight: 36, marginBottom: 8 },
   subtitle: { fontSize: 14, color: '#5A6A85', marginBottom: 28, lineHeight: 20 },

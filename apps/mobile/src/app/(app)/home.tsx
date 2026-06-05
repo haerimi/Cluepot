@@ -8,6 +8,8 @@ import { api } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/auth';
 import { Ionicons } from '@expo/vector-icons';
+import { DrawerActions } from '@react-navigation/native';
+import { useNavigation } from 'expo-router';
 
 interface NavItem {
   readonly href: string;
@@ -41,6 +43,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; dot: string 
   reselecting: { label: '장소 재선정 중', color: '#B45309', dot: '#F59E0B' },
 };
 
+
 export default function HomeScreen() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
@@ -48,18 +51,7 @@ export default function HomeScreen() {
   const [rooms, setRooms] = useState<RoomRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-
-  const navItems: NavItem[] = [
-    { href: "/calendar", label: "내 일정", icon: <Ionicons name="calendar" size={24} color="black" /> },
-    { href: "/rooms", label: "내 모임", icon: <Ionicons name="people" size={24} color="black" /> },
-    { href: "/rooms/create", label: "일정 만들기", icon: <Ionicons name="add" size={24} color="black" /> },
-    { href: "/rooms/join", label: "코드로 참가", icon: <Ionicons name="qr-code" size={24} color="black" /> },
-  ];
-
-  function closeMenu() {
-    setIsMenuOpen(false);
-  }
+  const navigation = useNavigation();
 
   useEffect(() => {
     fetchRooms();
@@ -76,32 +68,8 @@ export default function HomeScreen() {
     }
   }
 
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    setUser(null);
-    router.replace('/(auth)/login');
-  }
-
   return (
     <View style={styles.container}>
-      {/* 헤더 */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.logo}>Clue<Text style={styles.accent}>Pot</Text></Text>
-          {user && <Text style={styles.greeting}>안녕하세요, {user.nickname}님 👋</Text>}
-        </View>
-        <View style={styles.menu}>
-          <TouchableOpacity onPress={handleLogout}>
-            <Text style={styles.logout}>로그아웃</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.menulogo} onPress={() => console.log("메뉴버튼")}>
-            <Text style={styles.menuIcon} />
-            <Text style={styles.menuIcon} />
-            <Text style={styles.menuIcon} />
-          </TouchableOpacity>
-        </View>
-      </View>
-
       {/* 액션 버튼 */}
       <View style={styles.actions}>
         <TouchableOpacity

@@ -3,7 +3,6 @@ import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView, ActivityIndicator,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { api } from '@/lib/api';
 
 type Schedule = {
@@ -48,7 +47,6 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string }
 };
 
 export default function CalendarScreen() {
-  const router = useRouter();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(true);
   const [year,  setYear]  = useState(() => new Date().getFullYear());
@@ -89,9 +87,6 @@ export default function CalendarScreen() {
     <View style={styles.container}>
       {/* 헤더 */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.back}>← 홈</Text>
-        </TouchableOpacity>
         <View>
           <Text style={styles.headerEyebrow}>내 일정</Text>
           <Text style={styles.headerTitle}>모임 일정</Text>
@@ -202,10 +197,9 @@ export default function CalendarScreen() {
 const CELL_SIZE = 44;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F5F0', paddingTop: 60 },
+  container: { flex: 1, backgroundColor: '#F4F5F0' },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F4F5F0' },
-  header: { flexDirection: 'row', alignItems: 'flex-end', gap: 16, paddingHorizontal: 20, marginBottom: 16 },
-  back: { fontSize: 15, color: '#5A6A85', fontWeight: '600', paddingBottom: 2 },
+  header: { paddingHorizontal: 20, marginBottom: 16, marginTop: 16 },
   headerEyebrow: { fontSize: 10, fontWeight: '700', color: '#9AAFC5', letterSpacing: 3, textTransform: 'uppercase', marginBottom: 2 },
   headerTitle: { fontSize: 26, fontWeight: '900', color: '#1A2033' },
   monthNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 12 },

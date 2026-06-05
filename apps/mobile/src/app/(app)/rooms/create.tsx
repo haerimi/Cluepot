@@ -52,29 +52,24 @@ export default function CreateRoomScreen() {
 
   return (
     <View style={styles.container}>
-      {/* 헤더 */}
-      <View style={styles.header}>
-        {step < 3 && (
+      {/* 헤더 + 스텝 인디케이터 */}
+      {step < 3 && (
+        <View style={styles.header}>
           <TouchableOpacity onPress={() => step === 1 ? router.back() : setStep(s => (s - 1) as Step)}>
             <Text style={styles.back}>← 뒤로</Text>
           </TouchableOpacity>
-        )}
-        <Text style={styles.logo}>Clue<Text style={styles.accent}>Pot</Text></Text>
-      </View>
-
-      {/* 스텝 인디케이터 */}
-      {step < 3 && (
-        <View style={styles.steps}>
-          {([1, 2] as const).map((s, i) => (
-            <View key={s} style={styles.stepRow}>
-              {i > 0 && <View style={[styles.stepLine, s <= step ? styles.stepLineActive : null]} />}
-              <View style={[styles.stepDot, s <= step ? styles.stepDotActive : styles.stepDotInactive]}>
-                <Text style={[styles.stepNum, s <= step ? styles.stepNumActive : styles.stepNumInactive]}>
-                  {s < step ? '✓' : s}
-                </Text>
+          <View style={styles.steps}>
+            {([1, 2] as const).map((s, i) => (
+              <View key={s} style={styles.stepRow}>
+                {i > 0 && <View style={[styles.stepLine, s <= step ? styles.stepLineActive : null]} />}
+                <View style={[styles.stepDot, s <= step ? styles.stepDotActive : styles.stepDotInactive]}>
+                  <Text style={[styles.stepNum, s <= step ? styles.stepNumActive : styles.stepNumInactive]}>
+                    {s < step ? '✓' : s}
+                  </Text>
+                </View>
               </View>
-            </View>
-          ))}
+            ))}
+          </View>
         </View>
       )}
 
@@ -185,12 +180,10 @@ export default function CreateRoomScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F5F0', paddingTop: 60 },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, marginBottom: 20 },
+  container: { flex: 1, backgroundColor: '#F4F5F0' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 16, marginBottom: 28 },
   back: { fontSize: 15, color: '#5A6A85', fontWeight: '600' },
-  logo: { fontSize: 18, fontWeight: '900', color: '#1A2033' },
-  accent: { color: '#7298C7' },
-  steps: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, marginBottom: 28 },
+  steps: { flexDirection: 'row', alignItems: 'center' },
   stepRow: { flexDirection: 'row', alignItems: 'center' },
   stepLine: { width: 32, height: 1, backgroundColor: '#E2E6EC', marginHorizontal: 6 },
   stepLineActive: { backgroundColor: '#7298C7' },

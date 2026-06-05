@@ -1,9 +1,6 @@
 import axios from 'axios';
 import { supabase } from './supabase';
 
-// .env 파일에 아래 값 필요
-// EXPO_PUBLIC_API_URL=http://localhost:3000
-
 export const api = axios.create({
   baseURL: `${process.env.EXPO_PUBLIC_API_URL}/api/v1`,
   timeout: 15000,
