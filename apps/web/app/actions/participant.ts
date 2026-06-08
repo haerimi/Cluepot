@@ -20,6 +20,8 @@ export async function joinRoom(roomCode: string): Promise<{
     transports: string[];
     distanceTolerance: string | null;
     atmospherePreference: string | null;
+    lng: number;
+    lat: number;
   } | null;
 }> {
   const userId = await getCurrentUserId();
@@ -58,6 +60,8 @@ export async function joinRoom(roomCode: string): Promise<{
           transports: participant.transports,
           distanceTolerance: participant.distanceTolerance,
           atmospherePreference: participant.atmospherePreference,
+          lat: participant.lat,
+          lng: participant.lng,
         }
       : null,
   };
