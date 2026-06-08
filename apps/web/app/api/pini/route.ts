@@ -31,6 +31,8 @@ interface ParticipantInput {
     transports: string[];
     distanceTolerance: string;
     atmospherePreference: string;
+    lat: number;
+    lng: number;
 }
 
 interface PiniRequestBody {
@@ -79,11 +81,11 @@ interface GeoCoord {
 
 // ── 카테고리 한국어 변환 ──────────────────────────────────────────────────
 const CATEGORY_KO: Record<string, string> = {
-    cafe:       "카페",
+    cafe: "카페",
     restaurant: "음식점",
-    bar:        "술집",
-    brunch:     "브런치",
-    dessert:    "디저트",
+    bar: "술집",
+    brunch: "브런치",
+    dessert: "디저트",
 };
 
 // ── 지오코딩 ──────────────────────────────────────────────────────────────
@@ -93,6 +95,7 @@ async function geocodeLocation(location: string): Promise<GeoCoord | null> {
         {
             headers: { Authorization: `KakaoAK ${process.env.KAKAO_REST_API_KEY}` },
             signal: AbortSignal.timeout(5000),
+            cache: 'no-store'
         }
     );
     const data = await res.json();
@@ -136,8 +139,8 @@ function haversineKm(a: GeoCoord, b: GeoCoord): number {
     const h =
         Math.sin(dLat / 2) ** 2 +
         Math.cos(a.lat * (Math.PI / 180)) *
-            Math.cos(b.lat * (Math.PI / 180)) *
-            Math.sin(dLng / 2) ** 2;
+        Math.cos(b.lat * (Math.PI / 180)) *
+        Math.sin(dLng / 2) ** 2;
     return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
 }
 
@@ -146,12 +149,12 @@ function haversineKm(a: GeoCoord, b: GeoCoord): number {
 // 도로계수: 직선거리 → 실제경로 보정 (도보/자전거 1.2, 차/대중교통 1.3)
 function estimateMinutes(distKm: number, transport: string): number {
     switch (transport) {
-        case "walk":    return Math.max(3, Math.round((distKm * 1.2 / 4.5) * 60));
-        case "bike":    return Math.max(3, Math.round((distKm * 1.2 / 15) * 60));
-        case "car":     return Math.max(3, Math.round((distKm * 1.3 / 35) * 60));
+        case "walk": return Math.max(3, Math.round((distKm * 1.2 / 4.5) * 60));
+        case "bike": return Math.max(3, Math.round((distKm * 1.2 / 15) * 60));
+        case "car": return Math.max(3, Math.round((distKm * 1.3 / 35) * 60));
         // 정류장 이동+대기 10분 overhead — 단거리에서 도보가 transit보다 항상 빠름
         case "transit": return Math.round(10 + (distKm * 1.3 / 35) * 60);
-        default:        return Math.round(10 + (distKm * 1.3 / 35) * 60);
+        default: return Math.round(10 + (distKm * 1.3 / 35) * 60);
     }
 }
 
@@ -203,6 +206,7 @@ async function searchKakaoPlacesByCoord(
         {
             headers: { Authorization: `KakaoAK ${process.env.KAKAO_REST_API_KEY}` },
             signal: AbortSignal.timeout(5000),
+            cache: 'no-store',
         }
     );
     const data = await res.json();
@@ -217,6 +221,7 @@ async function searchKakaoPlacesByArea(category: string, area: string): Promise<
         {
             headers: { Authorization: `KakaoAK ${process.env.KAKAO_REST_API_KEY}` },
             signal: AbortSignal.timeout(5000),
+            cache: 'no-store',
         }
     );
     const data = await res.json();
@@ -234,6 +239,7 @@ async function fetchNaverBlogReviews(placeName: string): Promise<string[]> {
                 "X-Naver-Client-Secret": process.env.NAVER_CLIENT_SECRET!,
             },
             signal: AbortSignal.timeout(5000),
+            cache: 'no-store',
         }
     );
     const data = await res.json();
@@ -282,7 +288,11 @@ async function runPini(req: Request) {
     // ── Step 1: 참가자 지오코딩 먼저 ─────────────────────────────────────────
     // 실제 좌표로 중심점을 계산해야 장소가 정확한 지역에서 나옴
     const participantCoords = await Promise.all(
-        participants.map((p) => geocodeLocation(p.abstractLocation))
+        participants.map((p) =>
+            p.lat !== 0 || p.lng !== 0
+                ? Promise.resolve({ lat: p.lat, lng: p.lng })   // DB 좌표 그대로 사용
+                : geocodeLocation(p.abstractLocation)            // fallback만
+        )
     );
 
     const participantsWithCoord = participants.map((p, i) => ({

@@ -74,6 +74,7 @@ import { useUserStore } from "@/store/user";
 import { extendRoomLink, checkRoomExists } from "@/app/actions/rooms";
 import { DateAvailabilityPicker } from "@/app/components/DateAvailabilityPicker";
 import { LocationSearchInput } from "@/app/components/LocationSearchInput";
+import { createClient } from "@/util/supabase/client";
 
 /* ── Inferred type from server action ────────────────────────────────── */
 
@@ -666,8 +667,10 @@ export default function RoomPage() {
   const currentUserId = useUserStore((s) => s.userInfo?.myId);
   const isMe = (p: ParticipantWithUser) => p.userId === currentUserId;
 
+
   useEffect(() => {
     let active = true;
+    const supabase = createClient();
 
     async function participant() {
       const { isHost: host, savedPreference, linkExpiresAt: expiry, category: roomCategory, roomStatus: status } = await joinRoom(roomCode);
@@ -690,6 +693,8 @@ export default function RoomPage() {
       if (savedPreference) {
         setMyLocation(savedPreference.abstractLocation);
         setMyTransports((savedPreference.transports[0] as Transport) ?? null);
+        setMyLat(savedPreference.lat);
+        setMyLng(savedPreference.lng);
         if (savedPreference.distanceTolerance)
           setMyDistance(savedPreference.distanceTolerance as DistanceTolerance);
         if (savedPreference.atmospherePreference)
@@ -736,8 +741,37 @@ export default function RoomPage() {
     participant();
     checkAndWatch();
 
+    supabase
+      .channel(`room-participants:${roomCode}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'participants',
+        filter: `room_code=eq.${roomCode}`,
+      }, async () => {
+        const { participants } = await getParticipants(roomCode);
+        setParticipants(participants);
+      })
+      .subscribe();
+
+    supabase
+      .channel(`room-schedule:${roomCode}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'schedules',
+        filter: `room_code=eq.${roomCode}`,
+      }, (payload) => {
+        if (!isHost) {
+          router.push(`/calendar/${payload.new.id}`);
+        }
+      })
+      .subscribe();
+
     return () => {
       active = false;
+      supabase.channel(`room-participants:${roomCode}`).unsubscribe();
+      supabase.channel(`room-schedule:${roomCode}`).unsubscribe();
       useScheduleStore.getState().clearSchedule();
       useMapStore.getState().clearMap();
     };
@@ -822,6 +856,8 @@ export default function RoomPage() {
                 transports: myTransports ? [myTransports] : [],
                 distanceTolerance: myDistance ?? 'medium',
                 atmospherePreference: myAtmosphere ?? 'quiet',
+                lat: myLat,
+                lng: myLng,
               };
             }
             return {
@@ -830,6 +866,8 @@ export default function RoomPage() {
               transports: p.transports,
               distanceTolerance: p.distanceTolerance ?? 'medium',
               atmospherePreference: p.atmospherePreference ?? 'quiet',
+              lat: p.lat,
+              lng: p.lng
             };
           }),
           category,
