@@ -194,6 +194,22 @@ export default function LoginPage() {
               />
             </div>
 
+            {/* 로그인 유지 */}
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="rememberMe"
+                name="rememberMe"
+                className="w-4 h-4 accent-accent cursor-pointer"
+              />
+              <label
+                htmlFor="rememberMe"
+                className="text-[13px] text-ink-subtle cursor-pointer select-none"
+              >
+                로그인 유지
+              </label>
+            </div>
+
             {/* Error */}
             {state?.error && (
               <p
