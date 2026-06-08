@@ -645,6 +645,7 @@ export default function RoomPage() {
   const clearMap = useMapStore((s) => s.clearMap);
 
   const [myDates, setMyDates] = useState<string[]>([]);
+  const [dateSaved, setDateSaved] = useState(false)
 
   const isDone = useScheduleStore(
     (s) => s.scheduleInfo !== null && s.scheduleInfo.roomCode === roomCode,
@@ -671,7 +672,10 @@ export default function RoomPage() {
         await getParticipants(roomCode);
       const savedDates = await getAvailableDates(roomCode)
       if (!active) return;
-      if (savedDates.length > 0) setMyDates(savedDates)
+      if (savedDates.length > 0) {
+        setMyDates(savedDates)
+        setDateSaved(true)
+      }
 
       setIsHost(host);
       setParticipants(fetchedParticipants);
@@ -787,12 +791,6 @@ export default function RoomPage() {
       return;
     }
 
-    // 날짜도 함께 저장 (선택 안했으면 빈 배열로 저징)
-    const dateResult = await saveAvailableDates(roomCode, myDates)
-    if (!dateResult.ok) {
-      setLocationError(dateResult.reason ?? null)
-      return
-    }
     setLocationSaved(true);
   }
 
@@ -1233,17 +1231,6 @@ export default function RoomPage() {
                       </div>
                     </div>
 
-                    {/* Available dates */}
-                    <div className="mb-6">
-                      <label className="block text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase mb-3">
-                        가능한 날짜{" "}
-                        <span className="text-ink-subtle font-normal normal-case tracking-normal">
-                          (최대 5개)
-                        </span>
-                      </label>
-                      <DateAvailabilityPicker value={myDates} onChange={setMyDates} />
-                    </div>
-
                     <Button
                       variant="secondary"
                       size="md"
@@ -1256,54 +1243,66 @@ export default function RoomPage() {
                   </div>
                 )}
 
-                {/* Saved confirmation */}
                 {locationSaved && (
-                  <div
-                    className="flex items-center gap-3 p-4 bg-success-bg rounded-xl border border-success/20 mb-6"
-                    style={{ animation: "fade-up 0.3s ease-out both" }}
-                  >
-                    <span className="text-[20px]">✅</span>
-                    <div className="flex-1">
-                      <p className="text-[14px] font-semibold text-success-text">
-                        선호가 저장됐어요!
-                      </p>
-                      <p className="text-[12px] text-success">
-                        모든 참가자가 준비되면 PINI를 실행해요
-                      </p>
+                  <>
+                    {/* 선호 저장 확인 */}
+                    <div className="flex items-center gap-3 p-4 bg-success-bg rounded-xl border border-success/20 mb-4"
+                      style={{ animation: "fade-up 0.3s ease-out both" }}
+                    >
+                      <span className="text-[20px]">✅</span>
+                      <div className="flex-1">
+                        <p className="text-[14px] font-semibold text-success-text">선호가 저장됐어요!</p>
+                        <p className="text-[12px] text-success">모든 참가자가 준비되면 PINI를 실행해요</p>
+                      </div>
+                      <button onClick={handleResetPlace} className="ml-auto text-[12px] text-success-text underline underline-offset-2 shrink-0">
+                        수정
+                      </button>
                     </div>
-                    <button
-                      onClick={handleResetPlace}
-                      className="ml-auto text-[12px] text-success-text underline underline-offset-2 shrink-0"
-                    >
-                      수정
-                    </button>
-                  </div>
-                )}
 
-                {locationSaved && (
-                  <div className="mb-6">
-                    <label className="block text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase mb-3">
-                      가능한 날짜{" "}
-                      <span className="text-ink-subtle font-normal normal-case tracking-normal">
-                        (최대 5개)
-                      </span>
-                    </label>
-                    <DateAvailabilityPicker value={myDates} onChange={setMyDates} />
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      fullWidth
-                      className="mt-3"
-                      onClick={async () => {
-                        const result = await saveAvailableDates(roomCode, myDates)
-                        if (!result.ok) alert(result.reason)
-                      }}
-                    >
-                      날짜 저장하기
-                    </Button>
-                  </div>
+                    {/* 날짜 저장됨 */}
+                    {dateSaved ? (
+                      <div className="flex items-start gap-3 p-4 bg-accent-light rounded-xl border border-accent/20 mb-4"
+                        style={{ animation: "fade-up 0.3s ease-out both" }}
+                      >
+                        <span className="text-[20px]">📅</span>
+                        <div className="flex-1">
+                          <p className="text-[14px] font-semibold text-accent">날짜가 저장됐어요!</p>
+                          <p className="text-[12px] text-accent-muted mt-1">
+                            {myDates.map(d => d.slice(5).replace("-", "/")).join(", ")}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => setDateSaved(false)}
+                          className="ml-auto text-[12px] text-accent underline underline-offset-2 shrink-0"
+                        >
+                          수정
+                        </button>
+                      </div>
+                    ) : (
+                      /* 날짜 선택 */
+                      <div className="mb-4" style={{ animation: "fade-up 0.3s ease-out both" }}>
+                        <label className="block text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase mb-3">
+                          가능한 날짜{" "}
+                          <span className="text-ink-subtle font-normal normal-case tracking-normal">(최대 5개)</span>
+                        </label>
+                        <DateAvailabilityPicker value={myDates} onChange={setMyDates} /> 
+                        <Button
+                          variant="secondary"
+                          size="md"
+                          fullWidth
+                          className="mt-3"
+                          onClick={async () => {
+                            const result = await saveAvailableDates(roomCode, myDates)
+                            if (!result.ok) { alert(result.reason); return }
+                            setDateSaved(true)
+                          }}
+                        >
+                          날짜 저장하기
+                        </Button>
+                      </div>
+                    )}
+                  </>
                 )}
-
 
                 {/* Waiting hint */}
                 {!allReady && (() => {
