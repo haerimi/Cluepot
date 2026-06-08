@@ -74,7 +74,6 @@ import { useUserStore } from "@/store/user";
 import { extendRoomLink, checkRoomExists } from "@/app/actions/rooms";
 import { DateAvailabilityPicker } from "@/app/components/DateAvailabilityPicker";
 import { LocationSearchInput } from "@/app/components/LocationSearchInput";
-import { createClient } from "@/util/supabase/client";
 
 /* ── Inferred type from server action ────────────────────────────────── */
 
@@ -670,7 +669,6 @@ export default function RoomPage() {
 
   useEffect(() => {
     let active = true;
-    const supabase = createClient();
 
     async function participant() {
       const { isHost: host, savedPreference, linkExpiresAt: expiry, category: roomCategory, roomStatus: status } = await joinRoom(roomCode);
@@ -741,37 +739,25 @@ export default function RoomPage() {
     participant();
     checkAndWatch();
 
-    supabase
-      .channel(`room-participants:${roomCode}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'participants',
-        filter: `room_code=eq.${roomCode}`,
-      }, async () => {
+    const pollInterval = setInterval(async () => {
+      try {
         const { participants } = await getParticipants(roomCode);
         setParticipants(participants);
-      })
-      .subscribe();
+      } catch { /* 방 이탈·만료 등 일시적 오류는 무시하고 다음 주기에 재시도 */ }
+    }, 5000);
 
-    supabase
-      .channel(`room-schedule:${roomCode}`)
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'schedules',
-        filter: `room_code=eq.${roomCode}`,
-      }, (payload) => {
-        if (!isHost) {
-          router.push(`/calendar/${payload.new.id}`);
-        }
-      })
-      .subscribe();
+    const schedulePollInterval = setInterval(async () => {
+      try {
+        if (useScheduleStore.getState().scheduleInfo) return;
+        const existing = await getScheduleByRoomCode(roomCode);
+        if (existing) router.push(`/calendar/${existing.id}`);
+      } catch { /* 무시 */ }
+    }, 5000);
 
     return () => {
       active = false;
-      supabase.channel(`room-participants:${roomCode}`).unsubscribe();
-      supabase.channel(`room-schedule:${roomCode}`).unsubscribe();
+      clearInterval(pollInterval);
+      clearInterval(schedulePollInterval);
       useScheduleStore.getState().clearSchedule();
       useMapStore.getState().clearMap();
     };
