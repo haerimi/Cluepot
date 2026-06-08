@@ -26,12 +26,19 @@ export function LocationSearchInput({
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const skipSearchRef = useRef(false);
 
   useEffect(() => {
+    skipSearchRef.current = true;
     setQuery(value);
   }, [value]);
 
   useEffect(() => {
+    if (skipSearchRef.current) {
+      skipSearchRef.current = false;
+      return;
+    }
+
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
     if (!query.trim()) {
@@ -71,6 +78,7 @@ export function LocationSearchInput({
   }, []);
 
   function handleSelect(result: LocationResult) {
+    skipSearchRef.current = true;
     setQuery(result.name);
     setIsOpen(false);
     setResults([]);
