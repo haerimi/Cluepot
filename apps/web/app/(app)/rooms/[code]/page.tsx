@@ -65,11 +65,13 @@ import { useRoomStore } from "@/store/room";
 import {
   getParticipants,
   joinRoom,
+  saveAvailableDates,
   savePreference,
 } from "@/app/actions/participant";
 import { createSchedule, getScheduleByRoomCode } from "@/app/actions/schedule";
 import { useUserStore } from "@/store/user";
 import { extendRoomLink, checkRoomExists } from "@/app/actions/rooms";
+import { DateAvailabilityPicker } from "@/app/components/DateAvailabilityPicker";
 
 /* ── Inferred type from server action ────────────────────────────────── */
 
@@ -641,6 +643,8 @@ export default function RoomPage() {
   const setPlace = useMapStore((s) => s.setPlaces);
   const clearMap = useMapStore((s) => s.clearMap);
 
+  const [myDates, setMyDates] = useState<string[]>([]);
+
   const isDone = useScheduleStore(
     (s) => s.scheduleInfo !== null && s.scheduleInfo.roomCode === roomCode,
   );
@@ -780,6 +784,9 @@ export default function RoomPage() {
       setLocationError(result.reason);
       return;
     }
+
+    // 날짜도 함께 저장 (선택 안했으면 빈 배열로 저징)
+    await saveAvailableDates(roomCode, myDates);
     setLocationSaved(true);
   }
 
@@ -1220,6 +1227,13 @@ export default function RoomPage() {
                       </div>
                     </div>
 
+                    {/* Available dates */}
+                    <div className="mb-6">
+                      <label className="block text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase mb-3">
+                        가능한 날짜 <span className="text-ink-subtle font-normal normal-case tracking-normal">(최대 5개)</span>
+                      </label>
+                      <DateAvailabilityPicker value={myDates} onChange={setMyDates} />
+                    </div>
                     {locationError && (
                       <div className="flex items-center gap-2 mb-5">
                         <span className="text-error text-[13px]">⚠️</span>
