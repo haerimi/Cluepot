@@ -73,6 +73,7 @@ import { createSchedule, getScheduleByRoomCode } from "@/app/actions/schedule";
 import { useUserStore } from "@/store/user";
 import { extendRoomLink, checkRoomExists } from "@/app/actions/rooms";
 import { DateAvailabilityPicker } from "@/app/components/DateAvailabilityPicker";
+import { LocationSearchInput } from "@/app/components/LocationSearchInput";
 
 /* ── Inferred type from server action ────────────────────────────────── */
 
@@ -619,6 +620,8 @@ export default function RoomPage() {
 
   /* ── Local form state ── */
   const [myLocation, setMyLocation] = useState("");
+  const [myLat, setMyLat] = useState(0);
+  const [myLng, setMyLng] = useState(0);
   const [myTransports, setMyTransports] = useState<Transport | null>(null);
   const [myDistance, setMyDistance] = useState<DistanceTolerance | null>(null);
   const [myAtmosphere, setMyAtmosphere] = useState<AtmospherePreference | null>(
@@ -775,13 +778,17 @@ export default function RoomPage() {
       setLocationError("분위기 선호를 선택해주세요");
       return;
     }
+    if (!myLat || !myLng) {
+      setLocationError("목록에서 장소를 선택해주세요");
+      return;
+    }
     setLocationError(null);
 
     const result = await savePreference({
       roomCode,
       abstractLocation: myLocation,
-      lat: 0,
-      lng: 0,
+      lat: myLat,
+      lng: myLng,
       transports: myTransports ? [myTransports] : [],
       distanceTolerance: myDistance ?? undefined,
       atmospherePreference: myAtmosphere ?? undefined,
@@ -1110,23 +1117,15 @@ export default function RoomPage() {
                       <label className="block text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase mb-3">
                         출발 지역
                       </label>
-                      <input
-                        type="text"
+                      <LocationSearchInput
                         value={myLocation}
-                        onChange={(e) => {
-                          setMyLocation(e.target.value);
+                        error={!!locationError}
+                        onSelect={(result) => {
+                          setMyLocation(result.name);
+                          setMyLat(result.lat);
+                          setMyLng(result.lng);
                           setLocationError(null);
                         }}
-                        placeholder="예: 강남구, 홍대, 잠실"
-                        className={[
-                          "w-full h-12 px-4 rounded-xl border text-[16px]",
-                          "placeholder:text-ink-tertiary",
-                          "outline-none transition-all duration-150",
-                          "focus:ring-2 focus:ring-accent focus:ring-offset-0 focus:border-accent",
-                          locationError
-                            ? "border-error bg-error-bg"
-                            : "border-hairline bg-canvas focus:bg-white",
-                        ].join(" ")}
                       />
                     </div>
 
@@ -1285,7 +1284,7 @@ export default function RoomPage() {
                           가능한 날짜{" "}
                           <span className="text-ink-subtle font-normal normal-case tracking-normal">(최대 5개)</span>
                         </label>
-                        <DateAvailabilityPicker value={myDates} onChange={setMyDates} /> 
+                        <DateAvailabilityPicker value={myDates} onChange={setMyDates} />
                         <Button
                           variant="secondary"
                           size="md"
