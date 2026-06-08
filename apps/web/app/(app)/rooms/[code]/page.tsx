@@ -63,13 +63,17 @@ import { useMapStore } from "@/store/map";
 import { useScheduleStore } from "@/store/schedule";
 import { useRoomStore } from "@/store/room";
 import {
+  getAvailableDates,
   getParticipants,
   joinRoom,
+  saveAvailableDates,
   savePreference,
 } from "@/app/actions/participant";
 import { createSchedule, getScheduleByRoomCode } from "@/app/actions/schedule";
 import { useUserStore } from "@/store/user";
 import { extendRoomLink, checkRoomExists } from "@/app/actions/rooms";
+import { DateAvailabilityPicker } from "@/app/components/DateAvailabilityPicker";
+import { LocationSearchInput } from "@/app/components/LocationSearchInput";
 
 /* ── Inferred type from server action ────────────────────────────────── */
 
@@ -616,6 +620,8 @@ export default function RoomPage() {
 
   /* ── Local form state ── */
   const [myLocation, setMyLocation] = useState("");
+  const [myLat, setMyLat] = useState(0);
+  const [myLng, setMyLng] = useState(0);
   const [myTransports, setMyTransports] = useState<Transport | null>(null);
   const [myDistance, setMyDistance] = useState<DistanceTolerance | null>(null);
   const [myAtmosphere, setMyAtmosphere] = useState<AtmospherePreference | null>(
@@ -641,6 +647,9 @@ export default function RoomPage() {
   const setPlace = useMapStore((s) => s.setPlaces);
   const clearMap = useMapStore((s) => s.clearMap);
 
+  const [myDates, setMyDates] = useState<string[]>([]);
+  const [dateSaved, setDateSaved] = useState(false)
+
   const isDone = useScheduleStore(
     (s) => s.scheduleInfo !== null && s.scheduleInfo.roomCode === roomCode,
   );
@@ -657,6 +666,7 @@ export default function RoomPage() {
   const currentUserId = useUserStore((s) => s.userInfo?.myId);
   const isMe = (p: ParticipantWithUser) => p.userId === currentUserId;
 
+
   useEffect(() => {
     let active = true;
 
@@ -664,8 +674,12 @@ export default function RoomPage() {
       const { isHost: host, savedPreference, linkExpiresAt: expiry, category: roomCategory, roomStatus: status } = await joinRoom(roomCode);
       const { participants: fetchedParticipants } =
         await getParticipants(roomCode);
-
+      const savedDates = await getAvailableDates(roomCode)
       if (!active) return;
+      if (savedDates.length > 0) {
+        setMyDates(savedDates)
+        setDateSaved(true)
+      }
 
       setIsHost(host);
       setParticipants(fetchedParticipants);
@@ -677,6 +691,8 @@ export default function RoomPage() {
       if (savedPreference) {
         setMyLocation(savedPreference.abstractLocation);
         setMyTransports((savedPreference.transports[0] as Transport) ?? null);
+        setMyLat(savedPreference.lat);
+        setMyLng(savedPreference.lng);
         if (savedPreference.distanceTolerance)
           setMyDistance(savedPreference.distanceTolerance as DistanceTolerance);
         if (savedPreference.atmospherePreference)
@@ -723,8 +739,25 @@ export default function RoomPage() {
     participant();
     checkAndWatch();
 
+    const pollInterval = setInterval(async () => {
+      try {
+        const { participants } = await getParticipants(roomCode);
+        setParticipants(participants);
+      } catch { /* 방 이탈·만료 등 일시적 오류는 무시하고 다음 주기에 재시도 */ }
+    }, 5000);
+
+    const schedulePollInterval = setInterval(async () => {
+      try {
+        if (useScheduleStore.getState().scheduleInfo) return;
+        const existing = await getScheduleByRoomCode(roomCode);
+        if (existing) router.push(`/calendar/${existing.id}`);
+      } catch { /* 무시 */ }
+    }, 5000);
+
     return () => {
       active = false;
+      clearInterval(pollInterval);
+      clearInterval(schedulePollInterval);
       useScheduleStore.getState().clearSchedule();
       useMapStore.getState().clearMap();
     };
@@ -765,13 +798,17 @@ export default function RoomPage() {
       setLocationError("분위기 선호를 선택해주세요");
       return;
     }
+    if (!myLat || !myLng) {
+      setLocationError("목록에서 장소를 선택해주세요");
+      return;
+    }
     setLocationError(null);
 
     const result = await savePreference({
       roomCode,
       abstractLocation: myLocation,
-      lat: 0,
-      lng: 0,
+      lat: myLat,
+      lng: myLng,
       transports: myTransports ? [myTransports] : [],
       distanceTolerance: myDistance ?? undefined,
       atmospherePreference: myAtmosphere ?? undefined,
@@ -780,6 +817,7 @@ export default function RoomPage() {
       setLocationError(result.reason);
       return;
     }
+
     setLocationSaved(true);
   }
 
@@ -804,6 +842,8 @@ export default function RoomPage() {
                 transports: myTransports ? [myTransports] : [],
                 distanceTolerance: myDistance ?? 'medium',
                 atmospherePreference: myAtmosphere ?? 'quiet',
+                lat: myLat,
+                lng: myLng,
               };
             }
             return {
@@ -812,6 +852,8 @@ export default function RoomPage() {
               transports: p.transports,
               distanceTolerance: p.distanceTolerance ?? 'medium',
               atmospherePreference: p.atmospherePreference ?? 'quiet',
+              lat: p.lat,
+              lng: p.lng
             };
           }),
           category,
@@ -1099,23 +1141,15 @@ export default function RoomPage() {
                       <label className="block text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase mb-3">
                         출발 지역
                       </label>
-                      <input
-                        type="text"
+                      <LocationSearchInput
                         value={myLocation}
-                        onChange={(e) => {
-                          setMyLocation(e.target.value);
+                        error={!!locationError}
+                        onSelect={(result) => {
+                          setMyLocation(result.name);
+                          setMyLat(result.lat);
+                          setMyLng(result.lng);
                           setLocationError(null);
                         }}
-                        placeholder="예: 강남구, 홍대, 잠실"
-                        className={[
-                          "w-full h-12 px-4 rounded-xl border text-[16px]",
-                          "placeholder:text-ink-tertiary",
-                          "outline-none transition-all duration-150",
-                          "focus:ring-2 focus:ring-accent focus:ring-offset-0 focus:border-accent",
-                          locationError
-                            ? "border-error bg-error-bg"
-                            : "border-hairline bg-canvas focus:bg-white",
-                        ].join(" ")}
                       />
                     </div>
 
@@ -1220,15 +1254,6 @@ export default function RoomPage() {
                       </div>
                     </div>
 
-                    {locationError && (
-                      <div className="flex items-center gap-2 mb-5">
-                        <span className="text-error text-[13px]">⚠️</span>
-                        <p className="text-[12px] text-error">
-                          {locationError}
-                        </p>
-                      </div>
-                    )}
-
                     <Button
                       variant="secondary"
                       size="md"
@@ -1241,28 +1266,65 @@ export default function RoomPage() {
                   </div>
                 )}
 
-                {/* Saved confirmation */}
                 {locationSaved && (
-                  <div
-                    className="flex items-center gap-3 p-4 bg-success-bg rounded-xl border border-success/20 mb-6"
-                    style={{ animation: "fade-up 0.3s ease-out both" }}
-                  >
-                    <span className="text-[20px]">✅</span>
-                    <div className="flex-1">
-                      <p className="text-[14px] font-semibold text-success-text">
-                        선호가 저장됐어요!
-                      </p>
-                      <p className="text-[12px] text-success">
-                        모든 참가자가 준비되면 PINI를 실행해요
-                      </p>
-                    </div>
-                    <button
-                      onClick={handleResetPlace}
-                      className="ml-auto text-[12px] text-success-text underline underline-offset-2 shrink-0"
+                  <>
+                    {/* 선호 저장 확인 */}
+                    <div className="flex items-center gap-3 p-4 bg-success-bg rounded-xl border border-success/20 mb-4"
+                      style={{ animation: "fade-up 0.3s ease-out both" }}
                     >
-                      수정
-                    </button>
-                  </div>
+                      <span className="text-[20px]">✅</span>
+                      <div className="flex-1">
+                        <p className="text-[14px] font-semibold text-success-text">선호가 저장됐어요!</p>
+                        <p className="text-[12px] text-success">모든 참가자가 준비되면 PINI를 실행해요</p>
+                      </div>
+                      <button onClick={handleResetPlace} className="ml-auto text-[12px] text-success-text underline underline-offset-2 shrink-0">
+                        수정
+                      </button>
+                    </div>
+
+                    {/* 날짜 저장됨 */}
+                    {dateSaved ? (
+                      <div className="flex items-start gap-3 p-4 bg-accent-light rounded-xl border border-accent/20 mb-4"
+                        style={{ animation: "fade-up 0.3s ease-out both" }}
+                      >
+                        <span className="text-[20px]">📅</span>
+                        <div className="flex-1">
+                          <p className="text-[14px] font-semibold text-accent">날짜가 저장됐어요!</p>
+                          <p className="text-[12px] text-accent-muted mt-1">
+                            {myDates.map(d => d.slice(5).replace("-", "/")).join(", ")}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => setDateSaved(false)}
+                          className="ml-auto text-[12px] text-accent underline underline-offset-2 shrink-0"
+                        >
+                          수정
+                        </button>
+                      </div>
+                    ) : (
+                      /* 날짜 선택 */
+                      <div className="mb-4" style={{ animation: "fade-up 0.3s ease-out both" }}>
+                        <label className="block text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase mb-3">
+                          가능한 날짜{" "}
+                          <span className="text-ink-subtle font-normal normal-case tracking-normal">(최대 5개)</span>
+                        </label>
+                        <DateAvailabilityPicker value={myDates} onChange={setMyDates} />
+                        <Button
+                          variant="secondary"
+                          size="md"
+                          fullWidth
+                          className="mt-3"
+                          onClick={async () => {
+                            const result = await saveAvailableDates(roomCode, myDates)
+                            if (!result.ok) { alert(result.reason); return }
+                            setDateSaved(true)
+                          }}
+                        >
+                          날짜 저장하기
+                        </Button>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 {/* Waiting hint */}
@@ -1289,6 +1351,7 @@ export default function RoomPage() {
                       </div>
                     </div>
                   );
+
                 })()}
               </div>
             </div>
@@ -1414,6 +1477,7 @@ export default function RoomPage() {
           onSubmit={handleScheduleCreate}
           isSubmitting={isScheduleSubmitting}
           onCancel={() => setShowDateModal(false)}
+          roomCode={roomCode}
         />
       )}
 

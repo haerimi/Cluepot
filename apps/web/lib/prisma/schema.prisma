@@ -16,6 +16,7 @@ model User {
   participants     Participant[]
   schedules        ScheduleMember[]
   createdSchedules Schedule[]       @relation("ScheduleCreator")
+  availableDates AvailableDate[]
 
   @@map("users")
 }
@@ -31,6 +32,7 @@ model Room {
   imageUrl      String?
   participants  Participant[]
   schedule      Schedule?
+  availableDates AvailableDate[]
 
   @@map("rooms")
 }
@@ -84,4 +86,18 @@ model ScheduleMember {
 
   @@unique([scheduleId, userId])
   @@map("schedule_members")
+}
+
+model AvailableDate {
+  id        String   @id @default(uuid())
+  date      DateTime @db.Date
+  roomCode  String   @map("room_code")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  room  Room  @relation(fields: [roomCode], references: [roomCode], onDelete: Cascade)
+  user  User  @relation(fields: [userId],   references: [id],       onDelete: Cascade)
+
+  @@unique([roomCode, userId, date])
+  @@map("available_dates")
 }

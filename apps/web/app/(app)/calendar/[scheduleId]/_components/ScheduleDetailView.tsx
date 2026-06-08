@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { KakaoMap } from "@/app/components/KakaoMap";
@@ -431,6 +431,11 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
   const [isPending, start] = useTransition();
   const [showReplace, setShowReplace] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    const interval = setInterval(() => router.refresh(), 5000);
+    return () => clearInterval(interval);
+  }, [router]);
 
   function handleAttendance(status: "accepted" | "declined") {
     if (myMember?.status === status) return;
