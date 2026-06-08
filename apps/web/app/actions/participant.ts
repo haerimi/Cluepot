@@ -129,3 +129,55 @@ export async function getParticipants(roomCode: string): Promise<{
   return { participants };
 }
 
+export async function saveAvailableDates(roomCode: string, dates: string[]) {
+  const userId = await getCurrentUserId();
+
+  // 기존 날짜 삭제 후 새로 저장 (replace 방식)
+  await prisma.$transaction([
+    prisma.availableDate.deleteMany({
+      where: { roomCode, userId}
+    }),
+    prisma.availableDate.createMany({
+      data: dates.map((date) => ({
+        roomCode, userId, date: new Date(date)
+      }))
+    })
+  ])
+
+  return { ok: true }
+}
+
+export async function getAvailableDates(roomCode: string) {
+  const userId = await getCurrentUserId();
+
+  const rows = await prisma.availableDate.findMany({
+      where: {roomCode, userId},
+      orderBy: { date: 'asc'}
+  })
+
+  return rows.map((r) => r.date.toISOString().slice(0, 10))
+}
+
+export async function getRecommendedDates(roomCode: string) {
+  const rows = await prisma.availableDate.findMany({
+    where: { roomCode }
+  })
+
+  // 날짜별로 userId 그룹핑
+  const map = new Map<string, string[]>()
+  for (const row of rows) {
+    const key = row.date.toISOString().slice(0, 10)
+    if (!map.has(key)) map.set(key, [])
+    map.get(key)!.push(row.userId)
+  }
+
+  // 전체 활성 참가자 수
+  const total = await prisma.participant.count({
+    where: { roomCode, leftAt: null }
+  })
+
+  // 인원 많은 순 정렬
+  return Array.from(map.entries())
+    .map(([date, userIds]) => ({ date, count: userIds.length, total, userIds }))
+    .sort((a, b) => b.count - a.count)
+}
