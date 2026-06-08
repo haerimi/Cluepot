@@ -63,6 +63,7 @@ import { useMapStore } from "@/store/map";
 import { useScheduleStore } from "@/store/schedule";
 import { useRoomStore } from "@/store/room";
 import {
+  getAvailableDates,
   getParticipants,
   joinRoom,
   saveAvailableDates,
@@ -668,8 +669,9 @@ export default function RoomPage() {
       const { isHost: host, savedPreference, linkExpiresAt: expiry, category: roomCategory, roomStatus: status } = await joinRoom(roomCode);
       const { participants: fetchedParticipants } =
         await getParticipants(roomCode);
-
+      const savedDates = await getAvailableDates(roomCode)
       if (!active) return;
+      if (savedDates.length > 0) setMyDates(savedDates)
 
       setIsHost(host);
       setParticipants(fetchedParticipants);
@@ -786,7 +788,11 @@ export default function RoomPage() {
     }
 
     // 날짜도 함께 저장 (선택 안했으면 빈 배열로 저징)
-    await saveAvailableDates(roomCode, myDates);
+    const dateResult = await saveAvailableDates(roomCode, myDates)
+    if (!dateResult.ok) {
+      setLocationError(dateResult.reason ?? null)
+      return
+    }
     setLocationSaved(true);
   }
 
@@ -1230,18 +1236,13 @@ export default function RoomPage() {
                     {/* Available dates */}
                     <div className="mb-6">
                       <label className="block text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase mb-3">
-                        가능한 날짜 <span className="text-ink-subtle font-normal normal-case tracking-normal">(최대 5개)</span>
+                        가능한 날짜{" "}
+                        <span className="text-ink-subtle font-normal normal-case tracking-normal">
+                          (최대 5개)
+                        </span>
                       </label>
                       <DateAvailabilityPicker value={myDates} onChange={setMyDates} />
                     </div>
-                    {locationError && (
-                      <div className="flex items-center gap-2 mb-5">
-                        <span className="text-error text-[13px]">⚠️</span>
-                        <p className="text-[12px] text-error">
-                          {locationError}
-                        </p>
-                      </div>
-                    )}
 
                     <Button
                       variant="secondary"
@@ -1279,6 +1280,31 @@ export default function RoomPage() {
                   </div>
                 )}
 
+                {locationSaved && (
+                  <div className="mb-6">
+                    <label className="block text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase mb-3">
+                      가능한 날짜{" "}
+                      <span className="text-ink-subtle font-normal normal-case tracking-normal">
+                        (최대 5개)
+                      </span>
+                    </label>
+                    <DateAvailabilityPicker value={myDates} onChange={setMyDates} />
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      fullWidth
+                      className="mt-3"
+                      onClick={async () => {
+                        const result = await saveAvailableDates(roomCode, myDates)
+                        if (!result.ok) alert(result.reason)
+                      }}
+                    >
+                      날짜 저장하기
+                    </Button>
+                  </div>
+                )}
+
+
                 {/* Waiting hint */}
                 {!allReady && (() => {
                   const notReady = participants.filter((p) =>
@@ -1303,6 +1329,7 @@ export default function RoomPage() {
                       </div>
                     </div>
                   );
+
                 })()}
               </div>
             </div>
@@ -1428,6 +1455,7 @@ export default function RoomPage() {
           onSubmit={handleScheduleCreate}
           isSubmitting={isScheduleSubmitting}
           onCancel={() => setShowDateModal(false)}
+          roomCode={roomCode}
         />
       )}
 

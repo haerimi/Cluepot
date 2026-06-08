@@ -132,6 +132,20 @@ export async function getParticipants(roomCode: string): Promise<{
 export async function saveAvailableDates(roomCode: string, dates: string[]) {
   const userId = await getCurrentUserId();
 
+  const participant = await prisma.participant.findUnique({
+    where: { roomCode_userId: { roomCode, userId } },
+  });
+  if (!participant || participant.leftAt !== null) {
+    return {
+      ok: false,
+      reason: "이미 방에서 나간 상태라 선호를 저장할 수 없어요.",
+    };
+  }
+
+  if (dates.length > 5) {
+    return { ok: false, reason: '날짜는 최대 5개까지 선택할 수 있어요.'};
+  }
+
   // 기존 날짜 삭제 후 새로 저장 (replace 방식)
   await prisma.$transaction([
     prisma.availableDate.deleteMany({

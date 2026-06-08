@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/app/components/ui/Button";
+import { getRecommendedDates } from "@/app/actions/participant";
 
 export interface ScheduleDateModalProps {
   placeName: string;
   placeAddress: string;
+  roomCode: string;
   onSubmit: (data: {
     title: string;
     scheduledAt: string;
@@ -29,10 +31,17 @@ function initTime(): { ampm: "오전" | "오후"; hour: string; minute: string }
   };
 }
 
+type Recommendation = {
+  date: string;
+  count: number;
+  total: number;
+}
+
 export function ScheduleDateModal({
   placeName,
   onSubmit,
   onCancel,
+  roomCode,
   isSubmitting = false,
 }: Readonly<ScheduleDateModalProps>) {
   const today = new Date().toISOString().slice(0, 10);
@@ -45,6 +54,11 @@ export function ScheduleDateModal({
   const [minute, setMinute] = useState(init.minute);
   const [memo, setMemo] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+
+  useEffect(() => {
+    getRecommendedDates(roomCode).then(setRecommendations)
+  }, [roomCode])
 
   // Esc 키로 모달 닫기 (제출 중에는 닫기 방지)
   useEffect(() => {
@@ -105,6 +119,41 @@ export function ScheduleDateModal({
         </div>
 
         <div className="space-y-5">
+          {/* 추천 날짜 */}
+          {recommendations.length > 0 && (
+            <div>
+              <p className="text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase mb-2">
+                추천 날짜
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {recommendations.slice(0, 5).map((r) => {
+                  const allAvailable = r.count === r.total
+                  return (
+                    <button
+                      key={r.date}
+                      type="button"
+                      onClick={() => setDate(r.date)}
+                      className={[
+                        "px-3 py-1.5 rounded-full text-[12px] font-medium border transition-colors",
+                        date === r.date
+                          ? "bg-accent text-white border-accent"
+                          : allAvailable
+                            ? "bg-success-bg text-success-text border-success/20 hover:bg-success/10"
+                            : "bg-surface text-ink-muted border-hairline hover:bg-surface-warm",
+                      ].join(" ")}
+                    >
+                      {r.date.slice(5).replace("-", "/")}
+                      <span className="ml-1.5 opacity-70">{r.count}/{r.total}명</span>
+                    </button>
+                  )
+                })}
+              </div>
+              {recommendations.every(r => r.count < r.total) && (
+                <p className="text-[11px] text-ink-subtle mt-2">모두 가능한 날짜가 없어요. 직접 선택해주세요.</p>
+              )}
+            </div>
+          )}
+
           {/* 일정 이름 */}
           <div>
             <label
