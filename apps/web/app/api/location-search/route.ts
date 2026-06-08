@@ -6,7 +6,10 @@ export async function GET(req: NextRequest) {
 
     const res = await fetch(
         `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(q)}&size=5`,
-        { headers: { Authorization: `KakaoAK ${process.env.KAKAO_REST_API_KEY}` } }
+        { 
+            headers: { Authorization: `KakaoAK ${process.env.KAKAO_REST_API_KEY}` },
+            cache: 'no-store'
+        }
     )
     if (!res.ok) return NextResponse.json([])
 
