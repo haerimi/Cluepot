@@ -296,7 +296,7 @@ export function PiniPanel({
               {([0, 0.2, 0.4] as const).map((d) => (
                 <div
                   key={d}
-                  className="w-1 h-1 rounded-full bg-butter"
+                  className="w-1 h-1 rounded-full bg-accent"
                   style={{ animation: `dot-bounce 1.4s ease-in-out ${d}s infinite` }}
                 />
               ))}
@@ -370,7 +370,7 @@ export function PiniPanel({
                   {([0, 0.2, 0.4] as const).map((d) => (
                     <div
                       key={d}
-                      className="w-1.5 h-1.5 rounded-full bg-butter"
+                      className="w-1.5 h-1.5 rounded-full bg-accent"
                       style={{ animation: `dot-bounce 1.4s ease-in-out ${d}s infinite` }}
                     />
                   ))}

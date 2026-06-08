@@ -22,7 +22,8 @@ export async function login(
   }
 
   const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const rememberMe = formData.get("rememberMe") === "on";
+  const supabase = createClient(cookieStore, rememberMe);
 
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
