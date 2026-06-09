@@ -1356,7 +1356,7 @@ export default function RoomPage() {
                           onClick={async () => {
                             setDateError(null);
                             const result = await saveAvailableDates(roomCode, myDates)
-                            if (!result.ok) { setDateError(result.reason); return }
+                            if (!result.ok) { setDateError(result.reason ?? "날짜 저장에 실패했어요"); return }
                             setDateSaved(true)
                           }}
                         >
