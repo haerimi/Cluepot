@@ -15,7 +15,7 @@ export default function Loading() {
           borderTopColor: "var(--color-accent)",
           animation: "spin 0.7s linear infinite",
         }}
-        aria-label="Loading"
+        aria-label="로딩 중"
       />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>

@@ -65,15 +65,19 @@ export function AppSidebar({ user }: Readonly<{ user: HydratedUser | null }>) {
     !!currentRoomCode,
   );
   useEffect(() => {
+    // Track pending fadeIn so it's cancelled if the component unmounts mid-cycle
+    let fadeIn: ReturnType<typeof setTimeout> | undefined;
     const id = setInterval(() => {
       setLineVisible(false);
-      const fadeIn = setTimeout(() => {
+      fadeIn = setTimeout(() => {
         setLineIndex((i) => (i + 1) % AMBIENT_LINES.length);
         setLineVisible(true);
       }, 350);
-      return () => clearTimeout(fadeIn);
     }, 5000);
-    return () => clearInterval(id);
+    return () => {
+      clearInterval(id);
+      clearTimeout(fadeIn);
+    };
   }, []);
 
   const phaseLabel: Record<SessionPhase, string> = {
