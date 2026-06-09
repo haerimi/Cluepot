@@ -116,9 +116,14 @@ export async function profileLogin() {
   return { id: user.id, initial, joinedAt, nickname, email, profileImage: dbUser?.profileImage ?? null }
 }
 
-export async function updateUserInfo(id: string, nickname: string, imageUrl: string | null) {
+export async function updateUserInfo(nickname: string, imageUrl: string | null) {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
+
   await prisma.user.update({
-    where: { id },
+    where: { id: user.id },
     data: {
       nickname,
       ...(imageUrl !== null && { profileImage: imageUrl }),

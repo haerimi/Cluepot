@@ -33,7 +33,7 @@ export default function ProfileClient({ user }: Readonly<{ user: UserInfo }>) {
       const { data } = supabase.storage.from("cluepot").getPublicUrl(path);
       imageUrl = data.publicUrl;
     }
-    await updateUserInfo(user.id, nickname, imageUrl ?? null);
+    await updateUserInfo(nickname, imageUrl ?? null);
     setEditModalOpen(false);
     router.refresh();
   }
