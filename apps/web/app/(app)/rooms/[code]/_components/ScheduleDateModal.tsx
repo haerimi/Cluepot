@@ -15,6 +15,7 @@ export interface ScheduleDateModalProps {
   }) => void | Promise<void>;
   onCancel: () => void;
   isSubmitting?: boolean;
+  submitError?: string | null;
 }
 
 function initTime(): { ampm: "오전" | "오후"; hour: string; minute: string } {
@@ -43,6 +44,7 @@ export function ScheduleDateModal({
   onCancel,
   roomCode,
   isSubmitting = false,
+  submitError = null,
 }: Readonly<ScheduleDateModalProps>) {
   const today = new Date().toISOString().slice(0, 10);
   const init = initTime();
@@ -57,7 +59,7 @@ export function ScheduleDateModal({
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
 
   useEffect(() => {
-    getRecommendedDates(roomCode).then(setRecommendations)
+    getRecommendedDates(roomCode).then(setRecommendations).catch(() => {})
   }, [roomCode])
 
   // Esc 키로 모달 닫기 (제출 중에는 닫기 방지)
@@ -263,8 +265,13 @@ export function ScheduleDateModal({
           </div>
 
           {error && (
-            <p className="text-[12px] text-error flex items-center gap-1.5">
+            <p className="text-[12px] text-error flex items-center gap-1.5" role="alert">
               <span aria-hidden="true">⚠️</span>{error}
+            </p>
+          )}
+          {submitError && (
+            <p className="text-[12px] text-error flex items-center gap-1.5" role="alert">
+              <span aria-hidden="true">⚠️</span>{submitError}
             </p>
           )}
         </div>
