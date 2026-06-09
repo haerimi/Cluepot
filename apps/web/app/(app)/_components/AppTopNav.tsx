@@ -135,16 +135,20 @@ export function AppTopNav({ user }: Readonly<{ user: HydratedUser | null }>) {
           {user && (
             <Link
               href="/profile"
-              className="w-7 h-7 rounded-full bg-accent flex items-center justify-center shrink-0 overflow-hidden">
-              {user.profileImage ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={user.profileImage} alt={user.nickname}
-                  className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-[11px] font-bold text-white leading-none">
-                  {user.nickname.charAt(0)}
-                </span>
-              )}
+              aria-label="프로필 보기"
+              className="flex items-center justify-center w-11 h-11 shrink-0"
+            >
+              <div className="w-7 h-7 rounded-full bg-accent flex items-center justify-center overflow-hidden">
+                {user.profileImage ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={user.profileImage} alt={user.nickname}
+                    className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-[11px] font-bold text-white leading-none">
+                    {(user.nickname.charAt(0) || "?").toUpperCase()}
+                  </span>
+                )}
+              </div>
             </Link>
           )}
 
@@ -261,7 +265,7 @@ export function AppTopNav({ user }: Readonly<{ user: HydratedUser | null }>) {
                     <button
                       type="submit"
                       title="로그아웃"
-                      className="w-8 h-8 flex items-center justify-center rounded-lg text-ink-subtle
+                      className="w-11 h-11 flex items-center justify-center rounded-lg text-ink-subtle
                                  hover:text-ink-muted hover:bg-surface-warm transition-colors"
                     >
                       <LogoutIcon />
