@@ -24,48 +24,52 @@ export async function createSchedule(
 ): Promise<{ id: string }> {
   const userId = await getCurrentUserId();
 
-  // Ensure the room row exists so the FK is satisfied. Rooms created
-  // client-side (mock flow) may not yet be in the DB.
-  await prisma.room.upsert({
-    where: { roomCode: input.roomCode },
-    update: { status: "done" },
-    create: {
-      roomCode: input.roomCode,
-      category: input.category ?? "restaurant",
-      status: "done",
-    },
-  });
-
-  // Collect participant user IDs. In the mock flow the list is empty, so we
-  // fall back to just the creator.
-  const participants = await prisma.participant.findMany({
-    where: { roomCode: input.roomCode },
-    select: { userId: true },
-  });
-
-  const memberIds = new Set<string>(participants.map((p) => p.userId));
-  memberIds.add(userId);
-
-  const schedule = await prisma.schedule.create({
-    data: {
-      roomCode: input.roomCode,
-      title: input.title,
-      placeName: input.placeName,
-      placeAddress: input.placeAddress,
-      lat: input.lat,
-      lng: input.lng,
-      scheduledAt: new Date(input.scheduledAt),
-      memo: input.memo ?? null,
-      createdBy: userId,
-      members: {
-        create: Array.from(memberIds).map((uid) => ({
-          userId: uid,
-          status: uid === userId ? "accepted" : "pending",
-        })),
+  const schedule = await prisma.$transaction(async (tx) => {
+    // Ensure the room row exists so the FK is satisfied. Rooms created
+    // client-side (mock flow) may not yet be in the DB.
+    await tx.room.upsert({
+      where: { roomCode: input.roomCode },
+      update: { status: "done" },
+      create: {
+        roomCode: input.roomCode,
+        category: input.category ?? "restaurant",
+        status: "done",
       },
-    },
-    select: { id: true },
-  });
+    });
+
+    // Collect participant user IDs. In the mock flow the list is empty, so we
+    // fall back to just the creator.
+    const participants = await tx.participant.findMany({
+      where: { roomCode: input.roomCode },
+      select: { userId: true },
+    });
+
+    const memberIds = new Set<string>(participants.map((p) => p.userId));
+    memberIds.add(userId);
+
+    const schedule = await tx.schedule.create({
+      data: {
+        roomCode: input.roomCode,
+        title: input.title,
+        placeName: input.placeName,
+        placeAddress: input.placeAddress,
+        lat: input.lat,
+        lng: input.lng,
+        scheduledAt: new Date(input.scheduledAt),
+        memo: input.memo ?? null,
+        createdBy: userId,
+        members: {
+          create: Array.from(memberIds).map((uid) => ({
+            userId: uid,
+            status: uid === userId ? "accepted" : "pending",
+          })),
+        },
+      },
+      select: { id: true },
+    });
+
+    return schedule;
+  })
 
   revalidatePath("/calendar");
   revalidatePath("/rooms");
@@ -214,8 +218,17 @@ export interface UpdateScheduleInput {
 export async function updateSchedule(
   scheduleId: string,
   input: UpdateScheduleInput,
+  roomCode: string,
 ): Promise<void> {
   const userId = await getCurrentUserId();
+
+  const participant = await prisma.participant.findUnique({
+    where: { roomCode_userId: { roomCode, userId } },
+  });
+
+  if (!participant) {
+    throw new Error("이 방의 참가자가 아닙니다.");
+  }
 
   const schedule = await prisma.schedule.findUnique({
     where: { id: scheduleId },
@@ -268,12 +281,19 @@ export async function updateMemberStatus(
 ): Promise<void> {
   const userId = await getCurrentUserId();
 
-  // 일정이 이미 삭제된 경우 (장소 변경 등) 조용히 무시
-  const scheduleExists = await prisma.schedule.findUnique({
+  // 일정 조회 + roomCode 확보
+  const schedule = await prisma.schedule.findUnique({
     where: { id: scheduleId },
-    select: { id: true },
+    select: { id: true, roomCode: true },
   });
-  if (!scheduleExists) return;
+  // 일정이 이미 삭제된 경우 (장소 변경 등) 조용히 무시
+  if (!schedule) return;
+
+  // 해당 방의 참가자인지 검증
+  const member = await prisma.participant.findUnique({
+    where: { roomCode_userId: { roomCode: schedule.roomCode, userId } },
+  });
+  if (!member || member.leftAt !== null) throw new Error("이 방의 참가자가 아닙니다.");
 
   await prisma.scheduleMember.upsert({
     where: { scheduleId_userId: { scheduleId, userId } },
@@ -287,40 +307,43 @@ export async function updateMemberStatus(
 export async function cancelSchedule(scheduleId: string): Promise<void> {
   const userId = await getCurrentUserId();
 
-  const schedule = await prisma.schedule.findUnique({
-    where: { id: scheduleId },
-    select: { createdBy: true, roomCode: true },
-  });
+  const scheduleInfo  = await prisma.$transaction(async (tx) => {
+    const schedule = await tx.schedule.findUnique({
+      where: { id: scheduleId },
+      select: { createdBy: true, roomCode: true },
+    });
 
-  // 생성자 = 호스트만 취소 가능
-  if (!schedule || schedule.createdBy !== userId)
-    throw new Error("권한이 없어요");
+    // 생성자 = 호스트만 취소 가능
+    if (!schedule || schedule.createdBy !== userId)
+      throw new Error("권한이 없어요");
 
-  // 1. 일정 멤버 삭제
-  await prisma.scheduleMember.deleteMany({ where: { scheduleId } });
+    // 1. 일정 멤버 삭제
+    await tx.scheduleMember.deleteMany({ where: { scheduleId } });
 
-  // 2. 일정 삭제
-  await prisma.schedule.delete({ where: { id: scheduleId } });
+    // 2. 일정 삭제
+    await tx.schedule.delete({ where: { id: scheduleId } });
 
-  // 3. 방 상태를 "재선정 중"으로 변경 — 참가자들이 빈 화면 대신 안내를 볼 수 있음
-  await prisma.room.update({
-    where: { roomCode: schedule.roomCode },
-    data: { status: "reselecting" },
-  });
+    // 3. 방 상태를 "재선정 중"으로 변경 — 참가자들이 빈 화면 대신 안내를 볼 수 있음
+    await tx.room.update({
+      where: { roomCode: schedule.roomCode },
+      data: { status: "reselecting" },
+    });
 
-  // 4. 참가자 선호 초기화 (유저는 유지, 선호만 리셋)
-  await prisma.participant.updateMany({
-    where: { roomCode: schedule.roomCode },
-    data: {
-      abstractLocation: "",
-      transports: [],
-      distanceTolerance: null,
-      atmospherePreference: null,
-      lat: 0,
-      lng: 0,
-    },
-  });
+    // 4. 참가자 선호 초기화 (유저는 유지, 선호만 리셋)
+    await tx.participant.updateMany({
+      where: { roomCode: schedule.roomCode },
+      data: {
+        abstractLocation: "",
+        transports: [],
+        distanceTolerance: null,
+        atmospherePreference: null,
+        lat: 0,
+        lng: 0,
+      },
+    });
+    return schedule;
+  })
 
   revalidatePath("/calendar");
-  revalidatePath(`/rooms/${schedule.roomCode}`);
+  revalidatePath(`/rooms/${scheduleInfo.roomCode}`);
 }

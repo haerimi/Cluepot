@@ -9,8 +9,8 @@ interface Participant {
   ppLat: number;
   ppLng: number;
   ppTransport: Transport[];
-  ppDistanceTolerance: DistanceTolerance;
-  ppAtmospherePreference: AtmospherePreference;
+  ppDistanceTolerance: DistanceTolerance | null;
+  ppAtmospherePreference: AtmospherePreference | null;
   ppIsHost: boolean;
 }
 

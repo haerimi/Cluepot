@@ -12,7 +12,7 @@ export async function createRoom(
   category: string,
   name: string,
 ): Promise<{ roomCode: string; roomId: string }> {
-  const userId = await getCurrentUserId();  
+  const userId = await getCurrentUserId();
   const roomCode = generateCode();
 
   const room = await prisma.$transaction(async (tx) => {
@@ -67,22 +67,24 @@ export async function leaveRoom(roomCode: string): Promise<void> {
     // 호스트면 방 전체 삭제 (cascade로 participants도 삭제됨)
     await prisma.room.delete({ where: { roomCode } });
   } else {
-    // 참가자면 퇴장 처리
-    await prisma.participant.update({
-      where: { roomCode_userId: { roomCode, userId } },
-      data: { leftAt: new Date() },
-    });
+    await prisma.$transaction(async (tx) => {
+      // 참가자면 퇴장 처리
+      await tx.participant.update({
+        where: { roomCode_userId: { roomCode, userId } },
+        data: { leftAt: new Date() },
+      });
 
-    // ScheduleMember 삭제 -> 캘린더에서 제외 
-    const schedule = await prisma.schedule.findUnique({
-      where: { roomCode }
-    })
-
-    if (schedule) {
-      await prisma.scheduleMember.deleteMany({
-        where: { scheduleId: schedule.id, userId },
+      // ScheduleMember 삭제 -> 캘린더에서 제외 
+      const schedule = await tx.schedule.findUnique({
+        where: { roomCode }
       })
-    }
+
+      if (schedule) {
+        await tx.scheduleMember.deleteMany({
+          where: { scheduleId: schedule.id, userId },
+        })
+      }
+    })
   }
 
   revalidatePath("/rooms");
@@ -110,7 +112,7 @@ export async function extendRoomLink(roomCode: string) {
     where: { roomCode_userId: { roomCode, userId } },
     select: { isHost: true },
   });
-  if (!me?.isHost) return;
+  if (!me?.isHost) throw new Error("방장만 초대코드를 확장할 수 있습니다.");
 
   return await prisma.room.update({
     where: { roomCode },
@@ -120,15 +122,19 @@ export async function extendRoomLink(roomCode: string) {
 
 export async function updateRoom(roomCode: string, name: string, imageUrl: string | null) {
   const userId = await getCurrentUserId();
-  const me = await prisma.participant.findUnique({
+
+  const participant = await prisma.participant.findUnique({
     where: { roomCode_userId: { roomCode, userId } },
-    select: { id: true },
   });
-  if (!me) throw new Error("이 방의 참가자가 아닙니다.");
+
+  if (!participant) throw new Error("이 방의 참가자가 아닙니다.");
+
+  if (!participant.isHost) throw new Error("방장만 수정할 수 있습니다.");
 
   await prisma.room.update({
     where: { roomCode },
     data: { name, ...(imageUrl !== null && { imageUrl }) },
   });
+
   revalidatePath("/rooms");
 }
