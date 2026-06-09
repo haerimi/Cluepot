@@ -26,6 +26,7 @@ export function LocationSearchInput({
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
   const skipSearchRef = useRef(false);
 
   useEffect(() => {
@@ -48,13 +49,20 @@ export function LocationSearchInput({
     }
 
     debounceRef.current = setTimeout(async () => {
+      // Abort any in-flight request from a previous query before starting a new one
+      abortRef.current?.abort();
+      abortRef.current = new AbortController();
       setIsLoading(true);
       try {
-        const res = await fetch(`/api/location-search?q=${encodeURIComponent(query)}`);
+        const res = await fetch(`/api/location-search?q=${encodeURIComponent(query)}`, {
+          signal: abortRef.current.signal,
+        });
+        if (!res.ok) throw new Error(`location-search ${res.status}`);
         const data: LocationResult[] = await res.json();
         setResults(data);
         setIsOpen(data.length > 0);
-      } catch {
+      } catch (e) {
+        if (e instanceof Error && e.name === "AbortError") return;
         setResults([]);
       } finally {
         setIsLoading(false);
@@ -63,6 +71,7 @@ export function LocationSearchInput({
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
+      abortRef.current?.abort();
     };
   }, [query]);
 

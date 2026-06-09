@@ -82,7 +82,7 @@ interface TravelRowsProps {
 
 function TravelRows({ times }: Readonly<TravelRowsProps>) {
   const minutes  = times.map((p) => p.minutes);
-  const timeDiff = Math.max(...minutes) - Math.min(...minutes);
+  const timeDiff = minutes.length === 0 ? 0 : Math.max(...minutes) - Math.min(...minutes);
 
   let diffColor = "text-ink-subtle";
   if (timeDiff <= 5)       diffColor = "text-success";
