@@ -460,6 +460,11 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
     };
   }, [schedule.id]);
 
+  useEffect(() => {
+    const interval = setInterval(() => router.refresh(), 5000);
+    return () => clearInterval(interval);
+  }, [router]);
+
   function handleAttendance(status: "accepted" | "declined") {
     if (myMember?.status === status) return;
     start(async () => {

@@ -777,6 +777,21 @@ export default function RoomPage() {
     document.addEventListener("visibilitychange", handleVisibility);
     startPolling();
 
+    const pollInterval = setInterval(async () => {
+      try {
+        const { participants } = await getParticipants(roomCode);
+        setParticipants(participants);
+      } catch { /* 방 이탈·만료 등 일시적 오류는 무시하고 다음 주기에 재시도 */ }
+    }, 5000);
+
+    const schedulePollInterval = setInterval(async () => {
+      try {
+        if (useScheduleStore.getState().scheduleInfo) return;
+        const existing = await getScheduleByRoomCode(roomCode);
+        if (existing) router.push(`/calendar/${existing.id}`);
+      } catch { /* 무시 */ }
+    }, 5000);
+
     return () => {
       active = false;
       stopPolling();
