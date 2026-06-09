@@ -65,6 +65,7 @@ import { useRoomStore } from "@/store/room";
 import {
   getAvailableDates,
   getParticipants,
+  getRecommendedDates,
   joinRoom,
   saveAvailableDates,
   savePreference,
@@ -742,7 +743,7 @@ export default function RoomPage() {
     participant().catch(() => {
       setIsLoading(false);
     });
-    checkAndWatch().catch(() => {});
+    checkAndWatch().catch(() => { });
 
     let pollIntervalId: ReturnType<typeof setInterval> | null = null;
     let schedulePollIntervalId: ReturnType<typeof setInterval> | null = null;
@@ -817,6 +818,7 @@ export default function RoomPage() {
   // 이전 추천장소 제외
   const [excludedPlaces, setExcludedPlaces] = useState<string[]>([]);
   const [piniError, setPiniError] = useState<string | null>(null);
+  
   /* ── Handlers ── */
 
   async function handleSaveLocation() {
@@ -872,6 +874,10 @@ export default function RoomPage() {
     clearMap();
 
     try {
+      // 날짜 투표 결과 가져오기 — 실패해도 추천은 계속 진행
+      const recommendedDates = await getRecommendedDates(roomCode).catch(() => []);
+      const topDate = recommendedDates[0];
+
       const res = await fetch('/api/pini', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -900,7 +906,9 @@ export default function RoomPage() {
             };
           }),
           category,
-          excludePlaces: excludedPlaces,   // server key와 일치
+          excludePlaces: excludedPlaces,
+          meetingDate: topDate?.date,
+          participantCount: topDate?.count,
         })
       });
 

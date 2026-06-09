@@ -437,6 +437,7 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
   const [isPending, start] = useTransition();
   const [showReplace, setShowReplace] = useState(false);
 
+  const router = useRouter();
   useEffect(() => {
     const scheduleId = schedule.id;
 
