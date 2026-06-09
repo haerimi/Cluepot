@@ -6,8 +6,14 @@ import { PrismaClient } from "@/generated/prisma/client";
 // the global cache is not needed — but it is safe to use there too.
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
+
 function createPrismaClient() {
   const connectionString = `${process.env.DIRECT_URL}`;
+
+  if (!connectionString) {
+    throw new Error("DIRECT_URL 환경변수가 설정되지 않았습니다.");
+  }
+
   const adapter = new PrismaPg({ connectionString });
   return new PrismaClient({ adapter });
 }
