@@ -376,9 +376,13 @@ export function RoomCard({ data }: Readonly<{ data: RoomCardData }>) {
 
   async function handleDelete() {
     setIsDeleting(true);
-    await leaveRoom(room.roomCode);
-    setConfirming(false);
-    router.refresh();
+    try {
+      await leaveRoom(room.roomCode);
+      setConfirming(false);
+      router.refresh();
+    } catch {
+      setIsDeleting(false);
+    }
   }
 
   async function handleEditConfirm(title: string, file: File | null): Promise<void> {

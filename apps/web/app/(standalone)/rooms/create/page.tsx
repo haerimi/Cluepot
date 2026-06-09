@@ -58,6 +58,7 @@ export default function CreateRoomPage() {
   const [category, setCategory] = useState<Category | null>(null);
   const [name, setName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   const roomCode = useRoomStore((s) => s.roomInfo?.roomCode);
@@ -67,23 +68,23 @@ export default function CreateRoomPage() {
     if (!category) return;
 
     setIsCreating(true);
-
-    const { roomCode, roomId } = await createRoom(category, name);
-
-    await joinRoom(roomCode);
-
-    setRoom({
-      roomId,
-      roomCode,
-      roomCategory: category,
-      roomStatus: "waiting",
-      linkExpiresAt: new Date(
-        Date.now() + 24 * 60 * 60 * 1000
-      ).toISOString(),
-    });
-
-    setIsCreating(false);
-    setStep(4);
+    setCreateError(null);
+    try {
+      const { roomCode, roomId } = await createRoom(category, name);
+      await joinRoom(roomCode);
+      setRoom({
+        roomId,
+        roomCode,
+        roomCategory: category,
+        roomStatus: "waiting",
+        linkExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      });
+      setStep(4);
+    } catch {
+      setCreateError("모임 생성에 실패했어요. 다시 시도해주세요.");
+    } finally {
+      setIsCreating(false);
+    }
   }
 
   function handleCopy() {
@@ -347,6 +348,9 @@ export default function CreateRoomPage() {
                 >
                   {isCreating ? "모임 만드는 중…" : "모임 만들기"}
                 </Button>
+                {createError && (
+                  <p className="text-[12px] text-error mt-2 text-center" role="alert">{createError}</p>
+                )}
               </div>
             </div>
           )}

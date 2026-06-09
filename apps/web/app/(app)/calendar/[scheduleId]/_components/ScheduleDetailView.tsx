@@ -1,17 +1,18 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { KakaoMap } from "@/app/components/KakaoMap";
 import { Button } from "@/app/components/ui/Button";
 import {
   updateSchedule,
   updateMemberStatus,
+  getScheduleById,
   type ScheduleDetail,
   cancelSchedule,
 } from "@/app/actions/schedule";
 import { leaveRoom } from "@/app/actions/rooms";
+import { useRouter } from "next/navigation";
 
 /* ── Date/time formatting ────────────────────────────────────────────────── */
 
@@ -289,10 +290,10 @@ function LeaveConfirm({
 /* ── Delete confirmation ─────────────────────────────────────────────────── */
 
 function DeleteConfirm({
-  roomCode,
+  scheduleId,
   onClose,
 }: {
-  roomCode: string;
+  scheduleId: string;
   onClose: () => void;
 }) {
   const router = useRouter();
@@ -300,7 +301,7 @@ function DeleteConfirm({
 
   function handleDelete() {
     start(async () => {
-      await leaveRoom(roomCode);
+      await cancelSchedule(scheduleId);
       router.push("/calendar");
     });
   }
@@ -419,10 +420,12 @@ interface ScheduleDetailViewProps {
 }
 
 export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
-  const { date, time } = formatDateTime(schedule.scheduledAt);
-  const isCreator = schedule.createdBy === schedule.currentUserId;
-  const myMember = schedule.members.find(
-    (m) => m.userId === schedule.currentUserId,
+  const [data, setData] = useState(schedule);
+
+  const { date, time } = formatDateTime(data.scheduledAt);
+  const isCreator = data.createdBy === data.currentUserId;
+  const myMember = data.members.find(
+    (m) => m.userId === data.currentUserId,
   );
 
   const [showEdit, setShowEdit] = useState(false);
@@ -430,7 +433,32 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
   const [showLeave, setShowLeave] = useState(false);
   const [isPending, start] = useTransition();
   const [showReplace, setShowReplace] = useState(false);
-  const router = useRouter();
+
+  useEffect(() => {
+    const scheduleId = schedule.id;
+
+    async function fetchLatest() {
+      const updated = await getScheduleById(scheduleId);
+      if (updated) setData(updated);
+    }
+
+    let interval = setInterval(fetchLatest, 5000);
+
+    function handleVisibility() {
+      if (document.hidden) {
+        clearInterval(interval);
+      } else {
+        fetchLatest();
+        interval = setInterval(fetchLatest, 5000);
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [schedule.id]);
 
   useEffect(() => {
     const interval = setInterval(() => router.refresh(), 5000);
@@ -440,8 +468,13 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
   function handleAttendance(status: "accepted" | "declined") {
     if (myMember?.status === status) return;
     start(async () => {
-      await updateMemberStatus(schedule.id, status);
-      router.refresh();
+      try {
+        await updateMemberStatus(data.id, status);
+        const updated = await getScheduleById(data.id);
+        if (updated) setData(updated);
+      } catch {
+        // 실패해도 UI가 깨지지 않도록 — 필요 시 toast 추가
+      }
     });
   }
 
@@ -486,7 +519,7 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
                 </span>
               </div>
               <h1 className="text-[28px] lg:text-[36px] font-black text-ink tracking-tight leading-tight mb-2">
-                {schedule.title}
+                {data.title}
               </h1>
               <p className="text-[16px] text-ink-subtle">{date}</p>
               <p className="text-[22px] lg:text-[28px] font-black text-accent tracking-tight mt-1">
@@ -499,21 +532,21 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowEdit(true)}
-                  className="h-9 px-3 rounded-lg border border-hairline text-[13px] font-medium text-ink-muted
+                  className="h-11 px-3 rounded-lg border border-hairline text-[13px] font-medium text-ink-muted
                              hover:border-hairline-strong hover:text-ink transition-colors"
                 >
                   날짜·시간
                 </button>
                 <button
                   onClick={() => setShowReplace(true)}
-                  className="h-9 px-3 rounded-lg border border-hairline text-[13px] font-medium text-ink-muted
+                  className="h-11 px-3 rounded-lg border border-hairline text-[13px] font-medium text-ink-muted
                              hover:border-hairline-strong hover:text-ink transition-colors"
                 >
                   장소 변경
                 </button>
                 <button
                   onClick={() => setShowDelete(true)}
-                  className="h-9 px-3 rounded-lg border border-error-border text-[13px] font-medium text-error
+                  className="h-11 px-3 rounded-lg border border-error-border text-[13px] font-medium text-error
                              hover:bg-error-bg transition-colors"
                 >
                   삭제
@@ -523,7 +556,7 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowLeave(true)}
-                  className="h-9 px-3 rounded-lg border border-hairline text-[13px] font-medium text-ink-muted
+                  className="h-11 px-3 rounded-lg border border-hairline text-[13px] font-medium text-ink-muted
                              hover:border-hairline-strong hover:text-ink transition-colors"
                 >
                   나가기
@@ -544,24 +577,24 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
           <div className="bg-white rounded-2xl border border-hairline overflow-hidden shadow-sm">
             {/* Map */}
             <KakaoMap
-              lat={schedule.lat}
-              lng={schedule.lng}
-              placeName={schedule.placeName}
+              lat={data.lat}
+              lng={data.lng}
+              placeName={data.placeName}
               className="w-full h-[220px] lg:h-[280px]"
             />
             {/* Place info */}
             <div className="px-5 py-4">
               <p className="text-[16px] font-bold text-ink mb-0.5">
-                {schedule.placeName}
+                {data.placeName}
               </p>
               <p className="text-[13px] text-ink-subtle">
-                {schedule.placeAddress}
+                {data.placeAddress}
               </p>
-              {schedule.memo && (
+              {data.memo && (
                 <>
                   <div className="h-px bg-hairline my-3" />
                   <p className="text-[13px] text-ink-muted leading-relaxed">
-                    {schedule.memo}
+                    {data.memo}
                   </p>
                 </>
               )}
@@ -573,21 +606,21 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
         <section>
           <div className="flex items-center justify-between mb-4">
             <p className="text-[10px] font-bold text-ink-tertiary tracking-[3px] uppercase">
-              참가자 · {schedule.members.length}명
+              참가자 · {data.members.length}명
             </p>
             <div className="flex items-center gap-1.5 text-[11px] text-ink-tertiary">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-success" />
-              {schedule.members.filter((m) => m.status === "accepted").length}명
+              {data.members.filter((m) => m.status === "accepted").length}명
               수락
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {schedule.members.map((m) => (
+            {data.members.map((m) => (
               <ParticipantChip
                 key={m.id}
                 nickname={m.nickname}
                 status={m.status}
-                isMe={m.userId === schedule.currentUserId}
+                isMe={m.userId === data.currentUserId}
                 profileImage={m.profileImage}
               />
             ))}
@@ -604,6 +637,7 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
               <button
                 onClick={() => handleAttendance("accepted")}
                 disabled={isPending}
+                aria-pressed={myMember.status === "accepted"}
                 className={[
                   "flex-1 h-11 rounded-xl text-[14px] font-semibold border transition-all",
                   myMember.status === "accepted"
@@ -616,6 +650,7 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
               <button
                 onClick={() => handleAttendance("declined")}
                 disabled={isPending}
+                aria-pressed={myMember.status === "declined"}
                 className={[
                   "flex-1 h-11 rounded-xl text-[14px] font-semibold border transition-all",
                   myMember.status === "declined"
@@ -633,27 +668,31 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
       {/* Modals */}
       {showEdit && (
         <EditModal
-          schedule={schedule}
+          schedule={data}
           onClose={() => setShowEdit(false)}
-          onSaved={() => router.refresh()}
+          onSaved={async () => {
+            const updated = await getScheduleById(data.id);
+            if (updated) setData(updated);
+            setShowEdit(false);
+          }}
         />
       )}
       {showDelete && (
         <DeleteConfirm
-          roomCode={schedule.roomCode}
+          scheduleId={data.id}
           onClose={() => setShowDelete(false)}
         />
       )}
       {showReplace && (
         <ReplacePlaceConfirm
           scheduleId={schedule.id}
-          roomCode={schedule.roomCode}
+          roomCode={data.roomCode}
           onClose={() => setShowReplace(false)}
         />
       )}
       {showLeave && (
         <LeaveConfirm
-          roomCode={schedule.roomCode}
+          roomCode={data.roomCode}
           onClose={() => setShowLeave(false)}
         />
       )}

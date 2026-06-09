@@ -206,11 +206,15 @@ export function CalendarView({ schedules }: CalendarViewProps) {
 
   const cells = useMemo(() => getCalendarCells(year, month), [year, month]);
 
-  // 캘린더 날짜 셀 렌더링 -> selectedSchedules이 있으면 해당 날짜에 점 표시
-  const selectedSchedules = selectedKey ? (byDate.get(selectedKey) ?? []) : [];
-  const monthHasSchedules = cells
-    .filter((d) => d.getMonth() === month)
-    .some((d) => byDate.has(toDateKey(d)));
+  // Memoized to avoid recomputing on unrelated state changes (e.g. todayKey updates)
+  const selectedSchedules = useMemo(
+    () => (selectedKey ? (byDate.get(selectedKey) ?? []) : []),
+    [selectedKey, byDate],
+  );
+  const monthHasSchedules = useMemo(
+    () => cells.filter((d) => d.getMonth() === month).some((d) => byDate.has(toDateKey(d))),
+    [cells, month, byDate],
+  );
 
   function prevMonth() {
     if (month === 0) { setYear((y) => y - 1); setMonth(11); }
@@ -250,7 +254,7 @@ export function CalendarView({ schedules }: CalendarViewProps) {
           <button
             onClick={prevMonth}
             aria-label="이전 달"
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-ink-subtle hover:text-ink hover:bg-surface-3 transition-colors"
+            className="w-11 h-11 flex items-center justify-center rounded-lg text-ink-subtle hover:text-ink hover:bg-surface-3 transition-colors"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
               <path d="M9 2L4.5 7L9 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
@@ -267,7 +271,7 @@ export function CalendarView({ schedules }: CalendarViewProps) {
           <button
             onClick={nextMonth}
             aria-label="다음 달"
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-ink-subtle hover:text-ink hover:bg-surface-3 transition-colors"
+            className="w-11 h-11 flex items-center justify-center rounded-lg text-ink-subtle hover:text-ink hover:bg-surface-3 transition-colors"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
               <path d="M5 2L9.5 7L5 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />

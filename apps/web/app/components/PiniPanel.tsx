@@ -57,19 +57,22 @@ function PiniTypographicLoader() {
   const [idx, setIdx] = useState(0);
   const [show, setShow] = useState(true);
 
+  // Single interval drives both the fade-out and the subsequent text swap,
+  // eliminating the extra render cycle caused by the two-effect chain pattern.
   useEffect(() => {
-    const id = setInterval(() => setShow(false), 2400);
-    return () => clearInterval(id);
+    let t: ReturnType<typeof setTimeout> | undefined;
+    const id = setInterval(() => {
+      setShow(false);
+      t = setTimeout(() => {
+        setIdx((i) => (i + 1) % PINI_THOUGHTS.length);
+        setShow(true);
+      }, 300);
+    }, 2400);
+    return () => {
+      clearInterval(id);
+      clearTimeout(t);
+    };
   }, []);
-
-  useEffect(() => {
-    if (show) return;
-    const t = setTimeout(() => {
-      setIdx((i) => (i + 1) % PINI_THOUGHTS.length);
-      setShow(true);
-    }, 300);
-    return () => clearTimeout(t);
-  }, [show]);
 
   return (
     <div className="flex flex-col items-center justify-center flex-1 gap-6 px-10 py-20">
@@ -296,7 +299,7 @@ export function PiniPanel({
               {([0, 0.2, 0.4] as const).map((d) => (
                 <div
                   key={d}
-                  className="w-1 h-1 rounded-full bg-butter"
+                  className="w-1 h-1 rounded-full bg-accent"
                   style={{ animation: `dot-bounce 1.4s ease-in-out ${d}s infinite` }}
                 />
               ))}
@@ -324,7 +327,7 @@ export function PiniPanel({
           />
         </div>
 
-        {showConfirm && <ConfirmBar onConfirm={onConfirm} padded />}
+        {showConfirm && <ConfirmBar onConfirm={onConfirm!} padded />}
       </div>
     );
   }
@@ -370,7 +373,7 @@ export function PiniPanel({
                   {([0, 0.2, 0.4] as const).map((d) => (
                     <div
                       key={d}
-                      className="w-1.5 h-1.5 rounded-full bg-butter"
+                      className="w-1.5 h-1.5 rounded-full bg-accent"
                       style={{ animation: `dot-bounce 1.4s ease-in-out ${d}s infinite` }}
                     />
                   ))}

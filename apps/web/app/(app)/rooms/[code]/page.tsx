@@ -629,6 +629,7 @@ export default function RoomPage() {
   );
   const [locationSaved, setLocationSaved] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [isSavingLocation, setIsSavingLocation] = useState(false);
 
   /* ── PINI state ── */
   const [piniLoading, setPiniLoading] = useState(false);
@@ -649,6 +650,8 @@ export default function RoomPage() {
 
   const [myDates, setMyDates] = useState<string[]>([]);
   const [dateSaved, setDateSaved] = useState(false)
+  const [dateError, setDateError] = useState<string | null>(null);
+  const [scheduleCreateError, setScheduleCreateError] = useState<string | null>(null);
 
   const isDone = useScheduleStore(
     (s) => s.scheduleInfo !== null && s.scheduleInfo.roomCode === roomCode,
@@ -736,8 +739,43 @@ export default function RoomPage() {
       useRoomStore.getState().addActiveRoom(roomCode);
     }
 
-    participant();
-    checkAndWatch();
+    participant().catch(() => {
+      setIsLoading(false);
+    });
+    checkAndWatch().catch(() => {});
+
+    let pollIntervalId: ReturnType<typeof setInterval> | null = null;
+    let schedulePollIntervalId: ReturnType<typeof setInterval> | null = null;
+
+    function startPolling() {
+      pollIntervalId = setInterval(async () => {
+        try {
+          const { participants } = await getParticipants(roomCode);
+          setParticipants(participants);
+        } catch { /* 방 이탈·만료 등 일시적 오류는 무시하고 다음 주기에 재시도 */ }
+      }, 5000);
+
+      schedulePollIntervalId = setInterval(async () => {
+        try {
+          if (useScheduleStore.getState().scheduleInfo) return;
+          const existing = await getScheduleByRoomCode(roomCode);
+          if (existing) router.push(`/calendar/${existing.id}`);
+        } catch { /* 무시 */ }
+      }, 5000);
+    }
+
+    function stopPolling() {
+      if (pollIntervalId !== null) { clearInterval(pollIntervalId); pollIntervalId = null; }
+      if (schedulePollIntervalId !== null) { clearInterval(schedulePollIntervalId); schedulePollIntervalId = null; }
+    }
+
+    function handleVisibility() {
+      if (document.hidden) stopPolling();
+      else startPolling();
+    }
+
+    document.addEventListener("visibilitychange", handleVisibility);
+    startPolling();
 
     const pollInterval = setInterval(async () => {
       try {
@@ -756,8 +794,8 @@ export default function RoomPage() {
 
     return () => {
       active = false;
-      clearInterval(pollInterval);
-      clearInterval(schedulePollInterval);
+      stopPolling();
+      document.removeEventListener("visibilitychange", handleVisibility);
       useScheduleStore.getState().clearSchedule();
       useMapStore.getState().clearMap();
     };
@@ -803,22 +841,27 @@ export default function RoomPage() {
       return;
     }
     setLocationError(null);
-
-    const result = await savePreference({
-      roomCode,
-      abstractLocation: myLocation,
-      lat: myLat,
-      lng: myLng,
-      transports: myTransports ? [myTransports] : [],
-      distanceTolerance: myDistance ?? undefined,
-      atmospherePreference: myAtmosphere ?? undefined,
-    });
-    if (!result.ok) {
-      setLocationError(result.reason);
-      return;
+    setIsSavingLocation(true);
+    try {
+      const result = await savePreference({
+        roomCode,
+        abstractLocation: myLocation,
+        lat: myLat,
+        lng: myLng,
+        transports: myTransports ? [myTransports] : [],
+        distanceTolerance: myDistance ?? undefined,
+        atmospherePreference: myAtmosphere ?? undefined,
+      });
+      if (!result.ok) {
+        setLocationError(result.reason);
+        return;
+      }
+      setLocationSaved(true);
+    } catch {
+      setLocationError("저장 중 오류가 발생했어요. 다시 시도해주세요.");
+    } finally {
+      setIsSavingLocation(false);
     }
-
-    setLocationSaved(true);
   }
 
   async function handleRunPini() {
@@ -905,32 +948,37 @@ export default function RoomPage() {
   }) {
     if (!selectedPlace || !selectedPlace.placeId) return;
     setIsScheduleSubmitting(true);
-
-    const { id } = await createSchedule({
-      roomCode,
-      title: data.title,
-      placeName: selectedPlace.placeName,
-      placeAddress: selectedPlace.placeAddress,
-      lat: selectedPlace.lat,
-      lng: selectedPlace.lng,
-      scheduledAt: data.scheduledAt,
-      memo: data.memo,
-    });
-
-    setSchedule({
-      scheduleId: id,
-      roomCode,
-      placeName: selectedPlace.placeName,
-      placeAddress: selectedPlace.placeAddress,
-      lat: selectedPlace.lat,
-      lng: selectedPlace.lng,
-      title: data.title,
-      scheduledAt: data.scheduledAt,
-      memo: data.memo,
-    });
-    setPiniOpen(false);
-    setShowDateModal(false);
-    router.push(`/calendar/${id}`);
+    setScheduleCreateError(null);
+    try {
+      const { id } = await createSchedule({
+        roomCode,
+        title: data.title,
+        placeName: selectedPlace.placeName,
+        placeAddress: selectedPlace.placeAddress,
+        lat: selectedPlace.lat,
+        lng: selectedPlace.lng,
+        scheduledAt: data.scheduledAt,
+        memo: data.memo,
+      });
+      setSchedule({
+        scheduleId: id,
+        roomCode,
+        placeName: selectedPlace.placeName,
+        placeAddress: selectedPlace.placeAddress,
+        lat: selectedPlace.lat,
+        lng: selectedPlace.lng,
+        title: data.title,
+        scheduledAt: data.scheduledAt,
+        memo: data.memo,
+      });
+      setPiniOpen(false);
+      setShowDateModal(false);
+      router.push(`/calendar/${id}`);
+    } catch {
+      setScheduleCreateError("일정 저장에 실패했어요. 다시 시도해주세요.");
+    } finally {
+      setIsScheduleSubmitting(false);
+    }
   }
 
   function handleCopyCode() {
@@ -951,10 +999,14 @@ export default function RoomPage() {
   }
 
   async function handleExtend() {
-    await extendRoomLink(roomCode);
-    const newExpiry = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString();
-    setLinkExpiresAt(newExpiry);
-    setShowLinkSheet(false);
+    try {
+      await extendRoomLink(roomCode);
+      const newExpiry = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString();
+      setLinkExpiresAt(newExpiry);
+      setShowLinkSheet(false);
+    } catch {
+      // 실패해도 시트는 열린 채 유지해 재시도 가능하게 함
+    }
   }
 
   /* ── Confirmed view ── */
@@ -1259,9 +1311,11 @@ export default function RoomPage() {
                       size="md"
                       fullWidth
                       onClick={handleSaveLocation}
+                      loading={isSavingLocation}
+                      disabled={isSavingLocation}
                       className="mb-2"
                     >
-                      선호 저장하기
+                      {isSavingLocation ? "저장하는 중…" : "선호 저장하기"}
                     </Button>
                   </div>
                 )}
@@ -1315,13 +1369,17 @@ export default function RoomPage() {
                           fullWidth
                           className="mt-3"
                           onClick={async () => {
+                            setDateError(null);
                             const result = await saveAvailableDates(roomCode, myDates)
-                            if (!result.ok) { alert(result.reason); return }
+                            if (!result.ok) { setDateError(result.reason ?? "날짜 저장에 실패했어요"); return }
                             setDateSaved(true)
                           }}
                         >
                           날짜 저장하기
                         </Button>
+                        {dateError && (
+                          <p className="text-[12px] text-error mt-2" role="alert">{dateError}</p>
+                        )}
                       </div>
                     )}
                   </>
@@ -1476,6 +1534,7 @@ export default function RoomPage() {
           placeAddress={selectedPlace.placeAddress}
           onSubmit={handleScheduleCreate}
           isSubmitting={isScheduleSubmitting}
+          submitError={scheduleCreateError}
           onCancel={() => setShowDateModal(false)}
           roomCode={roomCode}
         />
