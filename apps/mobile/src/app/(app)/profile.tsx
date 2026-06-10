@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  TextInput, Alert, ActivityIndicator, Modal,
+  TextInput, Alert, ActivityIndicator, Modal, Image
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/auth';
 import { api } from '@/lib/api';
+import * as ImagePicker from 'expo-image-picker';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -16,6 +17,22 @@ export default function ProfileScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [nickname, setNickname] = useState(user?.nickname ?? '');
   const [saving, setSaving] = useState(false);
+  const [localPreview, setLocalPreview] = useState<string | null>(null);
+  const initial = (user?.nickname?.[0] ?? user?.email?.[0] ?? '?').toUpperCase();
+
+  // 이미지 선택 함수
+  async function handlePickImage() {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],  // 정사각형 크롭
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setLocalPreview(result.assets[0].uri);
+    }
+  }
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -25,10 +42,39 @@ export default function ProfileScreen() {
 
   async function handleSave() {
     if (!nickname.trim()) return;
+    let imageUrl: string | undefined;
     setSaving(true);
+
     try {
-      await api.patch('/profile', { nickname: nickname.trim() });
-      setUser(user ? { ...user, nickname: nickname.trim() } : null);
+      if (localPreview === 'DELETE') {
+        // 삭제 — null로 저장
+        if (user?.profileImage) {
+          const url = new URL(user.profileImage);
+          // pathname: /storage/v1/object/public/cluepot/user/xxx.jpg
+          const path = url.pathname.split('/cluepot/')[1]; // user/xxx.jpg
+          await supabase.storage.from('cluepot').remove([path]);
+        }
+        imageUrl = undefined;
+      } else if (localPreview) {
+        const response = await fetch(localPreview);
+        const blob = await response.blob();
+        const ext = blob.type.split('/')[1] ?? 'jpg';
+        const path = `user/${Date.now()}.${ext}`;
+        const { error } = await supabase.storage.from('cluepot').upload(path, blob);
+        if (error) throw new Error('이미지 업로드 실패');
+        imageUrl = supabase.storage.from('cluepot').getPublicUrl(path).data.publicUrl;
+      }
+
+      await api.patch('/profile', {
+        nickname: nickname.trim(),
+        profileImage: localPreview === 'DELETE' ? null : imageUrl,
+      });
+
+      setUser(user ? {
+        ...user,
+        nickname: nickname.trim(),
+        profileImage: localPreview === 'DELETE' ? null : (imageUrl ?? user.profileImage ?? null),
+      } : null);
       setModalVisible(false);
     } catch {
       Alert.alert('오류', '저장에 실패했어요. 다시 시도해주세요.');
@@ -37,14 +83,16 @@ export default function ProfileScreen() {
     }
   }
 
-  const initial = (user?.nickname?.[0] ?? user?.email?.[0] ?? '?').toUpperCase();
 
   return (
     <View style={styles.container}>
       {/* 아바타 */}
       <View style={styles.avatarSection}>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{initial}</Text>
+          {user?.profileImage
+            ? <Image source={{ uri: user.profileImage }} style={{ width: 72, height: 72, borderRadius: 36 }} />
+            : <Text style={styles.avatarText}>{initial}</Text>
+          }
         </View>
         <Text style={styles.nickname}>{user?.nickname}</Text>
         <Text style={styles.email}>{user?.email}</Text>
@@ -66,11 +114,35 @@ export default function ProfileScreen() {
       </TouchableOpacity>
 
       {/* 수정 모달 */}
-      <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={() => setModalVisible(false)}>
+      <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={() => { setModalVisible(false); setLocalPreview(null); }}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalSheet}>
             <View style={styles.modalHandle} />
             <Text style={styles.modalTitle}>프로필 수정</Text>
+
+            <Text style={styles.fieldLabel}>프로필 사진</Text>
+            <TouchableOpacity onPress={handlePickImage} style={{ alignSelf: 'center', marginBottom: 20 }}>
+              <View style={styles.avatar}>
+                {localPreview && localPreview !== 'DELETE'
+                  ? <Image
+                    source={{ uri: localPreview ?? user?.profileImage ?? '' }}
+                    style={{ width: 72, height: 72, borderRadius: 36 }}
+                  />
+                  : (user?.profileImage && localPreview !== 'DELETE')
+                    ? <Image
+                      source={{ uri: user?.profileImage ?? '' }}
+                      style={{ width: 72, height: 72, borderRadius: 36 }}
+                    />
+                    : <Text style={styles.avatarText}>{initial}</Text>
+                }
+              </View>
+            </TouchableOpacity>
+
+            {(user?.profileImage) && (
+              <TouchableOpacity onPress={() => setLocalPreview('DELETE')} style={{ alignSelf: 'center', marginBottom: 20 }}>
+                <Text style={styles.removeLabel}>이미지 삭제</Text>
+              </TouchableOpacity>
+            )}
 
             <Text style={styles.fieldLabel}>닉네임</Text>
             <TextInput
@@ -85,7 +157,7 @@ export default function ProfileScreen() {
             <View style={styles.modalActions}>
               <TouchableOpacity
                 style={styles.cancelBtn}
-                onPress={() => setModalVisible(false)}
+                onPress={() => { setModalVisible(false); setLocalPreview(null); }}
                 disabled={saving}
                 activeOpacity={0.8}
               >
@@ -145,4 +217,5 @@ const styles = StyleSheet.create({
   cancelBtnText: { fontSize: 15, fontWeight: '600', color: '#5A6A85' },
   saveBtn: { flex: 1, height: 48, borderRadius: 12, backgroundColor: '#7298C7', alignItems: 'center', justifyContent: 'center' },
   saveBtnText: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  removeLabel: { fontSize: 11, fontWeight: '700', color: '#E05555', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 },
 });
