@@ -8,6 +8,7 @@ import {
   Transport,
 } from "@/types/participant";
 import type { Participant } from "@/generated/prisma/client";
+import { Prisma } from "@/generated/prisma/client";
 
 export async function joinRoom(roomCode: string): Promise<{
   participantId: string;
@@ -28,6 +29,7 @@ export async function joinRoom(roomCode: string): Promise<{
 
   const participant = await prisma.$transaction(async (tx) => {
     const count = await tx.participant.count({ where: { roomCode } });
+
     return tx.participant.upsert({
       where: { roomCode_userId: { roomCode, userId } },
       update: { leftAt: null },
@@ -43,7 +45,10 @@ export async function joinRoom(roomCode: string): Promise<{
         room: { select: { linkExpiresAt: true, category: true, status: true } },
       },
     });
-  });
+  }, {
+    isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+  }
+);
 
   // isHost는 DB 컬럼을 기준으로 반환 (새로고침해도 정확함)
   // savedPreference는 기존에 저장한 선호가 있으면 반환 (새로고침 시 복원용)
@@ -56,13 +61,13 @@ export async function joinRoom(roomCode: string): Promise<{
     roomStatus: participant.room.status,
     savedPreference: hasSaved
       ? {
-          abstractLocation: participant.abstractLocation,
-          transports: participant.transports,
-          distanceTolerance: participant.distanceTolerance,
-          atmospherePreference: participant.atmospherePreference,
-          lat: participant.lat,
-          lng: participant.lng,
-        }
+        abstractLocation: participant.abstractLocation,
+        transports: participant.transports,
+        distanceTolerance: participant.distanceTolerance,
+        atmospherePreference: participant.atmospherePreference,
+        lat: participant.lat,
+        lng: participant.lng,
+      }
       : null,
   };
 }
@@ -147,13 +152,13 @@ export async function saveAvailableDates(roomCode: string, dates: string[]) {
   }
 
   if (dates.length > 5) {
-    return { ok: false, reason: '날짜는 최대 5개까지 선택할 수 있어요.'};
+    return { ok: false, reason: '날짜는 최대 5개까지 선택할 수 있어요.' };
   }
 
   // 기존 날짜 삭제 후 새로 저장 (replace 방식)
   await prisma.$transaction([
     prisma.availableDate.deleteMany({
-      where: { roomCode, userId}
+      where: { roomCode, userId }
     }),
     prisma.availableDate.createMany({
       data: dates.map((date) => ({
@@ -169,14 +174,22 @@ export async function getAvailableDates(roomCode: string) {
   const userId = await getCurrentUserId();
 
   const rows = await prisma.availableDate.findMany({
-      where: {roomCode, userId},
-      orderBy: { date: 'asc'}
+    where: { roomCode, userId },
+    orderBy: { date: 'asc' }
   })
 
   return rows.map((r) => r.date.toISOString().slice(0, 10))
 }
 
 export async function getRecommendedDates(roomCode: string) {
+  const userId = await getCurrentUserId();
+
+  const user = await prisma.participant.findUnique({
+    where: { roomCode_userId: { roomCode, userId } }
+  })
+
+  if (!user || user.leftAt !== null) throw new Error("이 방의 참가자가 아닙니다.")
+
   const rows = await prisma.availableDate.findMany({
     where: { roomCode }
   })

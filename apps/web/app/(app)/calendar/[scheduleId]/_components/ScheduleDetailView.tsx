@@ -117,11 +117,14 @@ function EditModal({
     }
     setError(null);
     start(async () => {
-      await updateSchedule(schedule.id, {
-        title: title.trim(),
-        scheduledAt: `${dt}:00+09:00`,
-        memo: memo || null,
-      });
+      await updateSchedule(
+        schedule.id,
+        {
+          title: title.trim(),
+          scheduledAt: `${dt}:00+09:00`,
+          memo: memo || null
+        },
+        schedule.roomCode);
       onSaved();
       onClose();
     });
@@ -433,6 +436,33 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
   const [showLeave, setShowLeave] = useState(false);
   const [isPending, start] = useTransition();
   const [showReplace, setShowReplace] = useState(false);
+
+  const router = useRouter();
+  useEffect(() => {
+    const scheduleId = schedule.id;
+
+    async function fetchLatest() {
+      const updated = await getScheduleById(scheduleId);
+      if (updated) setData(updated);
+    }
+
+    let interval = setInterval(fetchLatest, 5000);
+
+    function handleVisibility() {
+      if (document.hidden) {
+        clearInterval(interval);
+      } else {
+        fetchLatest();
+        interval = setInterval(fetchLatest, 5000);
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [schedule.id]);
 
   useEffect(() => {
     const scheduleId = schedule.id;

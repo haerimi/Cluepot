@@ -39,6 +39,8 @@ interface PiniRequestBody {
     participants: ParticipantInput[];
     category: string;
     excludePlaces?: string[];
+    meetingDate?: string;
+    participantCount?: number;
 }
 
 interface PerParticipantTime {
@@ -272,7 +274,7 @@ export async function POST(req: Request) {
 }
 
 async function runPini(req: Request) {
-    const { participants, category, excludePlaces } = (await req.json()) as PiniRequestBody;
+    const { participants, category, excludePlaces, meetingDate, participantCount } = (await req.json()) as PiniRequestBody;
 
     if (participants.length === 0) {
         throw new Error("참가자 정보가 없어요.");
@@ -398,6 +400,16 @@ ${participantDesc}
         ? `\n이미 추천된 장소이니 절대 포함하지 마세요: ${excludePlaces.join(", ")}`
         : "";
 
+    function getDayOfWeek(dateStr: string): string {
+        const days = ["일", "월", "화", "수", "목", "금", "토"];
+        return days[new Date(dateStr).getDay()] + "요일";
+    }
+
+    const meetingContext = meetingDate
+        ? `모임 날짜: ${meetingDate} (${getDayOfWeek(meetingDate)}), 참여 인원: ${participantCount}명`
+        : "";
+
+
     const aiRes = await generateWithRetry({
         model: "gemini-3.1-flash-lite",
         contents: `
@@ -405,6 +417,9 @@ ${participantDesc}
 참가자 선호 정보:
 ${participantDesc}
 ${excludeText}
+
+참가자 모임 날짜 정보:
+${meetingContext}
 
 [카카오맵에서 확인된 실존 장소 및 네이버 블로그 실방문 후기 데이터]
 ${reviewText}
