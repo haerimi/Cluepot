@@ -5,6 +5,8 @@ import {
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { api } from '@/lib/api';
+import { useAuthStore } from '@/store/auth';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -13,16 +15,19 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
+  const setUser = useAuthStore((s) => s.setUser);
 
   function handleLogin() {
     setLoading(true);
     setError('');
-    supabase.auth.signInWithPassword({ email, password }).then(({ error }) => {
+    supabase.auth.signInWithPassword({ email, password }).then(async ({ error }) => {
       setLoading(false);
       if (error) {
         setError('이메일 또는 비밀번호가 올바르지 않아요.');
         return;
       }
+      const { data } = await api.get('/profile');
+      setUser(data);
       router.replace('/(app)/home');
     });
   }
