@@ -465,9 +465,30 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
   }, [schedule.id]);
 
   useEffect(() => {
-    const interval = setInterval(() => router.refresh(), 5000);
-    return () => clearInterval(interval);
-  }, [router]);
+    const scheduleId = schedule.id;
+
+    async function fetchLatest() {
+      const updated = await getScheduleById(scheduleId);
+      if (updated) setData(updated);
+    }
+
+    let interval = setInterval(fetchLatest, 5000);
+
+    function handleVisibility() {
+      if (document.hidden) {
+        clearInterval(interval);
+      } else {
+        fetchLatest();
+        interval = setInterval(fetchLatest, 5000);
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [schedule.id]);
 
   function handleAttendance(status: "accepted" | "declined") {
     if (myMember?.status === status) return;
