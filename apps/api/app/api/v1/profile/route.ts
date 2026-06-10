@@ -24,3 +24,25 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: '서버 오류' }, { status: 500 });
   }
 }
+
+export async function GET(req: NextRequest) {
+  try {
+    const user = await getMobileUser(req);
+    if (!user) return NextResponse.json({ error: '인증 필요' }, { status: 401 });
+
+    const profile = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: {
+        id: true,
+        nickname: true,
+        email: true,
+        profileImage: true,
+      }
+    })
+
+    if (!profile) return NextResponse.json({ error: '유저 없음' }, { status: 404 });
+    return NextResponse.json(profile);
+  } catch {
+    return NextResponse.json({ error: '서버 오류' }, { status: 500 });
+  }
+}
