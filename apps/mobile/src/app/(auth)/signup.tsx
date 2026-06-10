@@ -16,13 +16,26 @@ export default function SignupScreen() {
 
   const router = useRouter();
 
-  // TODO: handleSignup
-  //   1. supabase.auth.signUp 호출
-  //   2. 성공 시 api.post('/auth/register', { id, email, nickname }) 로 Prisma user 생성
-  //   3. 완료 후 /(auth)/login 이동
   function handleSignup() {
+    setLoading(true);
+    setError('');
 
+    supabase.auth.signUp({ email, password }).then(async ({ data, error }) => {
+      setLoading(false);
+      if (error) {
+        setError('계정을 만들 수 없어요. 다시 시도해주세요.');
+        return;
+      }
+
+      await api.post('/auth/register', {
+        id: data.user?.id,
+        email,
+        nickname
+      });
+      router.replace('/(auth)/login');
+    });
   }
+
 
   return (
     <KeyboardAvoidingView
