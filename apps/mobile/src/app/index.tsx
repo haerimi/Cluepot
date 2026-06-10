@@ -2,16 +2,21 @@ import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@/store/auth';
+import { api } from '@/lib/api';
 
 export default function IndexScreen() {
   const router = useRouter();
+  const setUser = useAuthStore((s) => s.setUser)
 
   useEffect(() => {
     // TODO: supabase.auth.getSession()으로 세션 확인
     // TODO: 세션 있으면 router.replace('/(app)/home')
     // TODO: 세션 없으면 router.replace('/(auth)/login')
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
+        const { data } = await api.get('/profile');
+        setUser(data)
         router.replace('/(app)/home');
       } else {
         router.replace('/(auth)/login');
