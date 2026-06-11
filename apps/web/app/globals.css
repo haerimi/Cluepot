@@ -291,3 +291,91 @@ button {
   from { opacity: 0; transform: translateY(-6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* 랜딩 히어로 플로팅 패널 — 위아래 부유 */
+@keyframes float {
+  0%   { transform: translateY(16px); }
+  50%  { transform: translateY(0px); }
+  100% { transform: translateY(16px); }
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+/* 랜딩 페이지 다크 서피스 카드 */
+.surface-ladder-1 {
+  background-color: #0f1011;
+  border: 1px solid #23252a;
+}
+
+.surface-ladder-2 {
+  background-color: #141516;
+  border: 1px solid #34343a;
+}
+
+/* 랜딩 CTA 기본 버튼 — hover glow + active scale */
+.btn-primary-landing {
+  background: #5e6ad2;
+  color: white;
+  box-shadow: 0 4px 24px rgba(94, 106, 210, 0.25);
+  transition: background 0.15s ease, box-shadow 0.2s ease, transform 0.12s ease;
+}
+.btn-primary-landing:hover {
+  background: #6b78dc;
+  box-shadow: 0 4px 36px rgba(94, 106, 210, 0.48), 0 0 0 4px rgba(94, 106, 210, 0.12);
+}
+.btn-primary-landing:active {
+  transform: scale(0.97);
+}
+.btn-primary-landing:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(94, 106, 210, 0.5);
+}
+
+/* 랜딩 보조 버튼 */
+.btn-secondary-landing {
+  background: #141516;
+  color: #d0d6e0;
+  border: 1px solid #34343a;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.12s ease;
+}
+.btn-secondary-landing:hover {
+  background: #1e1e24;
+  border-color: #454652;
+  color: #f7f8f8;
+}
+.btn-secondary-landing:active {
+  transform: scale(0.97);
+}
+.btn-secondary-landing:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(94, 106, 210, 0.3);
+}
+
+/* 랜딩 Bento 카드 — hover lift */
+.bento-card {
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+.bento-card:hover {
+  border-color: #34343a;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+.bento-card-main:hover {
+  border-color: rgba(94, 106, 210, 0.4);
+  box-shadow: 0 8px 40px rgba(94, 106, 210, 0.08), 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* 랜딩 CTA 섹션 primary 버튼 pulse */
+@keyframes landing-cta-glow {
+  0%, 100% { box-shadow: 0 4px 24px rgba(94, 106, 210, 0.3); }
+  50%      { box-shadow: 0 4px 40px rgba(94, 106, 210, 0.55), 0 0 0 6px rgba(94, 106, 210, 0.1); }
+}
+.btn-cta-pulse {
+  animation: landing-cta-glow 2.8s ease-in-out infinite;
+}
+.btn-cta-pulse:hover {
+  animation: none;
+  background: #6b78dc;
+  box-shadow: 0 4px 40px rgba(94, 106, 210, 0.55), 0 0 0 4px rgba(94, 106, 210, 0.15);
+}
