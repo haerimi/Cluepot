@@ -6,6 +6,7 @@
   --color-surface: #F9FAF6;
   --color-surface-warm: #F0EDE7;
   --color-surface-subtle: #FDF6E3;
+  --color-surface-3: #EFF1F5;
   --color-dark: #1E2535;
 
   /* ── Accent — Blue Grey (primary) + Morning Butter (secondary) ── */
@@ -24,6 +25,7 @@
   --color-ink: #1A2033;
   --color-ink-muted: #5A6A85;
   --color-ink-subtle: #9AAABF;
+  --color-ink-tertiary: #B8C4D4;
   --color-ink-inverse: #FFFFFF;
 
   /* ── Borders ── */
