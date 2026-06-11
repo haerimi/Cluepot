@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView, ActivityIndicator,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { api } from '@/lib/api';
 
 type Schedule = {
@@ -47,6 +48,7 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string }
 };
 
 export default function CalendarScreen() {
+  const router = useRouter();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(true);
   const [year,  setYear]  = useState(() => new Date().getFullYear());
@@ -168,7 +170,7 @@ export default function CalendarScreen() {
             selectedSchedules.map((s) => {
               const status = STATUS_CONFIG[s.myStatus] ?? STATUS_CONFIG.pending;
               return (
-                <TouchableOpacity key={s.id} style={styles.scheduleCard} activeOpacity={0.8}>
+                <TouchableOpacity key={s.id} style={styles.scheduleCard} activeOpacity={0.8} onPress={() => router.push(`/calendar/${s.id}` as any)}>
                   <View style={styles.timeCol}>
                     <Text style={styles.timeText}>{formatTime(s.scheduledAt)}</Text>
                   </View>

@@ -20,6 +20,7 @@ export default function AppLayout() {
         <Drawer.Screen name="rooms/join" options={{ drawerLabel: '코드로 참가', title: '코드로 참가' }} />
         <Drawer.Screen name="profile" options={{ drawerLabel: '내 프로필', title: '내 프로필' }} />
         <Drawer.Screen name="rooms/[code]" options={{ drawerItemStyle: { display: 'none' } }} />
+        <Drawer.Screen name="calendar/[scheduleId]" options={{ drawerItemStyle: { display: 'none' } }} />
       </Drawer>
     </GestureHandlerRootView>
   );
