@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { LandingCtaButtons } from "./LandingShared";
 
 /**
  * 하단 CTA 섹션 — 카드형 박스 디자인
@@ -74,28 +74,14 @@ export function CtaSection() {
               분석 후 즉시 삭제되며, 카카오맵 기반으로 운영돼요.
             </p>
 
-            {/* CTA 버튼 — Link를 버튼 스타일로 직접 사용 (a > button 중첩 방지) */}
+            {/* CTA 버튼 쌍 — pulse 애니메이션, 큰 패딩 */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
-              <Link
-                href="/rooms/create"
-                className="btn-primary-landing btn-cta-pulse w-full sm:w-auto h-12 px-10 sm:px-12 text-[14px] font-semibold rounded-lg flex items-center justify-center gap-2 focus-visible:outline-none"
-              >
-                <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                  <path d="M7 1V13M1 7H13" stroke="white" strokeWidth="2.2" strokeLinecap="round" />
-                </svg>
-                새 모임 만들기
-              </Link>
-              <Link
-                href="/rooms/join"
-                className="btn-secondary-landing w-full sm:w-auto h-12 px-10 sm:px-12 text-[14px] font-medium rounded-lg flex items-center justify-center focus-visible:outline-none"
-              >
-                코드로 참가하기
-              </Link>
+              <LandingCtaButtons size="lg" pulse />
             </div>
 
             {/* 신뢰 문구 */}
             <p className="mt-6 text-[12px] text-[#454652]">
-              무료 · 회원가입 불필요 · 위치 데이터 저장 안 함
+              무료 · 위치 데이터 저장 안 함
             </p>
           </div>
         </div>

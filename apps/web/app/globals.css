@@ -380,6 +380,12 @@ button {
   box-shadow: 0 4px 40px rgba(94, 106, 210, 0.55), 0 0 0 4px rgba(94, 106, 210, 0.15);
 }
 
+/* 랜딩 페이지 공통 focus-visible ring — 개별 체인 반복 제거 */
+.focus-ring-landing:focus-visible {
+  outline: 2px solid #5e6ad2;
+  outline-offset: 2px;
+}
+
 /* ── Auth card: input focus ring ── */
 .focus-ring {
   transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),

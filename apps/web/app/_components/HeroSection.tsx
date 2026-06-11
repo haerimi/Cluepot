@@ -1,24 +1,27 @@
-import Link from "next/link";
+import { LandingCtaButtons } from "./LandingShared";
 
 /**
  * 히어로 섹션 — 중앙 정렬 헤드라인 + 하단 제품 UI 프리뷰
  * PiniHeroViz 대체: 다크 테마 앱 목업으로 서비스 핵심 가치 시각화
  */
 
+/* ── 모듈 스코프 정적 데이터 ────────────────────────────────── */
+const PARTICIPANTS = [
+  { emoji: "🐶", name: "강남구", done: true },
+  { emoji: "🐧", name: "마포구", done: true },
+  { emoji: "🐿️", name: "잠실", done: true },
+  { emoji: "🦊", name: "서초구", done: false },
+] as const;
+
+const PLACES = [
+  { name: "홍대입구역 카페거리", score: 94, width: "94%" },
+  { name: "신촌 문화공원 주변", score: 89, width: "89%" },
+] as const;
+
+const MOBILE_EMOJIS = ["🐶", "🐧", "🐿️"] as const;
+
 /* ── 앱 UI 목업 (히어로 스크린샷 대용) ─────────────────────── */
 function PiniUIMockup() {
-  const participants = [
-    { emoji: "🐶", name: "강남구", done: true },
-    { emoji: "🐧", name: "마포구", done: true },
-    { emoji: "🐿️", name: "잠실", done: true },
-    { emoji: "🦊", name: "서초구", done: false },
-  ];
-
-  const places = [
-    { name: "홍대입구역 카페거리", score: 94, width: "94%" },
-    { name: "신촌 문화공원 주변", score: 89, width: "89%" },
-  ];
-
   return (
     <div
       className="w-full overflow-hidden"
@@ -67,7 +70,7 @@ function PiniUIMockup() {
           <p className="text-[10px] font-semibold tracking-[2px] uppercase mb-2" style={{ color: "#454652" }}>
             참가자 현황
           </p>
-          {participants.map((p) => (
+          {PARTICIPANTS.map((p) => (
             <div
               key={p.name}
               className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg"
@@ -118,7 +121,7 @@ function PiniUIMockup() {
 
           {/* 추천 카드 목록 */}
           <div className="space-y-2 relative">
-            {places.map((place, i) => (
+            {PLACES.map((place, i) => (
               <div
                 key={place.name}
                 className="p-3 rounded-lg"
@@ -162,7 +165,7 @@ function PiniUIMockup() {
             {/* 모바일 전용: 참가자 카운트 칩 */}
             <div className="sm:hidden flex items-center gap-2 pt-1">
               <div className="flex -space-x-1.5">
-                {["🐶","🐧","🐿️"].map((e) => (
+                {MOBILE_EMOJIS.map((e) => (
                   <span key={e} className="text-sm">{e}</span>
                 ))}
               </div>
@@ -228,26 +231,12 @@ export function HeroSection() {
         </p>
       </div>
 
-      {/* CTA 버튼 — Link를 버튼 스타일로 직접 사용 (a > button 중첩 방지) */}
+      {/* CTA 버튼 쌍 */}
       <div
         className="relative z-10 flex flex-col sm:flex-row gap-3 w-full sm:w-auto mb-14 sm:mb-16"
         style={{ animation: "cinematic-up 0.75s ease-out 0.1s both" }}
       >
-        <Link
-          href="/rooms/create"
-          className="btn-primary-landing w-full sm:w-auto h-12 px-8 sm:px-10 text-[14px] font-semibold rounded-lg flex items-center justify-center gap-2 focus-visible:outline-none"
-        >
-          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-            <path d="M7 1V13M1 7H13" stroke="white" strokeWidth="2.2" strokeLinecap="round" />
-          </svg>
-          새 모임 만들기
-        </Link>
-        <Link
-          href="/rooms/join"
-          className="btn-secondary-landing w-full sm:w-auto h-12 px-8 sm:px-10 text-[14px] font-medium rounded-lg flex items-center justify-center focus-visible:outline-none"
-        >
-          코드로 참가하기
-        </Link>
+        <LandingCtaButtons size="md" />
       </div>
 
       {/* 제품 UI 프리뷰 */}

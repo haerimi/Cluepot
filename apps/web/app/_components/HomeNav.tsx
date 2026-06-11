@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { logout } from "@/app/actions/auth";
+import { BrandLogo } from "./LandingShared";
 
 /**
  * 랜딩 페이지 전용 네비게이션 바
@@ -16,7 +17,7 @@ export type HomeNavUser = {
 };
 
 export function HomeNav({ user }: Readonly<{ user: HomeNavUser | null }>) {
-  const displayName = user?.nickname || user?.email?.split("@")[0] || "";
+  const displayName = user?.nickname ?? "";
 
   return (
     <header
@@ -34,29 +35,16 @@ export function HomeNav({ user }: Readonly<{ user: HomeNavUser | null }>) {
         <Link
           href="/"
           aria-label="CluePot 홈으로"
-          className="flex items-center gap-2 transition-opacity hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5e6ad2] focus-visible:ring-offset-2 focus-visible:ring-offset-[#010102] rounded"
+          className="flex items-center gap-2 transition-opacity hover:opacity-75 focus-ring-landing rounded"
         >
-          <div
-            className="w-8 h-8 rounded flex items-center justify-center shrink-0"
-            style={{ background: "#5e6ad2" }}
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <rect x="2" y="2" width="5" height="5" rx="1" fill="white" fillOpacity="0.9" />
-              <rect x="9" y="2" width="5" height="5" rx="1" fill="white" fillOpacity="0.9" />
-              <rect x="2" y="9" width="5" height="5" rx="1" fill="white" fillOpacity="0.9" />
-              <rect x="9" y="9" width="5" height="5" rx="1" fill="white" fillOpacity="0.5" />
-            </svg>
-          </div>
-          <span className="text-[20px] sm:text-[22px] font-bold tracking-tight text-[#bdc2ff]">
-            CluePot
-          </span>
+          <BrandLogo size="md" />
         </Link>
 
         {/* 우측 액션 영역 */}
         <nav className="flex items-center gap-2 sm:gap-4" aria-label="메인 네비게이션">
           <Link
             href="/rooms/join"
-            className="hidden sm:block text-[13px] font-medium text-[#8a8f98] hover:text-[#d0d6e0] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5e6ad2] focus-visible:ring-offset-1 focus-visible:ring-offset-[#010102] rounded px-1"
+            className="hidden sm:block text-[13px] font-medium text-[#8a8f98] hover:text-[#d0d6e0] transition-colors duration-200 focus-ring-landing rounded px-1"
           >
             코드로 참가
           </Link>
@@ -65,13 +53,13 @@ export function HomeNav({ user }: Readonly<{ user: HomeNavUser | null }>) {
             <>
               <Link
                 href="/calendar"
-                className="hidden md:block text-[13px] font-medium text-[#8a8f98] hover:text-[#d0d6e0] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5e6ad2] rounded px-1"
+                className="hidden md:block text-[13px] font-medium text-[#8a8f98] hover:text-[#d0d6e0] transition-colors duration-200 focus-ring-landing rounded px-1"
               >
                 내 일정
               </Link>
               <Link
                 href="/rooms"
-                className="hidden md:block text-[13px] font-medium text-[#8a8f98] hover:text-[#d0d6e0] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5e6ad2] rounded px-1"
+                className="hidden md:block text-[13px] font-medium text-[#8a8f98] hover:text-[#d0d6e0] transition-colors duration-200 focus-ring-landing rounded px-1"
               >
                 내 모임
               </Link>
@@ -80,7 +68,7 @@ export function HomeNav({ user }: Readonly<{ user: HomeNavUser | null }>) {
               <div className="flex items-center gap-2">
                 <Link
                   href="/profile"
-                  className="flex items-center gap-2 px-2.5 h-9 rounded-full transition-colors hover:bg-[#1e1e24] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5e6ad2]"
+                  className="flex items-center gap-2 px-2.5 h-9 rounded-full transition-colors hover:bg-[#1e1e24] focus-ring-landing"
                   style={{ border: "1px solid #34343a" }}
                 >
                   <div
@@ -107,7 +95,7 @@ export function HomeNav({ user }: Readonly<{ user: HomeNavUser | null }>) {
                 <form action={logout}>
                   <button
                     type="submit"
-                    className="h-9 px-3 text-[12px] font-medium rounded-full border border-[#34343a] text-[#8a8f98] hover:text-[#d0d6e0] hover:border-[#454652] transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5e6ad2]"
+                    className="h-9 px-3 text-[12px] font-medium rounded-full border border-[#34343a] text-[#8a8f98] hover:text-[#d0d6e0] hover:border-[#454652] transition-colors duration-200 cursor-pointer focus-ring-landing"
                     style={{ background: "transparent" }}
                   >
                     로그아웃
@@ -119,13 +107,13 @@ export function HomeNav({ user }: Readonly<{ user: HomeNavUser | null }>) {
             <>
               <Link
                 href="/login"
-                className="h-9 px-4 text-[13px] font-medium rounded-lg border border-[#34343a] text-[#d0d6e0] hover:text-white hover:border-[#454652] hover:bg-[#1a1a1e] flex items-center transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5e6ad2]"
+                className="h-9 px-4 text-[13px] font-medium rounded-lg border border-[#34343a] text-[#d0d6e0] hover:text-white hover:border-[#454652] hover:bg-[#1a1a1e] flex items-center transition-colors duration-200 focus-ring-landing"
               >
                 로그인
               </Link>
               <Link
                 href="/rooms/create"
-                className="btn-primary-landing h-9 px-4 text-[13px] font-semibold rounded-lg flex items-center focus-visible:outline-none"
+                className="btn-primary-landing h-9 px-4 text-[13px] font-semibold rounded-lg flex items-center focus-ring-landing"
               >
                 새 모임 만들기
               </Link>

@@ -4,16 +4,34 @@
  * 각 카드는 기존 한글 콘텐츠를 재배치
  */
 
+/* ── 모듈 스코프 정적 데이터 ────────────────────────────────── */
+const VIZ_NODES = [
+  { x: "14%", y: "28%", label: "강남구" },
+  { x: "76%", y: "22%", label: "마포구" },
+  { x: "52%", y: "74%", label: "잠실" },
+  { x: "84%", y: "62%", label: "서초구" },
+] as const;
+
+const VIZ_CENTER = { x: "47%", y: "46%" } as const;
+
+const AVATARS = [
+  { label: "김도", color: "#3a4a9e" },
+  { label: "이수", color: "#2d5c8e" },
+  { label: "민준", color: "#3d6b6b" },
+  { label: "수아", color: "#6b3d6b" },
+  { label: "+8", color: "#2a292d" },
+] as const;
+
+const TRANSPORT_TAGS = ["🚶 도보", "🚇 지하철", "🚗 자가용"] as const;
+
+/* 아이콘 박스 스타일 — 4개 카드에서 공유 */
+const ICON_BOX_STYLE = {
+  background: "rgba(94,106,210,0.18)",
+  border: "1px solid rgba(94,106,210,0.25)",
+} as const;
+
 /* ── 알고리즘 시각화 (메인 카드 내 이미지 대용) ─────────────── */
 function AlgorithmViz() {
-  const nodes = [
-    { x: "14%",  y: "28%", label: "강남구" },
-    { x: "76%",  y: "22%", label: "마포구" },
-    { x: "52%",  y: "74%", label: "잠실"   },
-    { x: "84%",  y: "62%", label: "서초구" },
-  ];
-  const center = { x: "47%", y: "46%" };
-
   return (
     <div
       className="relative w-full h-44 rounded-lg overflow-hidden"
@@ -33,18 +51,18 @@ function AlgorithmViz() {
       <div
         className="absolute -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full pointer-events-none"
         style={{
-          left: center.x,
-          top: center.y,
+          left: VIZ_CENTER.x,
+          top: VIZ_CENTER.y,
           background: "radial-gradient(circle, rgba(94,106,210,0.2) 0%, transparent 70%)",
         }}
       />
 
       {/* SVG 연결선 */}
       <svg className="absolute inset-0 w-full h-full" style={{ overflow: "visible" }}>
-        {nodes.map((n) => (
+        {VIZ_NODES.map((n) => (
           <line
             key={n.label}
-            x1={center.x} y1={center.y}
+            x1={VIZ_CENTER.x} y1={VIZ_CENTER.y}
             x2={n.x} y2={n.y}
             stroke="#5e6ad2"
             strokeWidth="1"
@@ -58,8 +76,8 @@ function AlgorithmViz() {
       <div
         className="absolute w-9 h-9 rounded-full flex items-center justify-center -translate-x-1/2 -translate-y-1/2"
         style={{
-          left: center.x,
-          top: center.y,
+          left: VIZ_CENTER.x,
+          top: VIZ_CENTER.y,
           background: "#5e6ad2",
           boxShadow: "0 0 24px rgba(94,106,210,0.55), 0 0 8px rgba(94,106,210,0.4)",
         }}
@@ -68,7 +86,7 @@ function AlgorithmViz() {
       </div>
 
       {/* 참가자 노드 */}
-      {nodes.map((n) => (
+      {VIZ_NODES.map((n) => (
         <div
           key={n.label}
           className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1"
@@ -94,19 +112,12 @@ function AlgorithmViz() {
 
 /* ── 아바타 스택 ──────────────────────────────────────────── */
 function AvatarStack() {
-  const avatars = [
-    { label: "김도", color: "#3a4a9e" },
-    { label: "이수", color: "#2d5c8e" },
-    { label: "민준", color: "#3d6b6b" },
-    { label: "수아", color: "#6b3d6b" },
-    { label: "+8", color: "#2a292d" },
-  ];
   return (
     <div className="flex -space-x-2">
-      {avatars.map((a) => (
+      {AVATARS.map((a) => (
         <div
           key={a.label}
-          className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-semibold text-white shrink-0"
+          className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-semibold shrink-0"
           style={{
             background: a.color,
             border: "2px solid #0f1011",
@@ -151,7 +162,7 @@ export function BentoGrid() {
             <div>
               <div
                 className="w-11 h-11 rounded-xl flex items-center justify-center mb-5 text-xl"
-                style={{ background: "rgba(94,106,210,0.18)", border: "1px solid rgba(94,106,210,0.25)" }}
+                style={ICON_BOX_STYLE}
               >
                 ⚡
               </div>
@@ -181,7 +192,7 @@ export function BentoGrid() {
             <div className="flex-grow">
               <div
                 className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 text-lg"
-                style={{ background: "rgba(94,106,210,0.18)", border: "1px solid rgba(94,106,210,0.25)" }}
+                style={ICON_BOX_STYLE}
               >
                 🛡️
               </div>
@@ -209,7 +220,7 @@ export function BentoGrid() {
           >
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
-              style={{ background: "rgba(94,106,210,0.18)", border: "1px solid rgba(94,106,210,0.25)" }}
+              style={ICON_BOX_STYLE}
             >
               🚇
             </div>
@@ -228,7 +239,7 @@ export function BentoGrid() {
 
             {/* 교통수단 태그 */}
             <div className="flex gap-1.5 flex-wrap mt-auto pt-2">
-              {["🚶 도보", "🚇 지하철", "🚗 자가용"].map((t) => (
+              {TRANSPORT_TAGS.map((t) => (
                 <span
                   key={t}
                   className="text-[11px] font-medium px-2 py-1 rounded-full"
@@ -255,7 +266,7 @@ export function BentoGrid() {
             <div className="relative z-10 flex flex-col sm:flex-row sm:items-center gap-4">
               <div
                 className="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0"
-                style={{ background: "rgba(94,106,210,0.18)", border: "1px solid rgba(94,106,210,0.25)" }}
+                style={ICON_BOX_STYLE}
               >
                 💬
               </div>
