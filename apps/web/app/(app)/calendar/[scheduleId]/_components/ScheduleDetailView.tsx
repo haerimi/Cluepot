@@ -420,9 +420,12 @@ function ReplacePlaceConfirm({
 
 interface ScheduleDetailViewProps {
   schedule: ScheduleDetail;
+  /** "page": 독립 페이지 (기본값), "panel": 캘린더 우패널 인라인 */
+  variant?: "page" | "panel";
 }
 
-export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
+export function ScheduleDetailView({ schedule, variant = "page" }: ScheduleDetailViewProps) {
+  const isPanel = variant === "panel";
   const [data, setData] = useState(schedule);
 
   const { date, time } = formatDateTime(data.scheduledAt);
@@ -507,70 +510,83 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
       className="flex-1 min-h-0 overflow-y-auto"
       style={{ animation: "section-fade 0.4s ease-out both" }}
     >
-      {/* ── Cinematic header ── */}
-      <div className="px-6 lg:px-10 pt-8 pb-7 border-b border-hairline">
-        <div className="max-w-3xl mx-auto">
-          {/* Back link */}
-          <Link
-            href="/calendar"
-            className="inline-flex items-center gap-1.5 text-[12px] font-medium text-ink-subtle hover:text-ink transition-colors mb-6 group"
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 14 14"
-              fill="none"
-              aria-hidden="true"
-              className="group-hover:-translate-x-0.5 transition-transform"
+      {/* ── 헤더 ── */}
+      <div className={isPanel ? "px-5 pt-5 pb-5 border-b border-hairline" : "px-6 lg:px-10 pt-8 pb-7 border-b border-hairline"}>
+        <div className={isPanel ? "" : "max-w-3xl mx-auto"}>
+          {/* 뒤로가기 — page 모드에서만 표시 */}
+          {!isPanel && (
+            <Link
+              href="/calendar"
+              className="inline-flex items-center gap-1.5 text-[12px] font-medium text-ink-subtle hover:text-ink transition-colors mb-6 group"
             >
-              <path
-                d="M9 2.5L4.5 7L9 11.5"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            모임 일정
-          </Link>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                fill="none"
+                aria-hidden="true"
+                className="group-hover:-translate-x-0.5 transition-transform"
+              >
+                <path
+                  d="M9 2.5L4.5 7L9 11.5"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              모임 일정
+            </Link>
+          )}
 
           <div className="flex flex-col gap-4">
             <div>
+              {/* 확정된 모임 배지 */}
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-5 h-px bg-hairline-strong" />
+                <div className={isPanel ? "w-3 h-px bg-hairline-strong" : "w-5 h-px bg-hairline-strong"} />
                 <span className="text-[10px] font-bold text-ink-tertiary tracking-[3px] uppercase">
                   확정된 모임
                 </span>
               </div>
-              <h1 className="text-[28px] lg:text-[36px] font-black text-ink tracking-tight leading-tight mb-2">
+
+              {/* 제목 — panel에서는 축소 */}
+              <h1 className={
+                isPanel
+                  ? "text-[20px] font-black text-ink tracking-tight leading-tight mb-1.5"
+                  : "text-[28px] lg:text-[36px] font-black text-ink tracking-tight leading-tight mb-2"
+              }>
                 {data.title}
               </h1>
-              <p className="text-[16px] text-ink-subtle">{date}</p>
-              <p className="text-[22px] lg:text-[28px] font-black text-accent tracking-tight mt-1">
+              <p className={isPanel ? "text-[13px] text-ink-subtle" : "text-[16px] text-ink-subtle"}>{date}</p>
+              <p className={
+                isPanel
+                  ? "text-[18px] font-black text-accent tracking-tight mt-0.5"
+                  : "text-[22px] lg:text-[28px] font-black text-accent tracking-tight mt-1"
+              }>
                 {time}
               </p>
             </div>
 
-            {/* Creator actions */}
+            {/* 액션 버튼 */}
             {isCreator ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <button
                   onClick={() => setShowEdit(true)}
-                  className="h-11 px-3 rounded-lg border border-hairline text-[13px] font-medium text-ink-muted
+                  className="h-9 px-3 rounded-lg border border-hairline text-[12px] font-medium text-ink-muted
                              hover:border-hairline-strong hover:text-ink transition-colors"
                 >
                   날짜·시간
                 </button>
                 <button
                   onClick={() => setShowReplace(true)}
-                  className="h-11 px-3 rounded-lg border border-hairline text-[13px] font-medium text-ink-muted
+                  className="h-9 px-3 rounded-lg border border-hairline text-[12px] font-medium text-ink-muted
                              hover:border-hairline-strong hover:text-ink transition-colors"
                 >
                   장소 변경
                 </button>
                 <button
                   onClick={() => setShowDelete(true)}
-                  className="h-11 px-3 rounded-lg border border-error-border text-[13px] font-medium text-error
+                  className="h-9 px-3 rounded-lg border border-error-border text-[12px] font-medium text-error
                              hover:bg-error-bg transition-colors"
                 >
                   삭제
@@ -580,7 +596,7 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowLeave(true)}
-                  className="h-11 px-3 rounded-lg border border-hairline text-[13px] font-medium text-ink-muted
+                  className="h-9 px-3 rounded-lg border border-hairline text-[12px] font-medium text-ink-muted
                              hover:border-hairline-strong hover:text-ink transition-colors"
                 >
                   나가기
@@ -591,8 +607,8 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
         </div>
       </div>
 
-      {/* ── Body ── */}
-      <div className="max-w-3xl mx-auto px-6 lg:px-10 py-8 space-y-10">
+      {/* ── 바디 ── */}
+      <div className={isPanel ? "px-5 py-6 space-y-7" : "max-w-3xl mx-auto px-6 lg:px-10 py-8 space-y-10"}>
         {/* Place section */}
         <section>
           <p className="text-[10px] font-bold text-ink-tertiary tracking-[3px] uppercase mb-4">
@@ -604,7 +620,7 @@ export function ScheduleDetailView({ schedule }: ScheduleDetailViewProps) {
               lat={data.lat}
               lng={data.lng}
               placeName={data.placeName}
-              className="w-full h-[220px] lg:h-[280px]"
+              className={isPanel ? "w-full h-[160px]" : "w-full h-[220px] lg:h-[280px]"}
             />
             {/* Place info */}
             <div className="px-5 py-4">
