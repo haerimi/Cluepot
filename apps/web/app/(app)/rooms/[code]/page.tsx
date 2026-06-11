@@ -56,7 +56,6 @@ import {
 import { Button } from "@/app/components/ui/Button";
 import { Badge } from "@/app/components/ui/Badge";
 import { ParticipantCard } from "@/app/components/ParticipantCard";
-import { TransportPicker } from "@/app/components/TransportPicker";
 import { RecommendedPlace } from "@/types/recommendation";
 import { PiniPanel } from "@/app/components/PiniPanel";
 import { useMapStore } from "@/store/map";
@@ -68,13 +67,11 @@ import {
   getRecommendedDates,
   joinRoom,
   saveAvailableDates,
-  savePreference,
 } from "@/app/actions/participant";
 import { createSchedule, getScheduleByRoomCode } from "@/app/actions/schedule";
 import { useUserStore } from "@/store/user";
 import { extendRoomLink, checkRoomExists } from "@/app/actions/rooms";
 import { DateAvailabilityPicker } from "@/app/components/DateAvailabilityPicker";
-import { LocationSearchInput } from "@/app/components/LocationSearchInput";
 
 /* ── Inferred type from server action ────────────────────────────────── */
 
@@ -84,31 +81,7 @@ type ParticipantWithUser = Awaited<
 
 /* ── Picker option types ─────────────────────────────────────────────── */
 
-interface DistanceOption {
-  value: DistanceTolerance;
-  label: string;
-  emoji: string;
-  desc: string;
-}
 
-interface AtmosphereOption {
-  value: AtmospherePreference;
-  label: string;
-  emoji: string;
-}
-
-const DISTANCE_OPTIONS: DistanceOption[] = [
-  { value: "short", label: "짧게", emoji: "⚡", desc: "15분 이내" },
-  { value: "medium", label: "적당히", emoji: "🚶", desc: "30분 이내" },
-  { value: "far", label: "상관없어요", emoji: "🗺", desc: "멀어도 OK" },
-];
-
-const ATMOSPHERE_OPTIONS: AtmosphereOption[] = [
-  { value: "quiet", label: "조용한", emoji: "☕" },
-  { value: "lively", label: "활기찬", emoji: "🎵" },
-  { value: "cozy", label: "아늑한", emoji: "🕯" },
-  { value: "trendy", label: "트렌디한", emoji: "✨" },
-];
 
 /* ── Schedule confirmed view ─────────────────────────────────────────── */
 
@@ -629,8 +602,6 @@ export default function RoomPage() {
     null,
   );
   const [locationSaved, setLocationSaved] = useState(false);
-  const [locationError, setLocationError] = useState<string | null>(null);
-  const [isSavingLocation, setIsSavingLocation] = useState(false);
 
   /* ── PINI state ── */
   const [piniLoading, setPiniLoading] = useState(false);
@@ -820,51 +791,6 @@ export default function RoomPage() {
   const [piniError, setPiniError] = useState<string | null>(null);
   
   /* ── Handlers ── */
-
-  async function handleSaveLocation() {
-    if (!myLocation.trim()) {
-      setLocationError("지역명을 입력해주세요");
-      return;
-    }
-    if (myTransports === null) {
-      setLocationError("교통수단을 선택해주세요");
-      return;
-    }
-    if (!myDistance) {
-      setLocationError("이동 거리 선호를 선택해주세요");
-      return;
-    }
-    if (!myAtmosphere) {
-      setLocationError("분위기 선호를 선택해주세요");
-      return;
-    }
-    if (!myLat || !myLng) {
-      setLocationError("목록에서 장소를 선택해주세요");
-      return;
-    }
-    setLocationError(null);
-    setIsSavingLocation(true);
-    try {
-      const result = await savePreference({
-        roomCode,
-        abstractLocation: myLocation,
-        lat: myLat,
-        lng: myLng,
-        transports: myTransports ? [myTransports] : [],
-        distanceTolerance: myDistance ?? undefined,
-        atmospherePreference: myAtmosphere ?? undefined,
-      });
-      if (!result.ok) {
-        setLocationError(result.reason);
-        return;
-      }
-      setLocationSaved(true);
-    } catch {
-      setLocationError("저장 중 오류가 발생했어요. 다시 시도해주세요.");
-    } finally {
-      setIsSavingLocation(false);
-    }
-  }
 
   async function handleRunPini() {
     /* Open mobile sheet; desktop grid handles itself via hasResults */
@@ -1189,141 +1115,32 @@ export default function RoomPage() {
 
                 <div className="h-px bg-hairline mb-8" />
 
-                {/* Preference form */}
+                {/* 선호 미입력 시 — preferences 페이지로 이동 */}
                 {!locationSaved && (
-                  <div style={{ animation: "fade-up 0.4s ease-out both" }}>
-                    <p className="text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase mb-6">
-                      내 정보 알려주기
-                    </p>
-
-                    {/* Location */}
-                    <div className="mb-6">
-                      <label className="block text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase mb-3">
-                        출발 지역
-                      </label>
-                      <LocationSearchInput
-                        value={myLocation}
-                        error={!!locationError}
-                        onSelect={(result) => {
-                          setMyLocation(result.name);
-                          setMyLat(result.lat);
-                          setMyLng(result.lng);
-                          setLocationError(null);
-                        }}
-                      />
+                  <div
+                    className="flex flex-col items-center gap-4 py-6 px-4 bg-white rounded-2xl border border-hairline"
+                    style={{ animation: "fade-up 0.4s ease-out both" }}
+                  >
+                    <div className="w-12 h-12 rounded-full bg-accent-light flex items-center justify-center shrink-0">
+                      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+                        <path d="M11 2C7.68 2 5 4.68 5 8c0 4.67 6 12 6 12s6-7.33 6-12c0-3.32-2.68-6-6-6Z" stroke="#7298C7" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                        <circle cx="11" cy="8" r="2" stroke="#7298C7" strokeWidth="1.6"/>
+                      </svg>
                     </div>
-
-                    {/* Transport */}
-                    <div className="mb-6">
-                      <div className="flex items-center justify-between mb-3">
-                        <label className="text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase">
-                          이동 수단
-                        </label>
-                        <span className="text-[10px] text-ink-tertiary">
-                          오늘 이용할 수단 하나
-                        </span>
-                      </div>
-                      <TransportPicker
-                        value={myTransports}
-                        onChange={setMyTransports}
-                      />
+                    <div className="text-center">
+                      <p className="text-[14px] font-semibold text-ink mb-1">
+                        아직 선호를 입력하지 않았어요
+                      </p>
+                      <p className="text-[12px] text-ink-subtle leading-relaxed">
+                        출발지, 이동수단, 분위기 선호를 입력하면<br />피니가 최적 장소를 찾아드려요
+                      </p>
                     </div>
-
-                    {/* Distance */}
-                    <div className="mb-6">
-                      <label className="block text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase mb-3">
-                        이동 거리 선호
-                      </label>
-                      <div className="flex gap-2">
-                        {DISTANCE_OPTIONS.map((opt) => {
-                          const sel = myDistance === opt.value;
-                          return (
-                            <button
-                              key={opt.value}
-                              type="button"
-                              onClick={() => {
-                                setMyDistance(opt.value);
-                                setLocationError(null);
-                              }}
-                              className={[
-                                "flex flex-col items-center gap-1 flex-1 py-3 rounded-[10px] border text-center transition-all duration-150",
-                                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
-                                sel
-                                  ? "bg-accent-light border-accent shadow-[0_0_0_1px_#7298C7]"
-                                  : "bg-canvas border-hairline hover:border-hairline-strong hover:bg-surface-2",
-                              ].join(" ")}
-                            >
-                              <span className="text-xl leading-none">
-                                {opt.emoji}
-                              </span>
-                              <span
-                                className={[
-                                  "text-[11px] font-semibold leading-tight mt-0.5",
-                                  sel ? "text-accent" : "text-ink-muted",
-                                ].join(" ")}
-                              >
-                                {opt.label}
-                              </span>
-                              <span className="text-[10px] text-ink-subtle">
-                                {opt.desc}
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Atmosphere */}
-                    <div className="mb-6">
-                      <label className="block text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase mb-3">
-                        선호 분위기
-                      </label>
-                      <div className="flex gap-2">
-                        {ATMOSPHERE_OPTIONS.map((opt) => {
-                          const sel = myAtmosphere === opt.value;
-                          return (
-                            <button
-                              key={opt.value}
-                              type="button"
-                              onClick={() => {
-                                setMyAtmosphere(opt.value);
-                                setLocationError(null);
-                              }}
-                              className={[
-                                "flex flex-col items-center gap-1 flex-1 py-3 rounded-[10px] border text-center transition-all duration-150",
-                                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
-                                sel
-                                  ? "bg-accent-light border-accent shadow-[0_0_0_1px_#7298C7]"
-                                  : "bg-canvas border-hairline hover:border-hairline-strong hover:bg-surface-2",
-                              ].join(" ")}
-                            >
-                              <span className="text-xl leading-none">
-                                {opt.emoji}
-                              </span>
-                              <span
-                                className={[
-                                  "text-[11px] font-semibold leading-tight mt-0.5",
-                                  sel ? "text-accent" : "text-ink-muted",
-                                ].join(" ")}
-                              >
-                                {opt.label}
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
                     <Button
-                      variant="secondary"
+                      variant="primary"
                       size="md"
-                      fullWidth
-                      onClick={handleSaveLocation}
-                      loading={isSavingLocation}
-                      disabled={isSavingLocation}
-                      className="mb-2"
+                      onClick={() => router.push(`/rooms/${roomCode}/preferences`)}
                     >
-                      {isSavingLocation ? "저장하는 중…" : "선호 저장하기"}
+                      선호 입력하러 가기
                     </Button>
                   </div>
                 )}
@@ -1405,7 +1222,7 @@ export default function RoomPage() {
                       : `${names.slice(0, -1).join("님, ")}님, ${names.at(-1)}님`;
 
                   return (
-                    <div className="flex items-center gap-3 p-4 bg-white rounded-xl border border-hairline">
+                    <div className="flex mt-3 items-center gap-3 p-4 bg-white rounded-xl border border-hairline">
                       <span className="text-[20px]">⏳</span>
                       <div>
                         <p className="text-[13px] font-semibold text-ink-muted">
