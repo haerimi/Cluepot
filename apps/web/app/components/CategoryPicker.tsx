@@ -1,15 +1,15 @@
-﻿"use client";
+"use client";
 
 import { Category } from "@/types/room";
 
-interface CategoryOption {
+export interface CategoryOption {
   value: Category;
   label: string;
   emoji: string;
   desc: string;
 }
 
-const CATEGORIES: CategoryOption[] = [
+export const CATEGORIES: CategoryOption[] = [
   { value: "restaurant", label: "맛집",   emoji: "🍽", desc: "식사 모임" },
   { value: "cafe",       label: "카페",   emoji: "☕", desc: "가볍게 차 한잔" },
   { value: "bar",        label: "술집",   emoji: "🍺", desc: "술 한잔 하는 자리" },
@@ -38,9 +38,10 @@ export function CategoryPicker({ value, onChange }: CategoryPickerProps) {
             className={[
               "relative flex flex-col items-start gap-1 p-4 rounded-xl border text-left transition-all duration-150",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
+              "active:scale-[0.98]",
               isSelected
                 ? "bg-accent-light border-accent shadow-[0_0_0_1px_#7298C7]"
-                : "bg-white border-hairline hover:border-hairline-strong hover:bg-surface-2",
+                : "bg-white border-hairline hover:border-hairline-strong hover:bg-surface",
               isAloneInRow ? "col-span-2" : "",
             ]
               .filter(Boolean)
@@ -60,7 +61,7 @@ export function CategoryPicker({ value, onChange }: CategoryPickerProps) {
             </span>
             {isSelected && (
               <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-accent flex items-center justify-center">
-                <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                <svg width="10" height="8" viewBox="0 0 10 8" fill="none" aria-hidden="true">
                   <path
                     d="M1 3.5L3.8 6.5L9 1"
                     stroke="white"
