@@ -44,10 +44,13 @@
  * stores, so it stays in sync without any prop drilling.
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ScheduleDateModal } from "./_components/ScheduleDateModal";
+import { WaitingHostCenter } from "./_components/WaitingHostCenter";
+import { WaitingParticipantCenter } from "./_components/WaitingParticipantCenter";
+import { WaitingParticipantSidebar } from "./_components/WaitingParticipantSidebar";
 import {
   Transport,
   DistanceTolerance,
@@ -71,17 +74,12 @@ import {
 import { createSchedule, getScheduleByRoomCode } from "@/app/actions/schedule";
 import { useUserStore } from "@/store/user";
 import { extendRoomLink, checkRoomExists } from "@/app/actions/rooms";
-import { DateAvailabilityPicker } from "@/app/components/DateAvailabilityPicker";
 
 /* ── Inferred type from server action ────────────────────────────────── */
 
 type ParticipantWithUser = Awaited<
   ReturnType<typeof getParticipants>
 >["participants"][number];
-
-/* ── Picker option types ─────────────────────────────────────────────── */
-
-
 
 /* ── Schedule confirmed view ─────────────────────────────────────────── */
 
@@ -333,138 +331,6 @@ function RoomSummaryPane({
   );
 }
 
-/* ── PINI ambient sidebar — right side BEFORE results ────────────── */
-
-interface PiniAmbientSidebarProps {
-  readonly readyCount: number;
-  readonly totalCount: number;
-  readonly participants: ParticipantWithUser[];
-  readonly locationSaved: boolean;
-  readonly allReady: boolean;
-  readonly isCurrentUserHost: boolean;
-  readonly onRunPini: () => void;
-  readonly currentUserId: string | undefined;
-}
-
-function PiniAmbientSidebar({
-  readyCount,
-  totalCount,
-  participants,
-  locationSaved,
-  allReady,
-  isCurrentUserHost,
-  onRunPini,
-  currentUserId,
-}: PiniAmbientSidebarProps) {
-  return (
-    <div className="h-full overflow-y-auto px-8 py-10 bg-surface flex flex-col">
-      {/* Header */}
-      <div className="mb-7">
-        <h2 className="text-[15px] font-black text-ink tracking-tight mb-1.5">
-          PINI 조율
-        </h2>
-        <p className="text-[12px] text-ink-subtle leading-relaxed">
-          모든 참가자가 준비되면 공정한 장소를 찾아드려요
-        </p>
-      </div>
-
-      <div className="h-px bg-hairline mb-7" />
-
-      {/* Participant status */}
-      <div className="space-y-3 mb-7">
-        {participants.map((p) => {
-          const isReady =
-            p.userId === currentUserId
-              ? locationSaved
-              : Boolean(p.abstractLocation);
-          return (
-            <div key={p.id} className="flex items-center gap-3">
-              <div
-                className={[
-                  "w-2 h-2 rounded-full shrink-0",
-                  isReady ? "bg-success" : "bg-hairline-strong",
-                ].join(" ")}
-              />
-              <span className="text-[13px] text-ink-muted font-medium flex-1">
-                {p.user.nickname}
-              </span>
-              {p.isHost && (
-                <span className="text-[10px] font-bold text-accent bg-accent-light px-2 py-0.5 rounded-full">
-                  호스트
-                </span>
-              )}
-              <span className="text-[11px] text-ink-subtle">
-                {isReady ? "준비됨" : "대기 중"}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Progress bar */}
-      <div className="mb-7">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[11px] font-bold text-ink-subtle tracking-wide uppercase">
-            준비 현황
-          </span>
-          <span className="text-[12px] font-semibold text-ink">
-            {readyCount}/{totalCount}
-          </span>
-        </div>
-        <div className="h-1.5 rounded-full bg-hairline overflow-hidden">
-          <div
-            className="h-full rounded-full bg-accent transition-all duration-700"
-            style={{ width: `${(readyCount / totalCount) * 100}%` }}
-          />
-        </div>
-      </div>
-
-      {/* CTA */}
-      <div className="mt-auto">
-        {isCurrentUserHost ? (
-          <div
-            className="rounded-[10px] overflow-hidden"
-            style={
-              allReady
-                ? { animation: "cta-glow 2.4s ease-in-out infinite" }
-                : undefined
-            }
-          >
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              disabled={!allReady}
-              onClick={onRunPini}
-            >
-              {allReady
-                ? "PINI 실행하기"
-                : `대기 중 (${readyCount}/${totalCount})`}
-            </Button>
-          </div>
-        ) : (
-          <div className="flex items-center gap-3 py-3.5 px-4 bg-white rounded-xl border border-hairline">
-            <div className="flex gap-[3px] shrink-0">
-              {([0, 0.15, 0.3] as const).map((d) => (
-                <div
-                  key={d}
-                  className="w-1.5 h-1.5 rounded-full bg-accent"
-                  style={{
-                    animation: `dot-bounce 1.2s ease-in-out ${d}s infinite`,
-                  }}
-                />
-              ))}
-            </div>
-            <p className="text-[13px] font-medium text-ink-muted">
-              호스트가 준비하고 있어요
-            </p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 /* ── Room link sheet ─────────────────────────────────────────────────── */
 
 function formatRemaining(expiresAt: string | null): { text: string; warning: boolean } {
@@ -598,20 +464,35 @@ export default function RoomPage() {
   const [myLng, setMyLng] = useState(0);
   const [myTransports, setMyTransports] = useState<Transport | null>(null);
   const [myDistance, setMyDistance] = useState<DistanceTolerance | null>(null);
-  const [myAtmosphere, setMyAtmosphere] = useState<AtmospherePreference | null>(
-    null,
-  );
+  const [myAtmosphere, setMyAtmosphere] = useState<AtmospherePreference | null>(null);
   const [locationSaved, setLocationSaved] = useState(false);
+
+  /* ── 날짜 state ── */
+  const [myDates, setMyDates] = useState<string[]>([]);
+  const [dateSaved, setDateSaved] = useState(false);
+  const [dateError, setDateError] = useState<string | null>(null);
 
   /* ── PINI state ── */
   const [piniLoading, setPiniLoading] = useState(false);
   /* piniOpen is ONLY used for the mobile bottom-sheet variant */
   const [piniOpen, setPiniOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [excludedPlaces, setExcludedPlaces] = useState<string[]>([]);
+  const [piniError, setPiniError] = useState<string | null>(null);
 
-  /* ── Date modal state ── */
+  /* ── 모달 state ── */
   const [showDateModal, setShowDateModal] = useState(false);
   const [isScheduleSubmitting, setIsScheduleSubmitting] = useState(false);
+  const [scheduleCreateError, setScheduleCreateError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [showLinkSheet, setShowLinkSheet] = useState(false);
+
+  /* ── 방 메타 state ── */
+  const [participants, setParticipants] = useState<ParticipantWithUser[]>([]);
+  const [isHost, setIsHost] = useState(false);
+  const [roomStatus, setRoomStatus] = useState<string>("waiting");
+  const [isLoading, setIsLoading] = useState(true);
+  const [linkExpiresAt, setLinkExpiresAt] = useState<string | null>(null);
+  const [category, setCategory] = useState<string>('');
 
   /* ── Zustand ── */
   const piniPlaces = useMapStore((s) => s.recommendedPlaces);
@@ -620,26 +501,16 @@ export default function RoomPage() {
   const setPlace = useMapStore((s) => s.setPlaces);
   const clearMap = useMapStore((s) => s.clearMap);
 
-  const [myDates, setMyDates] = useState<string[]>([]);
-  const [dateSaved, setDateSaved] = useState(false)
-  const [dateError, setDateError] = useState<string | null>(null);
-  const [scheduleCreateError, setScheduleCreateError] = useState<string | null>(null);
-
-  const isDone = useScheduleStore(
-    (s) => s.scheduleInfo !== null && s.scheduleInfo.roomCode === roomCode,
-  );
+  // isDone: scheduleInfo에서 파생 — 별도 셀렉터 불필요
   const scheduleInfo = useScheduleStore((s) => s.scheduleInfo);
   const setSchedule = useScheduleStore((s) => s.setSchedule);
-  const [participants, setParticipants] = useState<ParticipantWithUser[]>([]);
-  const [isHost, setIsHost] = useState(false);
-  const [roomStatus, setRoomStatus] = useState<string>("waiting");
-  const [isLoading, setIsLoading] = useState(true);
-  const [linkExpiresAt, setLinkExpiresAt] = useState<string | null>(null);
-  const [showLinkSheet, setShowLinkSheet] = useState(false);
-  const [category, setCategory] = useState<string>('');
+  const isDone = scheduleInfo !== null && scheduleInfo.roomCode === roomCode;
 
   const currentUserId = useUserStore((s) => s.userInfo?.myId);
-  const isMe = (p: ParticipantWithUser) => p.userId === currentUserId;
+  const isMe = useCallback(
+    (p: ParticipantWithUser) => p.userId === currentUserId,
+    [currentUserId],
+  );
 
 
   useEffect(() => {
@@ -749,21 +620,6 @@ export default function RoomPage() {
     document.addEventListener("visibilitychange", handleVisibility);
     startPolling();
 
-    const pollInterval = setInterval(async () => {
-      try {
-        const { participants } = await getParticipants(roomCode);
-        setParticipants(participants);
-      } catch { /* 방 이탈·만료 등 일시적 오류는 무시하고 다음 주기에 재시도 */ }
-    }, 5000);
-
-    const schedulePollInterval = setInterval(async () => {
-      try {
-        if (useScheduleStore.getState().scheduleInfo) return;
-        const existing = await getScheduleByRoomCode(roomCode);
-        if (existing) router.push(`/calendar/${existing.id}`);
-      } catch { /* 무시 */ }
-    }, 5000);
-
     return () => {
       active = false;
       stopPolling();
@@ -778,17 +634,15 @@ export default function RoomPage() {
   ).length;
   const totalCount = participants.length;
   const allReady = totalCount > 0 && readyCount === totalCount;
-  /*
+  // progress를 한 곳에서 계산해 WaitingHostCenter·WaitingParticipantSidebar에 전달
+  const readyProgress = totalCount > 0 ? (readyCount / totalCount) * 100 : 0;
 
+  /*
    * hasResults drives the grid transition.
    * True as soon as PINI fires (loading or done) so the pane expands
    * immediately, giving the user a spatial cue that results are coming.
    */
   const hasResults = piniLoading || piniPlaces.length > 0;
-
-  // 이전 추천장소 제외
-  const [excludedPlaces, setExcludedPlaces] = useState<string[]>([]);
-  const [piniError, setPiniError] = useState<string | null>(null);
   
   /* ── Handlers ── */
 
@@ -932,6 +786,14 @@ export default function RoomPage() {
     setExcludedPlaces([]);  // 선호 바꾸면 제외 목록도 초기화
   }
 
+  // 날짜 저장 — WaitingParticipantCenter에서 호출
+  async function handleSaveDates() {
+    setDateError(null);
+    const result = await saveAvailableDates(roomCode, myDates);
+    if (!result.ok) { setDateError(result.reason ?? "날짜 저장에 실패했어요"); return; }
+    setDateSaved(true);
+  }
+
   async function handleExtend() {
     try {
       await extendRoomLink(roomCode);
@@ -1059,184 +921,138 @@ export default function RoomPage() {
               onResetPreference={handleResetPlace}
             />
           ) : (
-            /* ── Participant preferences (before results) ── */
+            /* ── 대기실 (before results) ── */
             <div className="px-6 lg:px-10 py-8 lg:py-10">
-              <div className="flex-1 flex flex-col min-h-0">
-                {/* Participants */}
-                <div className="mb-8">
-                  <div className="flex items-center gap-3 mb-5">
-                    <p className="text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase">
-                      참가자
-                    </p>
-                    <span className="text-[11px] font-medium text-ink-subtle">
-                      {readyCount}/{totalCount}명 준비 완료
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    {isLoading
-                      ? /* Skeleton while joinRoom + getParticipants resolve */
-                      [0, 1].map((i) => (
-                        <div
-                          key={i}
-                          className="h-12 rounded-xl bg-surface-3 animate-pulse"
-                        />
-                      ))
-                      : participants.map((p, idx) => (
-                        <ParticipantCard
-                          key={p.id}
-                          nickname={p.user.nickname}
-                          isHost={p.isHost}
-                          abstractLocation={
-                            isMe(p)
-                              ? locationSaved
-                                ? myLocation
-                                : undefined
-                              : (p.abstractLocation ?? undefined)
-                          }
-                          transports={
-                            isMe(p)
-                              ? locationSaved && myTransports
-                                ? [myTransports]
-                                : []
-                              : (p.transports as Transport[])
-                          }
-                          isReady={
-                            isMe(p)
-                              ? locationSaved
-                              : Boolean(p.abstractLocation)
-                          }
-                          isMe={isMe(p)}
-                          animationDelay={`${idx * 0.06}s`}
-                          profileImage={p.user.profileImage}
-                        />
-                      ))}
-                  </div>
+
+              {/* 모바일 전용: 참가자 목록 (데스크톱은 WaitingParticipantSidebar에서 표시) */}
+              <div className="lg:hidden mb-8">
+                <div className="flex items-center gap-3 mb-5">
+                  <p className="text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase">
+                    참가자
+                  </p>
+                  <span className="text-[11px] font-medium text-ink-subtle">
+                    {readyCount}/{totalCount}명 준비 완료
+                  </span>
                 </div>
-
-                <div className="h-px bg-hairline mb-8" />
-
-                {/* 선호 미입력 시 — preferences 페이지로 이동 */}
-                {!locationSaved && (
-                  <div
-                    className="flex flex-col items-center gap-4 py-6 px-4 bg-white rounded-2xl border border-hairline"
-                    style={{ animation: "fade-up 0.4s ease-out both" }}
-                  >
-                    <div className="w-12 h-12 rounded-full bg-accent-light flex items-center justify-center shrink-0">
-                      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-                        <path d="M11 2C7.68 2 5 4.68 5 8c0 4.67 6 12 6 12s6-7.33 6-12c0-3.32-2.68-6-6-6Z" stroke="#7298C7" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                        <circle cx="11" cy="8" r="2" stroke="#7298C7" strokeWidth="1.6"/>
-                      </svg>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-[14px] font-semibold text-ink mb-1">
-                        아직 선호를 입력하지 않았어요
-                      </p>
-                      <p className="text-[12px] text-ink-subtle leading-relaxed">
-                        출발지, 이동수단, 분위기 선호를 입력하면<br />피니가 최적 장소를 찾아드려요
-                      </p>
-                    </div>
-                    <Button
-                      variant="primary"
-                      size="md"
-                      onClick={() => router.push(`/rooms/${roomCode}/preferences`)}
-                    >
-                      선호 입력하러 가기
-                    </Button>
-                  </div>
-                )}
-
-                {locationSaved && (
-                  <>
-                    {/* 선호 저장 확인 */}
-                    <div className="flex items-center gap-3 p-4 bg-success-bg rounded-xl border border-success/20 mb-4"
-                      style={{ animation: "fade-up 0.3s ease-out both" }}
-                    >
-                      <span className="text-[20px]">✅</span>
-                      <div className="flex-1">
-                        <p className="text-[14px] font-semibold text-success-text">선호가 저장됐어요!</p>
-                        <p className="text-[12px] text-success">모든 참가자가 준비되면 PINI를 실행해요</p>
-                      </div>
-                      <button onClick={handleResetPlace} className="ml-auto text-[12px] text-success-text underline underline-offset-2 shrink-0">
-                        수정
-                      </button>
-                    </div>
-
-                    {/* 날짜 저장됨 */}
-                    {dateSaved ? (
-                      <div className="flex items-start gap-3 p-4 bg-accent-light rounded-xl border border-accent/20 mb-4"
-                        style={{ animation: "fade-up 0.3s ease-out both" }}
-                      >
-                        <span className="text-[20px]">📅</span>
-                        <div className="flex-1">
-                          <p className="text-[14px] font-semibold text-accent">날짜가 저장됐어요!</p>
-                          <p className="text-[12px] text-accent-muted mt-1">
-                            {myDates.map(d => d.slice(5).replace("-", "/")).join(", ")}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => setDateSaved(false)}
-                          className="ml-auto text-[12px] text-accent underline underline-offset-2 shrink-0"
-                        >
-                          수정
-                        </button>
-                      </div>
-                    ) : (
-                      /* 날짜 선택 */
-                      <div className="mb-4" style={{ animation: "fade-up 0.3s ease-out both" }}>
-                        <label className="block text-[11px] font-bold text-ink-subtle tracking-[2px] uppercase mb-3">
-                          가능한 날짜{" "}
-                          <span className="text-ink-subtle font-normal normal-case tracking-normal">(최대 5개)</span>
-                        </label>
-                        <DateAvailabilityPicker value={myDates} onChange={setMyDates} />
-                        <Button
-                          variant="secondary"
-                          size="md"
-                          fullWidth
-                          className="mt-3"
-                          onClick={async () => {
-                            setDateError(null);
-                            const result = await saveAvailableDates(roomCode, myDates)
-                            if (!result.ok) { setDateError(result.reason ?? "날짜 저장에 실패했어요"); return }
-                            setDateSaved(true)
-                          }}
-                        >
-                          날짜 저장하기
-                        </Button>
-                        {dateError && (
-                          <p className="text-[12px] text-error mt-2" role="alert">{dateError}</p>
-                        )}
-                      </div>
-                    )}
-                  </>
-                )}
-
-                {/* Waiting hint */}
-                {!allReady && (() => {
-                  const notReady = participants.filter((p) =>
-                    p.userId === currentUserId ? !locationSaved : !p.abstractLocation
-                  );
-                  const names = notReady.map((p) => p.user.nickname);
-                  const nameText =
-                    names.length === 1
-                      ? `${names[0]}님`
-                      : `${names.slice(0, -1).join("님, ")}님, ${names.at(-1)}님`;
-
-                  return (
-                    <div className="flex mt-3 items-center gap-3 p-4 bg-white rounded-xl border border-hairline">
-                      <span className="text-[20px]">⏳</span>
-                      <div>
-                        <p className="text-[13px] font-semibold text-ink-muted">
-                          참가자 대기 중
-                        </p>
-                        <p className="text-[12px] text-ink-subtle gap-3">
-                          {nameText}이 입력하면 PINI를 실행할 수 있어요
-                        </p>
-                      </div>
-                    </div>
-                  );
-
-                })()}
+                <div className="space-y-2">
+                  {isLoading
+                    ? /* Skeleton while joinRoom + getParticipants resolve */
+                    [0, 1].map((i) => (
+                      <div
+                        key={i}
+                        className="h-12 rounded-xl bg-surface-3 animate-pulse"
+                      />
+                    ))
+                    : participants.map((p, idx) => (
+                      <ParticipantCard
+                        key={p.id}
+                        nickname={p.user.nickname}
+                        isHost={p.isHost}
+                        abstractLocation={
+                          isMe(p)
+                            ? locationSaved
+                              ? myLocation
+                              : undefined
+                            : (p.abstractLocation ?? undefined)
+                        }
+                        transports={
+                          isMe(p)
+                            ? locationSaved && myTransports
+                              ? [myTransports]
+                              : []
+                            : (p.transports as Transport[])
+                        }
+                        isReady={
+                          isMe(p)
+                            ? locationSaved
+                            : Boolean(p.abstractLocation)
+                        }
+                        isMe={isMe(p)}
+                        animationDelay={`${idx * 0.06}s`}
+                        profileImage={p.user.profileImage}
+                      />
+                    ))}
+                </div>
+                <div className="h-px bg-hairline mt-8" />
               </div>
+
+              {/* 메인 액션 영역 — 선호 미입력 / 호스트 / 참가자 분기 */}
+              {!locationSaved ? (
+                /* 선호 미입력 시 — preferences 페이지로 이동 */
+                <div
+                  className="flex flex-col items-center gap-4 py-6 px-4 bg-white rounded-2xl border border-hairline mt-0 lg:mt-6"
+                  style={{ animation: "fade-up 0.4s ease-out both" }}
+                >
+                  <div className="w-12 h-12 rounded-full bg-accent-light flex items-center justify-center shrink-0">
+                    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+                      <path d="M11 2C7.68 2 5 4.68 5 8c0 4.67 6 12 6 12s6-7.33 6-12c0-3.32-2.68-6-6-6Z" stroke="#7298C7" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                      <circle cx="11" cy="8" r="2" stroke="#7298C7" strokeWidth="1.6"/>
+                    </svg>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-[14px] font-semibold text-ink mb-1">
+                      아직 선호를 입력하지 않았어요
+                    </p>
+                    <p className="text-[12px] text-ink-subtle leading-relaxed">
+                      출발지, 이동수단, 분위기 선호를 입력하면<br />피니가 최적 장소를 찾아드려요
+                    </p>
+                  </div>
+                  <Button
+                    variant="primary"
+                    size="md"
+                    onClick={() => router.push(`/rooms/${roomCode}/preferences`)}
+                  >
+                    선호 입력하러 가기
+                  </Button>
+                </div>
+              ) : isHost ? (
+                /* 호스트 전용 대기 패널 */
+                <WaitingHostCenter
+                  readyCount={readyCount}
+                  totalCount={totalCount}
+                  allReady={allReady}
+                  progress={readyProgress}
+                  onRunPini={handleRunPini}
+                  onResetPreference={handleResetPlace}
+                />
+              ) : (
+                /* 참가자 전용 대기 패널 */
+                <WaitingParticipantCenter
+                  myDates={myDates}
+                  dateSaved={dateSaved}
+                  dateError={dateError}
+                  onChangeDates={setMyDates}
+                  onSaveDates={handleSaveDates}
+                  onResetDates={() => setDateSaved(false)}
+                  onResetPreference={handleResetPlace}
+                />
+              )}
+
+              {/* 모바일 전용: 선호 미입력 상태에서 대기 중인 참가자 힌트 */}
+              {!locationSaved && !allReady && (() => {
+                const notReady = participants.filter((p) =>
+                  p.userId === currentUserId ? !locationSaved : !p.abstractLocation
+                );
+                const names = notReady.map((p) => p.user.nickname);
+                const nameText =
+                  names.length === 1
+                    ? `${names[0]}님`
+                    : `${names.slice(0, -1).join("님, ")}님, ${names.at(-1)}님`;
+                return (
+                  <div className="flex mt-4 items-center gap-3 p-4 bg-white rounded-xl border border-hairline">
+                    <span className="text-[20px]" aria-hidden="true">⏳</span>
+                    <div>
+                      <p className="text-[13px] font-semibold text-ink-muted">
+                        참가자 대기 중
+                      </p>
+                      <p className="text-[12px] text-ink-subtle">
+                        {nameText}이 입력하면 PINI를 실행할 수 있어요
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
+
             </div>
           )}
         </div>
@@ -1265,18 +1081,18 @@ export default function RoomPage() {
             />
           ) : (
             /*
-             * PINI ambient sidebar — shows participant readiness and
-             * the host CTA before any results have been requested.
+             * 참가자 목록 사이드바 — PINI 결과 도착 전 참가자 준비 현황 표시.
+             * WaitingParticipantSidebar가 PiniAmbientSidebar를 대체.
              */
-            <PiniAmbientSidebar
+            <WaitingParticipantSidebar
+              participants={participants}
+              currentUserId={currentUserId}
+              locationSaved={locationSaved}
               readyCount={readyCount}
               totalCount={totalCount}
-              participants={participants}
-              locationSaved={locationSaved}
+              progress={readyProgress}
               allReady={allReady}
-              isCurrentUserHost={isHost}
-              onRunPini={handleRunPini}
-              currentUserId={currentUserId}
+              onShowInvite={() => setShowLinkSheet(true)}
             />
           )}
         </div>
