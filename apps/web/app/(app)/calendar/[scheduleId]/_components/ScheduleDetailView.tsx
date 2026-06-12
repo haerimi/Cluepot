@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useTransition, useRef, useCallback } from "react";
 import Link from "next/link";
 import { KakaoMap } from "@/app/components/KakaoMap";
 import { Button } from "@/app/components/ui/Button";
@@ -38,7 +38,7 @@ function toInputDatetime(iso: string) {
   return kst.toISOString().slice(0, 16);
 }
 
-/* ── Participant chip ────────────────────────────────────────────────────── */
+/* ── Participant chip (panel 전용) ───────────────────────────────────────── */
 
 function ParticipantChip({
   nickname,
@@ -440,6 +440,24 @@ export function ScheduleDetailView({ schedule, variant = "page" }: ScheduleDetai
   const [isPending, start] = useTransition();
   const [showReplace, setShowReplace] = useState(false);
 
+  /* 마우스 시차 효과 (page 모드 전용) */
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!cardRef.current) return;
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+    const moveX = (e.clientX - centerX) / 55;
+    const moveY = (e.clientY - centerY) / 55;
+    cardRef.current.style.transform = `translate3d(${moveX}px, ${moveY}px, 0)`;
+  }, []);
+
+  useEffect(() => {
+    if (isPanel) return;
+    document.addEventListener("mousemove", handleMouseMove);
+    return () => document.removeEventListener("mousemove", handleMouseMove);
+  }, [isPanel, handleMouseMove]);
+
   useEffect(() => {
     const scheduleId = schedule.id;
 
@@ -505,71 +523,32 @@ export function ScheduleDetailView({ schedule, variant = "page" }: ScheduleDetai
     });
   }
 
-  return (
-    <div
-      className="flex-1 min-h-0 overflow-y-auto"
-      style={{ animation: "section-fade 0.4s ease-out both" }}
-    >
-      {/* ── 헤더 ── */}
-      <div className={isPanel ? "px-5 pt-5 pb-5 border-b border-hairline" : "px-6 lg:px-10 pt-8 pb-7 border-b border-hairline"}>
-        <div className={isPanel ? "" : "max-w-3xl mx-auto"}>
-          {/* 뒤로가기 — page 모드에서만 표시 */}
-          {!isPanel && (
-            <Link
-              href="/calendar"
-              className="inline-flex items-center gap-1.5 text-[12px] font-medium text-ink-subtle hover:text-ink transition-colors mb-6 group"
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 14 14"
-                fill="none"
-                aria-hidden="true"
-                className="group-hover:-translate-x-0.5 transition-transform"
-              >
-                <path
-                  d="M9 2.5L4.5 7L9 11.5"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              모임 일정
-            </Link>
-          )}
-
-          <div className="flex flex-col gap-4">
-            <div>
-              {/* 확정된 모임 배지 */}
-              <div className="flex items-center gap-3 mb-3">
-                <div className={isPanel ? "w-3 h-px bg-hairline-strong" : "w-5 h-px bg-hairline-strong"} />
-                <span className="text-[10px] font-bold text-ink-tertiary tracking-[3px] uppercase">
-                  확정된 모임
-                </span>
-              </div>
-
-              {/* 제목 — panel에서는 축소 */}
-              <h1 className={
-                isPanel
-                  ? "text-[20px] font-black text-ink tracking-tight leading-tight mb-1.5"
-                  : "text-[28px] lg:text-[36px] font-black text-ink tracking-tight leading-tight mb-2"
-              }>
-                {data.title}
-              </h1>
-              <p className={isPanel ? "text-[13px] text-ink-subtle" : "text-[16px] text-ink-subtle"}>{date}</p>
-              <p className={
-                isPanel
-                  ? "text-[18px] font-black text-accent tracking-tight mt-0.5"
-                  : "text-[22px] lg:text-[28px] font-black text-accent tracking-tight mt-1"
-              }>
-                {time}
-              </p>
+  /* ── panel 모드: 기존 UI 유지 ────────────────────────────────────────── */
+  if (isPanel) {
+    return (
+      <div
+        className="flex-1 min-h-0 overflow-y-auto"
+        style={{ animation: "section-fade 0.4s ease-out both" }}
+      >
+        {/* ── 헤더 ── */}
+        <div className="px-5 pt-5 pb-5 border-b border-hairline">
+          <div>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-3 h-px bg-hairline-strong" />
+              <span className="text-[10px] font-bold text-ink-tertiary tracking-[3px] uppercase">
+                확정된 모임
+              </span>
             </div>
+            <h1 className="text-[20px] font-black text-ink tracking-tight leading-tight mb-1.5">
+              {data.title}
+            </h1>
+            <p className="text-[13px] text-ink-subtle">{date}</p>
+            <p className="text-[18px] font-black text-accent tracking-tight mt-0.5">
+              {time}
+            </p>
 
-            {/* 액션 버튼 */}
             {isCreator ? (
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap mt-4">
                 <button
                   onClick={() => setShowEdit(true)}
                   className="h-9 px-3 rounded-lg border border-hairline text-[12px] font-medium text-ink-muted
@@ -593,7 +572,7 @@ export function ScheduleDetailView({ schedule, variant = "page" }: ScheduleDetai
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 mt-4">
                 <button
                   onClick={() => setShowLeave(true)}
                   className="h-9 px-3 rounded-lg border border-hairline text-[12px] font-medium text-ink-muted
@@ -605,107 +584,520 @@ export function ScheduleDetailView({ schedule, variant = "page" }: ScheduleDetai
             )}
           </div>
         </div>
-      </div>
 
-      {/* ── 바디 ── */}
-      <div className={isPanel ? "px-5 py-6 space-y-7" : "max-w-3xl mx-auto px-6 lg:px-10 py-8 space-y-10"}>
-        {/* Place section */}
-        <section>
-          <p className="text-[10px] font-bold text-ink-tertiary tracking-[3px] uppercase mb-4">
-            장소
-          </p>
-          <div className="bg-white rounded-2xl border border-hairline overflow-hidden shadow-sm">
-            {/* Map */}
-            <KakaoMap
-              lat={data.lat}
-              lng={data.lng}
-              placeName={data.placeName}
-              className={isPanel ? "w-full h-[160px]" : "w-full h-[220px] lg:h-[280px]"}
-            />
-            {/* Place info */}
-            <div className="px-5 py-4">
-              <p className="text-[16px] font-bold text-ink mb-0.5">
-                {data.placeName}
-              </p>
-              <p className="text-[13px] text-ink-subtle">
-                {data.placeAddress}
-              </p>
-              {data.memo && (
-                <>
-                  <div className="h-px bg-hairline my-3" />
-                  <p className="text-[13px] text-ink-muted leading-relaxed">
-                    {data.memo}
-                  </p>
-                </>
-              )}
-            </div>
-          </div>
-        </section>
-
-        {/* Participants section */}
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-[10px] font-bold text-ink-tertiary tracking-[3px] uppercase">
-              참가자 · {data.members.length}명
-            </p>
-            <div className="flex items-center gap-1.5 text-[11px] text-ink-tertiary">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-success" />
-              {data.members.filter((m) => m.status === "accepted").length}명
-              수락
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {data.members.map((m) => (
-              <ParticipantChip
-                key={m.id}
-                nickname={m.nickname}
-                status={m.status}
-                isMe={m.userId === data.currentUserId}
-                profileImage={m.profileImage}
-              />
-            ))}
-          </div>
-        </section>
-
-        {/* My attendance */}
-        {myMember && (
+        {/* ── 바디 ── */}
+        <div className="px-5 py-6 space-y-7">
           <section>
             <p className="text-[10px] font-bold text-ink-tertiary tracking-[3px] uppercase mb-4">
-              내 참석 여부
+              장소
             </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleAttendance("accepted")}
-                disabled={isPending}
-                aria-pressed={myMember.status === "accepted"}
-                className={[
-                  "flex-1 h-11 rounded-xl text-[14px] font-semibold border transition-all",
-                  myMember.status === "accepted"
-                    ? "bg-success-bg border-success/30 text-success-text"
-                    : "bg-white border-hairline text-ink-muted hover:border-success/30 hover:bg-success-bg-alt",
-                ].join(" ")}
-              >
-                {isPending ? "…" : "✓ 참석할게요"}
-              </button>
-              <button
-                onClick={() => handleAttendance("declined")}
-                disabled={isPending}
-                aria-pressed={myMember.status === "declined"}
-                className={[
-                  "flex-1 h-11 rounded-xl text-[14px] font-semibold border transition-all",
-                  myMember.status === "declined"
-                    ? "bg-error-bg border-error/30 text-error"
-                    : "bg-white border-hairline text-ink-muted hover:border-error/30 hover:bg-error-bg-alt",
-                ].join(" ")}
-              >
-                {isPending ? "…" : "✕ 참석 못해요"}
-              </button>
+            <div className="bg-white rounded-2xl border border-hairline overflow-hidden shadow-sm">
+              <KakaoMap
+                lat={data.lat}
+                lng={data.lng}
+                placeName={data.placeName}
+                className="w-full h-[160px]"
+              />
+              <div className="px-5 py-4">
+                <p className="text-[16px] font-bold text-ink mb-0.5">
+                  {data.placeName}
+                </p>
+                <p className="text-[13px] text-ink-subtle">
+                  {data.placeAddress}
+                </p>
+                {data.memo && (
+                  <>
+                    <div className="h-px bg-hairline my-3" />
+                    <p className="text-[13px] text-ink-muted leading-relaxed">
+                      {data.memo}
+                    </p>
+                  </>
+                )}
+              </div>
             </div>
           </section>
+
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-[10px] font-bold text-ink-tertiary tracking-[3px] uppercase">
+                참가자 · {data.members.length}명
+              </p>
+              <div className="flex items-center gap-1.5 text-[11px] text-ink-tertiary">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-success" />
+                {data.members.filter((m) => m.status === "accepted").length}명
+                수락
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {data.members.map((m) => (
+                <ParticipantChip
+                  key={m.id}
+                  nickname={m.nickname}
+                  status={m.status}
+                  isMe={m.userId === data.currentUserId}
+                  profileImage={m.profileImage}
+                />
+              ))}
+            </div>
+          </section>
+
+          {myMember && (
+            <section>
+              <p className="text-[10px] font-bold text-ink-tertiary tracking-[3px] uppercase mb-4">
+                내 참석 여부
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleAttendance("accepted")}
+                  disabled={isPending}
+                  aria-pressed={myMember.status === "accepted"}
+                  className={[
+                    "flex-1 h-11 rounded-xl text-[14px] font-semibold border transition-all",
+                    myMember.status === "accepted"
+                      ? "bg-success-bg border-success/30 text-success-text"
+                      : "bg-white border-hairline text-ink-muted hover:border-success/30 hover:bg-success-bg-alt",
+                  ].join(" ")}
+                >
+                  {isPending ? "…" : "✓ 참석할게요"}
+                </button>
+                <button
+                  onClick={() => handleAttendance("declined")}
+                  disabled={isPending}
+                  aria-pressed={myMember.status === "declined"}
+                  className={[
+                    "flex-1 h-11 rounded-xl text-[14px] font-semibold border transition-all",
+                    myMember.status === "declined"
+                      ? "bg-error-bg border-error/30 text-error"
+                      : "bg-white border-hairline text-ink-muted hover:border-error/30 hover:bg-error-bg-alt",
+                  ].join(" ")}
+                >
+                  {isPending ? "…" : "✕ 참석 못해요"}
+                </button>
+              </div>
+            </section>
+          )}
+        </div>
+
+        {showEdit && (
+          <EditModal
+            schedule={data}
+            onClose={() => setShowEdit(false)}
+            onSaved={async () => {
+              const updated = await getScheduleById(data.id);
+              if (updated) setData(updated);
+              setShowEdit(false);
+            }}
+          />
+        )}
+        {showDelete && (
+          <DeleteConfirm scheduleId={data.id} onClose={() => setShowDelete(false)} />
+        )}
+        {showReplace && (
+          <ReplacePlaceConfirm
+            scheduleId={schedule.id}
+            roomCode={data.roomCode}
+            onClose={() => setShowReplace(false)}
+          />
+        )}
+        {showLeave && (
+          <LeaveConfirm roomCode={data.roomCode} onClose={() => setShowLeave(false)} />
         )}
       </div>
+    );
+  }
 
-      {/* Modals */}
+  /* ── page 모드: Stitch 디자인 기반 다크 확정 페이지 ─────────────────── */
+
+  const kakaoMapUrl = `https://map.kakao.com/link/to/${encodeURIComponent(data.placeName)},${data.lat},${data.lng}`;
+
+  /* 참석 수락 인원 수 */
+  const acceptedCount = data.members.filter((m) => m.status === "accepted").length;
+
+  /* 아바타 스택에 표시할 최대 인원 */
+  const AVATAR_LIMIT = 4;
+  const visibleMembers = data.members.slice(0, AVATAR_LIMIT);
+  const overflowCount = data.members.length - AVATAR_LIMIT;
+
+  /* 참가자 이름 요약 텍스트 */
+  const nameList = data.members.slice(0, 2).map((m) => m.nickname);
+  const nameSummary =
+    data.members.length > 2
+      ? `${nameList.join(", ")} 외 ${data.members.length - 2}명`
+      : nameList.join(", ");
+
+  return (
+    <div
+      className="flex-1 min-h-0 overflow-y-auto relative"
+      style={{ background: "var(--color-canvas)" }}
+    >
+      {/* ── 도트 그리드 배경 ── */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 1.5px 1.5px, rgba(114,152,199,0.15) 1.5px, transparent 0)",
+          backgroundSize: "28px 28px",
+        }}
+      />
+
+      {/* ── 방사형 그라디언트 오버레이 — 도트 중심부 희석 ── */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse 70% 60% at 50% 50%, transparent 0%, var(--color-canvas) 80%)",
+        }}
+      />
+
+      {/* ── 앰비언트 글로우 ── */}
+      <div
+        aria-hidden="true"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(114,152,199,0.08) 0%, transparent 65%)",
+        }}
+      />
+
+      {/* ── 위치 핀 (장식용 pulse) ── */}
+      <div
+        aria-hidden="true"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none pin-animation"
+      >
+        <div className="relative flex items-center justify-center">
+          {/* 퍼지는 링 */}
+          <div
+            className="absolute w-16 h-16 rounded-full"
+            style={{
+              background: "rgba(114,152,199,0.12)",
+              animation: "pin-ring 2s ease-out infinite",
+            }}
+          />
+          <div
+            className="absolute w-10 h-10 rounded-full"
+            style={{
+              background: "rgba(114,152,199,0.08)",
+              animation: "pin-ring 2s ease-out 0.5s infinite",
+            }}
+          />
+          {/* 핀 본체 */}
+          <div
+            className="w-5 h-5 rounded-full border-4 relative z-10"
+            style={{
+              background: "#7298C7",
+              borderColor: "var(--color-canvas)",
+              boxShadow: "0 0 20px rgba(114,152,199,0.5)",
+            }}
+          />
+        </div>
+      </div>
+
+      {/* ── 상단 뒤로가기 ── */}
+      <div className="relative z-10 pt-7 px-5 sm:px-8">
+        <Link
+          href="/calendar"
+          className="inline-flex items-center gap-1.5 text-[12px] font-medium transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 rounded text-ink-subtle hover:text-ink"
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 14 14"
+            fill="none"
+            aria-hidden="true"
+            className="group-hover:-translate-x-0.5 transition-transform"
+          >
+            <path
+              d="M9 2.5L4.5 7L9 11.5"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          모임 일정
+        </Link>
+      </div>
+
+      {/* ── 콘텐츠 중앙 정렬 ── */}
+      <div
+        className="relative z-10 flex flex-col items-center px-4 pb-16 pt-10 sm:pt-12"
+        style={{ animation: "section-fade 0.4s ease-out both" }}
+      >
+
+        {/* 성공 아이콘 + 헤드라인 */}
+        <div
+          className="text-center mb-8 sm:mb-10"
+          style={{ animation: "cinematic-up 0.65s ease-out both" }}
+        >
+          <div
+            className="inline-flex items-center justify-center w-14 h-14 rounded-full mb-5 border"
+            style={{
+              background: "rgba(39,166,68,0.15)",
+              borderColor: "rgba(39,166,68,0.28)",
+            }}
+          >
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+                fill="rgba(39,166,68,0.18)"
+                stroke="#27a644"
+                strokeWidth="1.5"
+              />
+              <path
+                d="M7.5 12l3 3 6-6"
+                stroke="#27a644"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+
+          <h1
+            className="font-black mb-2 leading-tight text-ink"
+            style={{
+              fontSize: "clamp(26px, 5vw, 34px)",
+              letterSpacing: "-0.8px",
+            }}
+          >
+            모임이 확정됐어요!
+          </h1>
+          <p className="text-ink-subtle" style={{ fontSize: "15px" }}>
+            모든 참가자에게 장소가 공유됐어요
+          </p>
+        </div>
+
+        {/* ── 카드 ── */}
+        <div
+          ref={cardRef}
+          className="w-full max-w-[520px] bg-white border border-hairline"
+          style={{
+            borderRadius: "16px",
+            padding: "clamp(24px, 5vw, 32px)",
+            boxShadow:
+              "0 10px 32px -4px rgba(26,32,51,0.12), 0 4px 8px -4px rgba(26,32,51,0.08)",
+            animation: "cinematic-up 0.75s cubic-bezier(0.16,1,0.3,1) 0.1s both",
+            transition: "transform 0.12s ease-out",
+          }}
+        >
+          {/* 모임 이름 */}
+          <div className="mb-6">
+            <label className="block font-bold uppercase mb-2 text-ink-tertiary" style={{ fontSize: "11px", letterSpacing: "0.5px" }}>
+              모임 이름
+            </label>
+            <h2 className="font-bold leading-tight text-ink" style={{ fontSize: "22px", letterSpacing: "-0.4px" }}>
+              {data.title}
+            </h2>
+          </div>
+
+          {/* 날짜 + 장소 그리드 */}
+          <div className="grid grid-cols-2 gap-5 mb-6">
+            <div>
+              <label className="block font-bold uppercase mb-2 text-ink-tertiary" style={{ fontSize: "11px", letterSpacing: "0.5px" }}>
+                날짜 및 시간
+              </label>
+              <div className="flex items-center gap-1.5 mb-1 text-accent">
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true" className="shrink-0">
+                  <rect x="1" y="2" width="12" height="10.5" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
+                  <path d="M1 5h12" stroke="currentColor" strokeWidth="1.3" />
+                  <path d="M4.5 1v2M9.5 1v2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+                </svg>
+                <span className="text-ink font-medium" style={{ fontSize: "13px" }}>
+                  {date.split(" ").slice(0, 3).join(" ")}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 text-ink-muted">
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true" className="shrink-0">
+                  <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.3" />
+                  <path d="M7 4.5v2.75l1.75 1.25" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span style={{ fontSize: "13px" }}>{time}</span>
+              </div>
+            </div>
+
+            <div>
+              <label className="block font-bold uppercase mb-2 text-ink-tertiary" style={{ fontSize: "11px", letterSpacing: "0.5px" }}>
+                장소
+              </label>
+              <div className="flex items-start gap-1.5 text-ink-muted">
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true" className="shrink-0 mt-0.5">
+                  <path d="M7 1.5C4.52 1.5 2.5 3.52 2.5 6c0 3.75 4.5 7.5 4.5 7.5S11.5 9.75 11.5 6c0-2.48-2.02-4.5-4.5-4.5Z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                  <circle cx="7" cy="6" r="1.5" stroke="currentColor" strokeWidth="1.3" />
+                </svg>
+                <div className="min-w-0">
+                  <p className="font-semibold leading-snug truncate text-ink" style={{ fontSize: "13px" }}>
+                    {data.placeName}
+                  </p>
+                  <p className="mt-0.5 leading-snug line-clamp-2 text-ink-subtle" style={{ fontSize: "11px" }}>
+                    {data.placeAddress}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 구분선 */}
+          <div className="mb-6 h-px bg-hairline" />
+
+          {/* 참가자 섹션 */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <label className="font-bold uppercase text-ink-tertiary" style={{ fontSize: "11px", letterSpacing: "0.5px" }}>
+                참가자 · {data.members.length}명
+              </label>
+              {acceptedCount > 0 && (
+                <span className="flex items-center gap-1 font-semibold text-success-text" style={{ fontSize: "11px" }}>
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-success" />
+                  {acceptedCount}명 수락
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3">
+              {/* 아바타 스택 */}
+              <div className="flex -space-x-3" role="list" aria-label="참가자 목록">
+                {visibleMembers.map((m) => (
+                  <div
+                    key={m.id}
+                    role="listitem"
+                    title={m.nickname}
+                    className="w-10 h-10 rounded-full border-2 border-white overflow-hidden flex items-center justify-center text-[13px] font-bold shrink-0 bg-surface-3 text-ink-muted"
+                  >
+                    {m.profileImage ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={m.profileImage} alt={m.nickname} className="w-full h-full object-cover" />
+                    ) : (
+                      m.nickname.charAt(0)
+                    )}
+                  </div>
+                ))}
+                {overflowCount > 0 && (
+                  <div
+                    className="w-10 h-10 rounded-full border-2 border-white flex items-center justify-center font-bold shrink-0 bg-surface-warm text-ink-subtle"
+                    style={{ fontSize: "11px" }}
+                    aria-label={`외 ${overflowCount}명`}
+                  >
+                    +{overflowCount}
+                  </div>
+                )}
+              </div>
+
+              <p className="text-ink-subtle" style={{ fontSize: "13px" }}>
+                {nameSummary}
+              </p>
+            </div>
+          </div>
+
+          {/* 내 참석 여부 */}
+          {myMember && (
+            <>
+              <div className="mb-5 h-px bg-hairline" />
+              <div className="mb-6">
+                <label className="block font-bold uppercase mb-3 text-ink-tertiary" style={{ fontSize: "11px", letterSpacing: "0.5px" }}>
+                  내 참석 여부
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleAttendance("accepted")}
+                    disabled={isPending}
+                    aria-pressed={myMember.status === "accepted"}
+                    className={[
+                      "flex-1 h-11 rounded-xl text-[14px] font-semibold border transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success",
+                      myMember.status === "accepted"
+                        ? "bg-success-bg border-success/30 text-success-text"
+                        : "bg-white border-hairline text-ink-muted hover:border-success/30 hover:bg-success-bg-alt",
+                    ].join(" ")}
+                  >
+                    {isPending ? "…" : "✓ 참석할게요"}
+                  </button>
+                  <button
+                    onClick={() => handleAttendance("declined")}
+                    disabled={isPending}
+                    aria-pressed={myMember.status === "declined"}
+                    className={[
+                      "flex-1 h-11 rounded-xl text-[14px] font-semibold border transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error",
+                      myMember.status === "declined"
+                        ? "bg-error-bg border-error/30 text-error"
+                        : "bg-white border-hairline text-ink-muted hover:border-error/30 hover:bg-error-bg-alt",
+                    ].join(" ")}
+                  >
+                    {isPending ? "…" : "✕ 참석 못해요"}
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* ── 액션 버튼 ── */}
+          <div className="space-y-3">
+            {/* Primary CTA — 카카오맵으로 보기 */}
+            <a
+              href={kakaoMapUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full flex items-center justify-center gap-2 h-12 rounded-xl font-semibold text-[14px] text-white transition-all active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 bg-accent hover:bg-accent-hover shadow-[0_2px_8px_rgba(114,152,199,0.3)] hover:shadow-[0_4px_14px_rgba(114,152,199,0.4)] hover:-translate-y-0.5"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M8 1.5C5.52 1.5 3.5 3.52 3.5 6c0 4.16 5 8.5 5 8.5S13.5 10.16 13.5 6c0-2.48-2.02-4.5-4.5-4.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                <circle cx="8" cy="6" r="1.75" stroke="currentColor" strokeWidth="1.4" />
+              </svg>
+              지도로 보기
+            </a>
+
+            {/* 2순위 버튼 행 */}
+            {isCreator ? (
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowEdit(true)}
+                  className="flex-1 h-12 rounded-xl font-semibold text-[14px] border border-hairline bg-white text-ink hover:bg-surface-warm hover:border-hairline-strong transition-all active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  날짜·시간
+                </button>
+                <button
+                  onClick={() => setShowReplace(true)}
+                  className="flex-1 h-12 rounded-xl font-semibold text-[14px] border border-hairline bg-white text-ink hover:bg-surface-warm hover:border-hairline-strong transition-all active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  장소 변경
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowLeave(true)}
+                className="w-full h-12 rounded-xl font-semibold text-[14px] border border-hairline bg-white text-ink hover:bg-surface-warm hover:border-hairline-strong transition-all active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                나가기
+              </button>
+            )}
+
+            {/* 삭제 — 호스트 전용, 최하단 */}
+            {isCreator && (
+              <button
+                onClick={() => setShowDelete(true)}
+                className="w-full h-10 rounded-xl text-[13px] font-medium border border-error-border text-error hover:bg-error-bg transition-all active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error"
+              >
+                일정 삭제
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* 하단 안내 문구 */}
+        <p className="mt-8 text-center text-ink-tertiary" style={{ fontSize: "13px" }}>
+          장소 정보가 모든 참가자에게 공유됐어요
+        </p>
+      </div>
+
+      {/* ── 모달 ── */}
       {showEdit && (
         <EditModal
           schedule={data}
@@ -718,10 +1110,7 @@ export function ScheduleDetailView({ schedule, variant = "page" }: ScheduleDetai
         />
       )}
       {showDelete && (
-        <DeleteConfirm
-          scheduleId={data.id}
-          onClose={() => setShowDelete(false)}
-        />
+        <DeleteConfirm scheduleId={data.id} onClose={() => setShowDelete(false)} />
       )}
       {showReplace && (
         <ReplacePlaceConfirm
@@ -731,10 +1120,7 @@ export function ScheduleDetailView({ schedule, variant = "page" }: ScheduleDetai
         />
       )}
       {showLeave && (
-        <LeaveConfirm
-          roomCode={data.roomCode}
-          onClose={() => setShowLeave(false)}
-        />
+        <LeaveConfirm roomCode={data.roomCode} onClose={() => setShowLeave(false)} />
       )}
     </div>
   );

@@ -161,6 +161,21 @@ button {
 
 /* ── Ambient motion keyframes ── */
 
+/* 확정 페이지 핀 pulse — 위치 핀이 부드럽게 숨쉬는 효과 */
+@keyframes pin-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%       { transform: scale(1.1); opacity: 0.8; }
+}
+.pin-animation {
+  animation: pin-pulse 3s ease-in-out infinite;
+}
+
+/* 확정 페이지 핀 링 — 바깥으로 퍼지는 ripple */
+@keyframes pin-ring {
+  0%   { transform: scale(0.8); opacity: 0.5; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+
 /* Gentle vertical float for hero elements */
 @keyframes float-slow {
   0%, 100% { transform: translateY(0px); }
