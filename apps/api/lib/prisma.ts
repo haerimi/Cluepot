@@ -1,5 +1,5 @@
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "@/generated/prisma/client";
+import { PrismaClient } from "../../web/generated/prisma/client";
 
 // Prevent multiple PrismaClient instances (and PG connection pools) under
 // Next.js HMR in development. In production each module is imported once, so
