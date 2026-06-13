@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  TextInput, Alert, ActivityIndicator, Modal, Image
+  TextInput, Alert, ActivityIndicator, Image, ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/auth';
 import { api } from '@/lib/api';
@@ -14,24 +15,31 @@ export default function ProfileScreen() {
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
 
-  const [modalVisible, setModalVisible] = useState(false);
   const [nickname, setNickname] = useState(user?.nickname ?? '');
   const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const [localPreview, setLocalPreview] = useState<string | null>(null);
   const initial = (user?.nickname?.[0] ?? user?.email?.[0] ?? '?').toUpperCase();
 
-  // 이미지 선택 함수
+  const avatarUri = localPreview && localPreview !== 'DELETE'
+    ? localPreview
+    : (localPreview === 'DELETE' ? null : user?.profileImage ?? null);
+
   async function handlePickImage() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsEditing: true,
-      aspect: [1, 1],  // 정사각형 크롭
+      aspect: [1, 1],
       quality: 0.8,
     });
-
     if (!result.canceled) {
       setLocalPreview(result.assets[0].uri);
     }
+  }
+
+  function handleCancel() {
+    setNickname(user?.nickname ?? '');
+    setLocalPreview(null);
   }
 
   async function handleLogout() {
@@ -47,11 +55,9 @@ export default function ProfileScreen() {
 
     try {
       if (localPreview === 'DELETE') {
-        // 삭제 — null로 저장
         if (user?.profileImage) {
           const url = new URL(user.profileImage);
-          // pathname: /storage/v1/object/public/cluepot/user/xxx.jpg
-          const path = url.pathname.split('/cluepot/')[1]; // user/xxx.jpg
+          const path = url.pathname.split('/cluepot/')[1];
           await supabase.storage.from('cluepot').remove([path]);
         }
         imageUrl = undefined;
@@ -75,7 +81,10 @@ export default function ProfileScreen() {
         nickname: nickname.trim(),
         profileImage: localPreview === 'DELETE' ? null : (imageUrl ?? user.profileImage ?? null),
       } : null);
-      setModalVisible(false);
+
+      setLocalPreview(null);
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 2000);
     } catch {
       Alert.alert('오류', '저장에 실패했어요. 다시 시도해주세요.');
     } finally {
@@ -83,139 +92,188 @@ export default function ProfileScreen() {
     }
   }
 
-
   return (
-    <View style={styles.container}>
-      {/* 아바타 */}
-      <View style={styles.avatarSection}>
-        <View style={styles.avatar}>
-          {user?.profileImage
-            ? <Image source={{ uri: user.profileImage }} style={{ width: 72, height: 72, borderRadius: 36 }} />
-            : <Text style={styles.avatarText}>{initial}</Text>
-          }
-        </View>
-        <Text style={styles.nickname}>{user?.nickname}</Text>
-        <Text style={styles.email}>{user?.email}</Text>
-      </View>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-      {/* 정보 카드 */}
+      {/* 프로필 카드 */}
       <View style={styles.card}>
-        <Row label="닉네임" value={user?.nickname ?? '-'} />
+
+        {/* 헤더 */}
+        <View style={styles.cardHeader}>
+          <Text style={styles.cardTitle}>계정 설정</Text>
+          <Text style={styles.cardSubtitle}>공개 프로필과 설정을 관리하세요.</Text>
+        </View>
+
+        {/* 아바타 */}
+        <View style={styles.avatarSection}>
+          <TouchableOpacity onPress={handlePickImage} style={styles.avatarWrap} activeOpacity={0.85}>
+            {avatarUri
+              ? <Image source={{ uri: avatarUri }} style={styles.avatarImg} />
+              : <View style={styles.avatarFallback}><Text style={styles.avatarInitial}>{initial}</Text></View>
+            }
+            <View style={styles.avatarOverlay}>
+              <Ionicons name="camera-outline" size={24} color="#f7f8f8" />
+              <Text style={styles.avatarOverlayLabel}>변경</Text>
+            </View>
+          </TouchableOpacity>
+
+          {(user?.profileImage || localPreview) && localPreview !== 'DELETE' && (
+            <TouchableOpacity onPress={() => setLocalPreview('DELETE')} style={styles.removeBtn} activeOpacity={0.8}>
+              <Text style={styles.removeBtnText}>이미지 삭제</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* 닉네임 */}
+        <View style={styles.fieldGroup}>
+          <Text style={styles.fieldLabel}>닉네임</Text>
+          <TextInput
+            style={styles.input}
+            value={nickname}
+            onChangeText={setNickname}
+            maxLength={20}
+            placeholder="표시 이름을 입력하세요"
+            placeholderTextColor="#454652"
+          />
+        </View>
+
+        {/* 이메일 (read-only) */}
+        <View style={styles.fieldGroup}>
+          <Text style={styles.fieldLabel}>이메일</Text>
+          <View style={styles.inputReadonly}>
+            <Text style={styles.inputReadonlyText} numberOfLines={1}>{user?.email ?? '-'}</Text>
+          </View>
+        </View>
+
+        {/* 구분선 */}
         <View style={styles.divider} />
-        <Row label="이메일" value={user?.email ?? '-'} />
+
+        {/* 액션 버튼 */}
+        <View style={styles.actions}>
+          <TouchableOpacity style={styles.cancelBtn} onPress={handleCancel} disabled={saving} activeOpacity={0.8}>
+            <Text style={styles.cancelBtnText}>취소</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.saveBtn, saveSuccess && styles.saveBtnSuccess, saving && { opacity: 0.5 }]}
+            onPress={handleSave}
+            disabled={saving}
+            activeOpacity={0.8}
+          >
+            {saving
+              ? <ActivityIndicator color="#fdfaff" size="small" />
+              : <Text style={styles.saveBtnText}>{saveSuccess ? '저장됨' : '저장하기'}</Text>
+            }
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* 버튼 */}
-      <TouchableOpacity style={styles.editBtn} onPress={() => setModalVisible(true)} activeOpacity={0.8}>
-        <Text style={styles.editBtnText}>프로필 수정</Text>
-      </TouchableOpacity>
+      {/* 로그아웃 */}
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.8}>
+        <Ionicons name="log-out-outline" size={16} color="#ffb4ab" />
         <Text style={styles.logoutBtnText}>로그아웃</Text>
       </TouchableOpacity>
 
-      {/* 수정 모달 */}
-      <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={() => { setModalVisible(false); setLocalPreview(null); }}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalSheet}>
-            <View style={styles.modalHandle} />
-            <Text style={styles.modalTitle}>프로필 수정</Text>
-
-            <Text style={styles.fieldLabel}>프로필 사진</Text>
-            <TouchableOpacity onPress={handlePickImage} style={{ alignSelf: 'center', marginBottom: 20 }}>
-              <View style={styles.avatar}>
-                {localPreview && localPreview !== 'DELETE'
-                  ? <Image
-                    source={{ uri: localPreview ?? user?.profileImage ?? '' }}
-                    style={{ width: 72, height: 72, borderRadius: 36 }}
-                  />
-                  : (user?.profileImage && localPreview !== 'DELETE')
-                    ? <Image
-                      source={{ uri: user?.profileImage ?? '' }}
-                      style={{ width: 72, height: 72, borderRadius: 36 }}
-                    />
-                    : <Text style={styles.avatarText}>{initial}</Text>
-                }
-              </View>
-            </TouchableOpacity>
-
-            {(user?.profileImage) && (
-              <TouchableOpacity onPress={() => setLocalPreview('DELETE')} style={{ alignSelf: 'center', marginBottom: 20 }}>
-                <Text style={styles.removeLabel}>이미지 삭제</Text>
-              </TouchableOpacity>
-            )}
-
-            <Text style={styles.fieldLabel}>닉네임</Text>
-            <TextInput
-              style={styles.input}
-              value={nickname}
-              onChangeText={setNickname}
-              maxLength={20}
-              placeholder="닉네임을 입력하세요"
-              placeholderTextColor="#B0BAC8"
-            />
-
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={styles.cancelBtn}
-                onPress={() => { setModalVisible(false); setLocalPreview(null); }}
-                disabled={saving}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.cancelBtnText}>취소</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.saveBtn, saving && { opacity: 0.5 }]}
-                onPress={handleSave}
-                disabled={saving}
-                activeOpacity={0.8}
-              >
-                {saving
-                  ? <ActivityIndicator color="#fff" />
-                  : <Text style={styles.saveBtnText}>저장</Text>}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-    </View>
+    </ScrollView>
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.row}>
-      <Text style={styles.rowLabel}>{label}</Text>
-      <Text style={styles.rowValue} numberOfLines={1}>{value}</Text>
-    </View>
-  );
-}
+const AVATAR_SIZE = 128;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F5F0' },
-  avatarSection: { alignItems: 'center', paddingVertical: 32, backgroundColor: '#1A2033' },
-  avatar: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#7298C7', alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
-  avatarText: { fontSize: 28, fontWeight: '900', color: '#fff' },
-  nickname: { fontSize: 20, fontWeight: '800', color: '#fff', marginBottom: 4 },
-  email: { fontSize: 13, color: '#9AAFC5' },
-  card: { margin: 20, backgroundColor: '#fff', borderRadius: 16, borderWidth: 1, borderColor: '#E2E6EC', overflow: 'hidden' },
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 },
-  rowLabel: { fontSize: 11, fontWeight: '700', color: '#9AAFC5', textTransform: 'uppercase', letterSpacing: 1 },
-  rowValue: { fontSize: 14, color: '#1A2033', flex: 1, textAlign: 'right' },
-  divider: { height: 1, backgroundColor: '#F0EDE7', marginHorizontal: 16 },
-  editBtn: { marginHorizontal: 20, height: 48, backgroundColor: '#EEF3FB', borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
-  editBtnText: { fontSize: 15, fontWeight: '700', color: '#7298C7' },
-  logoutBtn: { marginHorizontal: 20, height: 48, backgroundColor: '#fff', borderRadius: 12, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#E2E6EC' },
-  logoutBtnText: { fontSize: 15, fontWeight: '700', color: '#E05555' },
-  modalOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' },
-  modalSheet: { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40 },
-  modalHandle: { width: 40, height: 4, backgroundColor: '#E2E6EC', borderRadius: 2, alignSelf: 'center', marginBottom: 20 },
-  modalTitle: { fontSize: 18, fontWeight: '900', color: '#1A2033', textAlign: 'center', marginBottom: 24 },
-  fieldLabel: { fontSize: 11, fontWeight: '700', color: '#9AAFC5', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 },
-  input: { height: 48, borderWidth: 1, borderColor: '#E2E6EC', borderRadius: 12, paddingHorizontal: 16, fontSize: 16, color: '#1A2033', backgroundColor: '#F4F5F0', marginBottom: 20 },
-  modalActions: { flexDirection: 'row', gap: 10 },
-  cancelBtn: { flex: 1, height: 48, borderRadius: 12, borderWidth: 1, borderColor: '#E2E6EC', alignItems: 'center', justifyContent: 'center' },
-  cancelBtnText: { fontSize: 15, fontWeight: '600', color: '#5A6A85' },
-  saveBtn: { flex: 1, height: 48, borderRadius: 12, backgroundColor: '#7298C7', alignItems: 'center', justifyContent: 'center' },
-  saveBtnText: { fontSize: 15, fontWeight: '700', color: '#fff' },
-  removeLabel: { fontSize: 11, fontWeight: '700', color: '#E05555', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 },
+  container: { flex: 1, backgroundColor: '#131316' },
+  scrollContent: { paddingHorizontal: 16, paddingVertical: 24, paddingBottom: 88 },
+
+  /* 카드 */
+  card: {
+    backgroundColor: '#0f1011',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#23252a',
+    padding: 24,
+    marginBottom: 12,
+  },
+
+  /* 헤더 */
+  cardHeader: { alignItems: 'center', marginBottom: 24 },
+  cardTitle: { fontSize: 20, fontWeight: '700', color: '#f7f8f8', letterSpacing: -0.4, marginBottom: 4 },
+  cardSubtitle: { fontSize: 13, color: '#8a8f98', textAlign: 'center' },
+
+  /* 아바타 */
+  avatarSection: { alignItems: 'center', marginBottom: 28 },
+  avatarWrap: {
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+    borderRadius: AVATAR_SIZE / 2,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: '#34343a',
+    marginBottom: 10,
+  },
+  avatarImg: { width: AVATAR_SIZE, height: AVATAR_SIZE },
+  avatarFallback: { width: '100%', height: '100%', backgroundColor: '#5e6ad2', alignItems: 'center', justifyContent: 'center' },
+  avatarInitial: { fontSize: 44, fontWeight: '700', color: '#fdfaff' },
+  avatarOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 48,
+    backgroundColor: 'rgba(1,1,2,0.68)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+  },
+  avatarOverlayLabel: { fontSize: 10, fontWeight: '600', color: '#f7f8f8', letterSpacing: 0.8, textTransform: 'uppercase' },
+  removeBtn: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 6, borderWidth: 1, borderColor: '#93000a' },
+  removeBtnText: { fontSize: 11, fontWeight: '600', color: '#ffb4ab' },
+
+  /* 폼 */
+  fieldGroup: { marginBottom: 16 },
+  fieldLabel: { fontSize: 11, fontWeight: '600', color: '#8a8f98', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 },
+  input: {
+    height: 48,
+    borderWidth: 1,
+    borderColor: '#23252a',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    fontSize: 14,
+    color: '#f7f8f8',
+    backgroundColor: '#0f1011',
+  },
+  inputReadonly: {
+    height: 48,
+    borderWidth: 1,
+    borderColor: '#23252a',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    justifyContent: 'center',
+    backgroundColor: '#0e0e11',
+    opacity: 0.6,
+  },
+  inputReadonlyText: { fontSize: 14, color: '#8a8f98' },
+
+  /* 구분선 */
+  divider: { height: 1, backgroundColor: '#23252a', marginVertical: 24 },
+
+  /* 액션 */
+  actions: { flexDirection: 'row', gap: 10 },
+  cancelBtn: { flex: 1, height: 48, borderRadius: 8, borderWidth: 1, borderColor: '#23252a', backgroundColor: '#0f1011', alignItems: 'center', justifyContent: 'center' },
+  cancelBtnText: { fontSize: 14, fontWeight: '600', color: '#8a8f98' },
+  saveBtn: { flex: 1, height: 48, borderRadius: 8, backgroundColor: '#5e6ad2', alignItems: 'center', justifyContent: 'center' },
+  saveBtnSuccess: { backgroundColor: '#27a644' },
+  saveBtnText: { fontSize: 14, fontWeight: '600', color: '#fdfaff' },
+
+  /* 로그아웃 */
+  logoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    height: 48,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#23252a',
+    backgroundColor: '#0f1011',
+  },
+  logoutBtnText: { fontSize: 14, fontWeight: '600', color: '#ffb4ab' },
 });
