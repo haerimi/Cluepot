@@ -1,27 +1,135 @@
-import { Drawer } from 'expo-router/drawer';
-import { Text } from 'react-native';
+import { Tabs, useRouter } from 'expo-router';
+import { Pressable, Text, View, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Ionicons } from '@expo/vector-icons';
+import { useAuthStore } from '@/store/auth';
 
+/* 상단 헤더 로고 */
 function Logo() {
   return (
-    <Text style={{ fontSize: 20, fontWeight: '900', color: '#1A2033' }}>
-      Clue<Text style={{ color: '#7298C7' }}>Pot</Text>
+    <Text style={hdr.logo}>
+      Clue<Text style={hdr.logoAccent}>Pot</Text>
     </Text>
+  );
+}
+
+/* 상단 헤더 오른쪽: 아바타만 */
+function HeaderAvatar() {
+  const router = useRouter();
+  const user   = useAuthStore((s) => s.user);
+  const initial = (user?.nickname?.[0] ?? user?.email?.[0] ?? '?').toUpperCase();
+
+  return (
+    <Pressable
+      onPress={() => router.push('/(app)/profile')}
+      style={hdr.avatarBtn}
+      accessibilityRole="button"
+      accessibilityLabel="프로필 화면으로 이동"
+      hitSlop={8}
+    >
+      <View style={hdr.avatar}>
+        <Text style={hdr.avatarText}>{initial}</Text>
+      </View>
+    </Pressable>
   );
 }
 
 export default function AppLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <Drawer screenOptions={{ drawerPosition: 'right', headerTitle: () => <Logo /> }}>
-        <Drawer.Screen name="home" options={{ drawerLabel: '홈', title: '홈' }} />
-        <Drawer.Screen name="calendar" options={{ drawerLabel: '내 일정', title: '내 일정' }} />
-        <Drawer.Screen name="rooms/create" options={{ drawerLabel: '일정 만들기', title: '일정 만들기' }} />
-        <Drawer.Screen name="rooms/join" options={{ drawerLabel: '코드로 참가', title: '코드로 참가' }} />
-        <Drawer.Screen name="profile" options={{ drawerLabel: '내 프로필', title: '내 프로필' }} />
-        <Drawer.Screen name="rooms/[code]" options={{ drawerItemStyle: { display: 'none' } }} />
-        <Drawer.Screen name="calendar/[scheduleId]" options={{ drawerItemStyle: { display: 'none' } }} />
-      </Drawer>
+      <Tabs
+        screenOptions={{
+          /* ── 공통 헤더 ── */
+          headerTitle: () => <Logo />,
+          headerRight: () => <HeaderAvatar />,
+          headerLeft: () => null,       // 햄버거 완전 제거
+          headerStyle:      { backgroundColor: '#131316', shadowOpacity: 0, elevation: 0, borderBottomWidth: 1, borderBottomColor: '#23252a' },
+          headerTitleAlign: 'left',
+
+          /* ── 바텀탭 ── */
+          tabBarStyle: {
+            backgroundColor: '#0f1011',
+            borderTopColor: '#23252a',
+            borderTopWidth: 1,
+          },
+          tabBarActiveTintColor:   '#bdc2ff',
+          tabBarInactiveTintColor: '#8a8f98',
+          tabBarShowLabel: false,
+        }}
+      >
+        {/* ── 표시 탭 3개 ── */}
+        <Tabs.Screen
+          name="home"
+          options={{
+            title: '홈',
+            tabBarLabel: '홈',
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons name={focused ? 'home' : 'home-outline'} size={22} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="calendar"
+          options={{
+            title: '캘린더',
+            tabBarLabel: '캘린더',
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons name={focused ? 'calendar' : 'calendar-outline'} size={22} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: '프로필',
+            tabBarLabel: '프로필',
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons name={focused ? 'person' : 'person-outline'} size={22} color={color} />
+            ),
+          }}
+        />
+
+        {/* ── 탭바에 표시하지 않는 화면 ── */}
+        <Tabs.Screen name="rooms/index"           options={{ href: null, headerShown: false }} />
+        <Tabs.Screen name="rooms/[code]"          options={{ href: null, headerShown: false }} />
+        <Tabs.Screen name="rooms/create"          options={{ href: null, headerShown: false }} />
+        <Tabs.Screen name="rooms/join"            options={{ href: null, headerShown: false }} />
+        <Tabs.Screen name="schedules/[id]"        options={{ href: null, headerShown: false }} />
+        <Tabs.Screen name="calendar/[scheduleId]" options={{ href: null, headerShown: false }} />
+      </Tabs>
     </GestureHandlerRootView>
   );
 }
+
+const hdr = StyleSheet.create({
+  logo: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#f7f8f8',
+    letterSpacing: -0.3,
+  },
+  logoAccent: { color: '#bdc2ff' },
+  /* 아바타 버튼 — 44×44 터치 영역 */
+  avatarBtn: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  avatar: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#5e6ad2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#34343a',
+  },
+  avatarText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#fdfaff',
+  },
+});
