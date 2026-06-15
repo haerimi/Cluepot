@@ -382,6 +382,10 @@ export default function RoomScreen() {
   async function init() {
     try {
       const { data: joinData } = await api.post(`/rooms/${roomCode}/join`);
+      if (joinData.roomStatus === 'done' && joinData.scheduleId) {
+        router.replace(`/(app)/schedules/${joinData.scheduleId}` as any);
+        return;
+      }
       setIsHost(joinData.isHost);
       setRoomCategory(joinData.category);
       if (joinData.savedPreference) {

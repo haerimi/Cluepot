@@ -562,7 +562,7 @@ export default function HomeScreen() {
               </View>
             )}
             <Pressable
-              onPress={() => router.push('/(app)/rooms/index')}
+              onPress={() => router.push('/(app)/rooms/')}
               hitSlop={12}
               accessibilityRole="button"
               accessibilityLabel="전체 보기"
