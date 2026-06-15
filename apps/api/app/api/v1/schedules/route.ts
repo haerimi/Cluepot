@@ -50,7 +50,8 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ id: schedule.id });
-  } catch {
+  } catch (e) {
+    console.error('[POST /schedules]', e);
     return NextResponse.json({ error: '서버 오류' }, { status: 500 });
   }
 }

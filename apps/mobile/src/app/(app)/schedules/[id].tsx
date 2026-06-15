@@ -2,13 +2,20 @@ import { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Pressable, Alert, Modal, ActivityIndicator,
-  StatusBar,
+  StatusBar, Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import WebView from 'react-native-webview';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import { formatDateTime, InitialAvatar } from '@/lib/scheduleUtils';
+
+const KAKAO_MAP_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_KEY ?? '';
+
+function kakaoMapHtml(lat: number, lng: number, name: string): string {
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><style>*{margin:0;padding:0}html,body,#map{width:100%;height:100%}</style></head><body><div id="map"></div><script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_MAP_KEY}"></script><script>var map=new kakao.maps.Map(document.getElementById('map'),{center:new kakao.maps.LatLng(${lat},${lng}),level:4});var marker=new kakao.maps.Marker({map:map,position:new kakao.maps.LatLng(${lat},${lng})});var info=new kakao.maps.InfoWindow({content:'<div style="padding:5px 10px;font-size:12px;white-space:nowrap">${name.replace(/'/g, "\\'")}</div>'});info.open(map,marker);</script></body></html>`;
+}
 
 /* ── Types ─────────────────────────────────────────────────────────────── */
 
@@ -28,29 +35,12 @@ type ScheduleDetail = {
   scheduledAt: string;
   placeName: string;
   placeAddress: string;
+  lat: number;
+  lng: number;
   memo: string | null;
   isCreator: boolean;
   myStatus: AttendanceStatus;
   participants: Participant[];
-};
-
-/* ── Mock ─────────────────────────────────────────────────────────────── */
-
-const MOCK: ScheduleDetail = {
-  id: '1',
-  title: '홍대 팀 회식',
-  scheduledAt: new Date(Date.now() + 86400000 * 3).toISOString(),
-  placeName: '스타벅스 홍대점',
-  placeAddress: '서울 마포구 와우산로 12',
-  memo: '지각하면 벌금 3000원 🙏',
-  isCreator: true,
-  myStatus: 'accepted',
-  participants: [
-    { id: 'p1', userId: 'u1', nickname: '나',    status: 'accepted', isMe: true  },
-    { id: 'p2', userId: 'u2', nickname: '김철수', status: 'accepted', isMe: false },
-    { id: 'p3', userId: 'u3', nickname: '이영희', status: 'pending',  isMe: false },
-    { id: 'p4', userId: 'u4', nickname: '박지수', status: 'declined', isMe: false },
-  ],
 };
 
 /* ── Helpers ─────────────────────────────────────────────────────────── */
@@ -84,51 +74,6 @@ const nav = StyleSheet.create({
   accent: { color: '#bdc2ff' },
 });
 
-/* ── MapPlaceholder ─────────────────────────────────────────────────────── */
-
-function MapPlaceholder({ placeName }: { placeName: string }) {
-  return (
-    <View style={mp.wrap}>
-      {/* road grid */}
-      {[30, 70, 110, 150].map((top) => (
-        <View key={`h${top}`} style={[mp.hLine, { top }]} />
-      ))}
-      {[40, 90, 140, 190].map((left) => (
-        <View key={`v${left}`} style={[mp.vLine, { left }]} />
-      ))}
-      {/* blocks */}
-      <View style={[mp.block, { top: 10, left: 10, width: 55, height: 45 }]} />
-      <View style={[mp.block, { top: 10, left: 100, width: 70, height: 45 }]} />
-      <View style={[mp.block, { top: 80, left: 10, width: 45, height: 55 }]} />
-      <View style={[mp.block, { top: 80, left: 110, width: 55, height: 55 }]} />
-      <View style={[mp.block, { top: 155, left: 50, width: 80, height: 40 }]} />
-      {/* pin */}
-      <View style={mp.pinWrap}>
-        <View style={mp.pinCircle}>
-          <Ionicons name="location" size={16} color="#fdfaff" />
-        </View>
-        <View style={mp.pinTail} />
-      </View>
-      {/* label */}
-      <View style={mp.labelWrap}>
-        <Text style={mp.labelText} numberOfLines={1}>{placeName}</Text>
-      </View>
-    </View>
-  );
-}
-
-const mp = StyleSheet.create({
-  wrap:      { height: 200, backgroundColor: '#0f1011', borderRadius: 14, borderWidth: 1, borderColor: '#23252a', overflow: 'hidden', position: 'relative', alignItems: 'center', justifyContent: 'center' },
-  hLine:     { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: '#1c1b1f' },
-  vLine:     { position: 'absolute', top: 0, bottom: 0, width: 1, backgroundColor: '#1c1b1f' },
-  block:     { position: 'absolute', backgroundColor: '#141516', borderRadius: 4 },
-  pinWrap:   { alignItems: 'center', zIndex: 10 },
-  pinCircle: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#5e6ad2', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#fdfaff' },
-  pinTail:   { width: 2, height: 8, backgroundColor: '#5e6ad2', marginTop: -1 },
-  labelWrap: { position: 'absolute', bottom: 12, left: 16, right: 16, backgroundColor: '#141516', borderRadius: 8, borderWidth: 1, borderColor: '#34343a', paddingHorizontal: 10, paddingVertical: 6 },
-  labelText: { fontSize: 12, fontWeight: '600', color: '#f7f8f8', textAlign: 'center' },
-});
-
 /* ── ScheduleDetailScreen ──────────────────────────────────────────────── */
 
 export default function ScheduleDetailScreen() {
@@ -150,8 +95,7 @@ export default function ScheduleDetailScreen() {
       const { data } = await api.get(`/schedules/${id}`);
       setSchedule(data);
     } catch {
-      // fallback to mock while API is not ready
-      setSchedule(MOCK);
+      Alert.alert('오류', '일정을 불러올 수 없어요.', [{ text: '확인', onPress: () => router.back() }]);
     } finally {
       setLoading(false);
     }
@@ -268,7 +212,22 @@ export default function ScheduleDetailScreen() {
 
         {/* ── 지도 ── */}
         <View style={s.section}>
-          <MapPlaceholder placeName={schedule.placeName} />
+          {Platform.OS !== 'web' ? (
+            <WebView
+              key={`${schedule.lat}-${schedule.lng}`}
+              source={{ html: kakaoMapHtml(schedule.lat, schedule.lng, schedule.placeName) }}
+              style={s.map}
+              originWhitelist={['*']}
+              javaScriptEnabled
+              domStorageEnabled
+              scrollEnabled={false}
+            />
+          ) : (
+            <View style={[s.map, s.mapFallback]}>
+              <Ionicons name="map-outline" size={32} color="#34343a" />
+              <Text style={s.mapFallbackText}>지도는 앱에서 확인하세요</Text>
+            </View>
+          )}
         </View>
 
         {/* ── 참가자 ── */}
@@ -542,6 +501,11 @@ const s = StyleSheet.create({
   sheetItem: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16, minHeight: 52 },
   sheetItemText: { fontSize: 15, fontWeight: '500', color: '#d0d6e0' },
   sheetDivider: { height: 1, backgroundColor: '#1c1b1f' },
+
+  /* map */
+  map: { height: 200, borderRadius: 14, overflow: 'hidden' },
+  mapFallback: { backgroundColor: '#0f1011', borderWidth: 1, borderColor: '#23252a', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  mapFallbackText: { fontSize: 13, color: '#454652' },
 
   /* shared */
   dot: { width: 6, height: 6, borderRadius: 3 },
