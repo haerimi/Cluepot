@@ -1,5 +1,5 @@
 import { Tabs, useRouter } from 'expo-router';
-import { Pressable, Text, View, StyleSheet } from 'react-native';
+import { Pressable, Text, View, StyleSheet, Image } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '@/store/auth';
@@ -15,9 +15,10 @@ function Logo() {
 
 /* 상단 헤더 오른쪽: 아바타만 */
 function HeaderAvatar() {
-  const router = useRouter();
-  const user   = useAuthStore((s) => s.user);
-  const initial = (user?.nickname?.[0] ?? user?.email?.[0] ?? '?').toUpperCase();
+  const router       = useRouter();
+  const user         = useAuthStore((s) => s.user);
+  const initial      = (user?.nickname?.[0] ?? user?.email?.[0] ?? '?').toUpperCase();
+  const profileImage = user?.profileImage ?? null;
 
   return (
     <Pressable
@@ -27,9 +28,13 @@ function HeaderAvatar() {
       accessibilityLabel="프로필 화면으로 이동"
       hitSlop={8}
     >
-      <View style={hdr.avatar}>
-        <Text style={hdr.avatarText}>{initial}</Text>
-      </View>
+      {profileImage ? (
+        <Image source={{ uri: profileImage }} style={hdr.avatar} />
+      ) : (
+        <View style={[hdr.avatar, hdr.avatarFallback]}>
+          <Text style={hdr.avatarText}>{initial}</Text>
+        </View>
+      )}
     </Pressable>
   );
 }
@@ -69,6 +74,17 @@ export default function AppLayout() {
           }}
         />
         <Tabs.Screen
+          name="rooms/index"
+          options={{
+            title: '모임',
+            tabBarLabel: '모임',
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons name={focused ? 'people' : 'people-outline'} size={22} color={color} />
+            ),
+            headerShown: false,
+          }}
+        />
+        <Tabs.Screen
           name="calendar"
           options={{
             title: '캘린더',
@@ -90,7 +106,6 @@ export default function AppLayout() {
         />
 
         {/* ── 탭바에 표시하지 않는 화면 ── */}
-        <Tabs.Screen name="rooms/index"           options={{ href: null, headerShown: false }} />
         <Tabs.Screen name="rooms/[code]"          options={{ href: null, headerShown: false }} />
         <Tabs.Screen name="rooms/create"          options={{ href: null, headerShown: false }} />
         <Tabs.Screen name="rooms/join"            options={{ href: null, headerShown: false }} />
@@ -121,11 +136,13 @@ const hdr = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
+    borderWidth: 1,
+    borderColor: '#34343a',
+  },
+  avatarFallback: {
     backgroundColor: '#5e6ad2',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#34343a',
   },
   avatarText: {
     fontSize: 12,

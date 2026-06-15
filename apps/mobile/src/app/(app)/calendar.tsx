@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  ScrollView, ActivityIndicator,
+  ScrollView, ActivityIndicator, Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -58,7 +58,10 @@ export default function CalendarScreen() {
   const todayKey = toDateKey(new Date());
 
   useEffect(() => {
-    api.get('/schedules').then(({ data }) => setSchedules(data)).catch(() => {}).finally(() => setLoading(false));
+    api.get('/schedules')
+      .then(({ data }) => setSchedules(data))
+      .catch(() => Alert.alert('오류', '일정을 불러올 수 없어요.'))
+      .finally(() => setLoading(false));
   }, []);
 
   const byDate = useMemo(() => {

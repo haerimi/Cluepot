@@ -1,11 +1,13 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, Modal, TextInput, Animated,
+  ActivityIndicator, Modal, TextInput, Animated, Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '@/store/auth';
+import { api } from '@/lib/api';
+import { formatDateTime, InitialAvatar } from '@/lib/scheduleUtils';
 
 // ─── NavHeader ────────────────────────────────────────────────────────────────
 
@@ -50,52 +52,15 @@ type ScheduleDetail = {
   scheduledAt: string;
   placeName: string;
   placeAddress: string;
-  placeLatitude: number;
-  placeLongitude: number;
+  lat: number;
+  lng: number;
   memo: string | null;
   isCreator: boolean;
   myStatus: AttendanceStatus;
   participants: Participant[];
 };
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
-
-const MOCK: ScheduleDetail = {
-  id: '1',
-  title: '홍대 팀 회식',
-  scheduledAt: new Date(Date.now() + 86400000 * 3).toISOString(),
-  placeName: '홍대 고기집 A',
-  placeAddress: '서울 마포구 와우산로 12',
-  placeLatitude: 37.5519,
-  placeLongitude: 126.9245,
-  memo: '지각하면 벌금 3000원',
-  isCreator: true,
-  myStatus: 'accepted',
-  participants: [
-    { id: 'p1', userId: 'u1', nickname: '나',    profileImage: null, status: 'accepted', isMe: true  },
-    { id: 'p2', userId: 'u2', nickname: '김철수', profileImage: null, status: 'accepted', isMe: false },
-    { id: 'p3', userId: 'u3', nickname: '이영희', profileImage: null, status: 'pending',  isMe: false },
-    { id: 'p4', userId: 'u4', nickname: '박지수', profileImage: null, status: 'declined', isMe: false },
-  ],
-};
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatDateTime(iso: string) {
-  const d = new Date(iso);
-  const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
-  const month   = d.getMonth() + 1;
-  const day     = d.getDate();
-  const weekday = weekdays[d.getDay()];
-  const h = d.getHours();
-  const m = d.getMinutes();
-  const period = h < 12 ? '오전' : '오후';
-  const hour   = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  return {
-    date: `${month}월 ${day}일 (${weekday})`,
-    time: `${period} ${hour}:${String(m).padStart(2, '0')}`,
-  };
-}
 
 function formatDateDisplay(dateStr: string) {
   const [y, m, d] = dateStr.split('-').map(Number);
@@ -119,21 +84,13 @@ const STATUS_CONFIG: Record<AttendanceStatus, { label: string; bg: string; color
   pending:  { label: '보류', bg: '#23252a', color: '#8a8f98' },
 };
 
-// ─── InitialAvatar ────────────────────────────────────────────────────────────
-
-function InitialAvatar({ name, size = 36 }: { name: string; size?: number }) {
-  return (
-    <View style={[av.wrap, { width: size, height: size, borderRadius: size / 2 }]}>
-      <Text style={[av.text, { fontSize: size * 0.4 }]}>
-        {name.charAt(0).toUpperCase()}
-      </Text>
-    </View>
-  );
+function nowKST() {
+  const now = new Date();
+  const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  const date = kst.toISOString().slice(0, 10);
+  const time = kst.toISOString().slice(11, 16);
+  return { date, time };
 }
-const av = StyleSheet.create({
-  wrap: { backgroundColor: '#5e6ad2', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#34343a' },
-  text: { color: '#fdfaff', fontWeight: '700' },
-});
 
 // ─── MapBackground ────────────────────────────────────────────────────────────
 
@@ -350,7 +307,6 @@ function ConfirmedScreen({ schedule, editTitle, editDate, editTime }: {
         contentContainerStyle={cs.scroll}
         showsVerticalScrollIndicator={false}
       >
-        {/* Success header */}
         <View style={cs.heroSection}>
           <View style={cs.checkBg}>
             <Ionicons name="checkmark-circle" size={32} color="#27a644" />
@@ -359,15 +315,12 @@ function ConfirmedScreen({ schedule, editTitle, editDate, editTime }: {
           <Text style={cs.heroSub}>모든 참가자에게 알림이 발송됩니다.</Text>
         </View>
 
-        {/* Glass card */}
         <View style={cs.card}>
-          {/* Meeting name */}
           <View style={cs.section}>
             <Text style={cs.label}>MEETING NAME</Text>
             <Text style={cs.meetingName}>{editTitle || schedule.title}</Text>
           </View>
 
-          {/* Date/Time + Location */}
           <View style={[cs.section, cs.row, cs.borderTop]}>
             <View style={{ flex: 1 }}>
               <Text style={cs.label}>날짜 · 시간</Text>
@@ -391,7 +344,6 @@ function ConfirmedScreen({ schedule, editTitle, editDate, editTime }: {
             </View>
           </View>
 
-          {/* Participants */}
           <View style={[cs.section, cs.borderTop]}>
             <Text style={cs.label}>참가자</Text>
             <View style={cs.participantsRow}>
@@ -411,17 +363,12 @@ function ConfirmedScreen({ schedule, editTitle, editDate, editTime }: {
             </View>
           </View>
 
-          {/* Actions */}
           <View style={[cs.section, cs.borderTop, { gap: 10 }]}>
-            <TouchableOpacity style={cs.primaryBtn} activeOpacity={0.8}>
-              <Ionicons name="calendar-outline" size={17} color="#fdfaff" />
-              <Text style={cs.primaryBtnText}>캘린더에 추가</Text>
-            </TouchableOpacity>
             <View style={{ flexDirection: 'row', gap: 10 }}>
               <TouchableOpacity
                 style={cs.secondaryBtn}
                 activeOpacity={0.8}
-                onPress={() => router.push(`/(app)/schedules/${schedule.id}` as any)}
+                onPress={() => router.replace(`/(app)/schedules/${schedule.id}` as any)}
               >
                 <Text style={cs.secondaryBtnText}>상세 보기</Text>
               </TouchableOpacity>
@@ -469,15 +416,13 @@ const cs = StyleSheet.create({
   extraText:       { fontSize: 10, fontWeight: '700', color: '#8a8f98' },
   participantsLabel:{ fontSize: 12, color: '#8a8f98', flex: 1 },
 
-  primaryBtn:      { height: 50, backgroundColor: '#5e6ad2', borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: 1, borderColor: 'rgba(189,194,255,0.2)' },
-  primaryBtnText:  { fontSize: 14, fontWeight: '700', color: '#fdfaff' },
   secondaryBtn:    { flex: 1, height: 44, backgroundColor: '#18191a', borderWidth: 1, borderColor: '#23252a', borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   secondaryBtnText:{ fontSize: 13, fontWeight: '600', color: '#d0d6e0' },
 
   footnote:        { textAlign: 'center', fontSize: 11, color: '#454652', marginTop: 20 },
 });
 
-// ─── Main Screen (Step 3 of 3) ────────────────────────────────────────────────
+// ─── Main Screen ──────────────────────────────────────────────────────────────
 
 export default function FinalizeScheduleScreen() {
   const { scheduleId } = useLocalSearchParams<{ scheduleId: string }>();
@@ -485,14 +430,18 @@ export default function FinalizeScheduleScreen() {
   const user    = useAuthStore((s) => s.user);
   const initial = (user?.nickname?.[0] ?? user?.email?.[0] ?? '?').toUpperCase();
 
-  const [schedule]  = useState<ScheduleDetail>(MOCK);
+  const [schedule,  setSchedule]  = useState<ScheduleDetail | null>(null);
+  const [loading,   setLoading]   = useState(true);
   const [confirmed, setConfirmed] = useState(false);
 
-  const [editTitle, setEditTitle] = useState(MOCK.title);
-  const [editDate,  setEditDate]  = useState('');
-  const [editTime,  setEditTime]  = useState('');
-  const [editMemo,  setEditMemo]  = useState(MOCK.memo ?? '');
+  const [editTitle, setEditTitle] = useState('');
+  const [editDate,  setEditDate]  = useState(() => nowKST().date);
+  const [editTime,  setEditTime]  = useState(() => nowKST().time);
+  const [editMemo,  setEditMemo]  = useState('');
   const [locking,   setLocking]   = useState(false);
+
+  const userChangedDate = useRef(false);
+  const userChangedTime = useRef(false);
 
   const [showEdit,      setShowEdit]      = useState(false);
   const [showDelete,    setShowDelete]    = useState(false);
@@ -500,7 +449,73 @@ export default function FinalizeScheduleScreen() {
   const [showTimePick,  setShowTimePick]  = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
-  const { date, time } = formatDateTime(schedule.scheduledAt);
+  useEffect(() => {
+    api.get(`/schedules/${scheduleId}`)
+      .then(({ data }) => {
+        setSchedule(data);
+        setEditTitle(data.title);
+        setEditMemo(data.memo ?? '');
+      })
+      .catch(() => {
+        Alert.alert('오류', '일정을 불러올 수 없어요.', [
+          { text: '확인', onPress: () => router.back() },
+        ]);
+      })
+      .finally(() => setLoading(false));
+  }, [scheduleId]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const { date, time } = nowKST();
+      if (!userChangedDate.current) setEditDate(date);
+      if (!userChangedTime.current) setEditTime(time);
+    }, 60_000);
+    return () => clearInterval(timer);
+  }, []);
+
+  async function handleLockIn() {
+    if (!editTitle.trim() || !schedule) return;
+    setLocking(true);
+    try {
+      const scheduledAt = new Date(`${editDate}T${editTime}:00+09:00`).toISOString();
+      await api.patch(`/schedules/${scheduleId}`, {
+        title: editTitle.trim(),
+        memo: editMemo.trim() || null,
+        scheduledAt,
+      });
+      setConfirmed(true);
+    } catch {
+      Alert.alert('오류', '일정 저장에 실패했어요.');
+    } finally {
+      setLocking(false);
+    }
+  }
+
+  async function handleDelete() {
+    setActionLoading(true);
+    try {
+      await api.delete(`/schedules/${scheduleId}`);
+      setShowDelete(false);
+      router.back();
+    } catch {
+      Alert.alert('오류', '삭제에 실패했어요.');
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <View style={s.container}>
+        <NavHeader initial={initial} onBack={() => router.back()} />
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator color="#bdc2ff" size="large" />
+        </View>
+      </View>
+    );
+  }
+
+  if (!schedule) return null;
 
   if (confirmed) {
     return (
@@ -513,18 +528,7 @@ export default function FinalizeScheduleScreen() {
     );
   }
 
-  function handleLockIn() {
-    if (!editTitle.trim()) return;
-    setLocking(true);
-    // TODO: api.post('/schedules', { title: editTitle, date: editDate, time: editTime, memo: editMemo })
-    setTimeout(() => { setLocking(false); setConfirmed(true); }, 1000);
-  }
-
-  function handleDelete() {
-    setActionLoading(true);
-    // TODO: api.delete(`/rooms/${scheduleId}`)
-    setTimeout(() => { setActionLoading(false); setShowDelete(false); router.back(); }, 800);
-  }
+  const { date, time } = formatDateTime(schedule.scheduledAt);
 
   return (
     <View style={s.container}>
@@ -679,9 +683,8 @@ export default function FinalizeScheduleScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Modals */}
-      <DatePickerModal visible={showDatePick} initial={editDate} onConfirm={setEditDate} onClose={() => setShowDatePick(false)} />
-      <TimePickerModal visible={showTimePick} initial={editTime} onConfirm={setEditTime} onClose={() => setShowTimePick(false)} />
+      <DatePickerModal visible={showDatePick} initial={editDate} onConfirm={(v) => { userChangedDate.current = true; setEditDate(v); }} onClose={() => setShowDatePick(false)} />
+      <TimePickerModal visible={showTimePick} initial={editTime} onConfirm={(v) => { userChangedTime.current = true; setEditTime(v); }} onClose={() => setShowTimePick(false)} />
 
       {/* Edit modal */}
       <Modal visible={showEdit} animationType="slide" transparent>
@@ -727,7 +730,6 @@ export default function FinalizeScheduleScreen() {
 const s = StyleSheet.create({
   container:  { flex: 1, backgroundColor: '#131316' },
 
-  // Body
   body:       { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 120 },
   pageTitle:  { fontSize: 28, fontWeight: '700', color: '#f7f8f8', letterSpacing: -0.6, marginBottom: 6 },
   pageSubtitle:{ fontSize: 14, color: '#8a8f98', marginBottom: 28, lineHeight: 20 },
@@ -761,7 +763,6 @@ const s = StyleSheet.create({
   creatorBtnText:{ fontSize: 12, fontWeight: '600', color: '#d0d6e0' },
   creatorDanger: { borderColor: 'rgba(255,180,171,0.25)', backgroundColor: 'rgba(255,180,171,0.04)' },
 
-  // Footer
   footer:       { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#131316', borderTopWidth: 1, borderTopColor: '#23252a', paddingHorizontal: 20, paddingTop: 14, paddingBottom: 28 },
   footerMeta:   { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 12 },
   footerMetaText:{ fontSize: 11, color: '#8a8f98' },
@@ -769,7 +770,6 @@ const s = StyleSheet.create({
   lockBtn:      { height: 48, backgroundColor: '#5e6ad2', borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, borderWidth: 1, borderColor: 'rgba(189,194,255,0.2)' },
   lockBtnText:  { fontSize: 14, fontWeight: '700', color: '#fdfaff', letterSpacing: 0.1 },
 
-  // Modals (shared)
   modalOverlay:    { flex: 1, backgroundColor: 'rgba(0,0,0,0.72)', justifyContent: 'flex-end' },
   modalSheet:      { backgroundColor: '#141516', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40, borderTopWidth: 1, borderColor: '#23252a' },
   modalHandle:     { width: 36, height: 4, borderRadius: 2, backgroundColor: '#34343a', alignSelf: 'center', marginBottom: 20 },
