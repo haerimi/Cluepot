@@ -10,9 +10,6 @@ export default function IndexScreen() {
   const setUser = useAuthStore((s) => s.setUser)
 
   useEffect(() => {
-    // TODO: supabase.auth.getSession()으로 세션 확인
-    // TODO: 세션 있으면 router.replace('/(app)/home')
-    // TODO: 세션 없으면 router.replace('/(auth)/login')
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
         const { data } = await api.get('/profile');
