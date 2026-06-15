@@ -4,6 +4,57 @@ import { getMobileUser } from '@/lib/mobile-auth';
 
 export const dynamic = 'force-dynamic';
 
+export async function POST(req: NextRequest) {
+  try {
+    const user = await getMobileUser(req);
+    if (!user) return NextResponse.json({ error: '인증 필요' }, { status: 401 });
+
+    const userId = user.id;
+    const { roomCode, title, placeName, placeAddress, lat, lng, scheduledAt, memo } = await req.json();
+
+    if (!roomCode || !title || !placeName || !scheduledAt) {
+      return NextResponse.json({ error: '필수 항목이 누락됐어요.' }, { status: 400 });
+    }
+
+    const schedule = await prisma.$transaction(async (tx) => {
+      await tx.room.update({ where: { roomCode }, data: { status: 'done' } });
+
+      const participants = await tx.participant.findMany({
+        where: { roomCode },
+        select: { userId: true },
+      });
+
+      const memberIds = new Set<string>(participants.map((p) => p.userId));
+      memberIds.add(userId);
+
+      return tx.schedule.create({
+        data: {
+          roomCode,
+          title,
+          placeName,
+          placeAddress,
+          lat: lat ?? 0,
+          lng: lng ?? 0,
+          scheduledAt: new Date(scheduledAt),
+          memo: memo ?? null,
+          createdBy: userId,
+          members: {
+            create: Array.from(memberIds).map((uid) => ({
+              userId: uid,
+              status: uid === userId ? 'accepted' : 'pending',
+            })),
+          },
+        },
+        select: { id: true },
+      });
+    });
+
+    return NextResponse.json({ id: schedule.id });
+  } catch {
+    return NextResponse.json({ error: '서버 오류' }, { status: 500 });
+  }
+}
+
 export async function GET(req: NextRequest) {
   try {
     const user = await getMobileUser(req);
