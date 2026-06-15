@@ -125,6 +125,14 @@ function EditModal({
           memo: memo || null
         },
         schedule.roomCode);
+      await updateSchedule(
+        schedule.id,
+        {
+          title: title.trim(),
+          scheduledAt: `${dt}:00+09:00`,
+          memo: memo || null
+        },
+        schedule.roomCode);
       onSaved();
       onClose();
     });
