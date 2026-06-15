@@ -255,10 +255,22 @@ async function fetchNaverBlogReviews(placeName: string): Promise<string[]> {
     );
 }
 
+const CORS_HEADERS = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+};
+
+export async function OPTIONS() {
+    return new Response(null, { status: 204, headers: CORS_HEADERS });
+}
+
 // ── POST handler ──────────────────────────────────────────────────────────
 export async function POST(req: Request) {
     try {
-        return await runPini(req);
+        const res = await runPini(req);
+        const body = await res.json();
+        return Response.json(body, { headers: CORS_HEADERS });
     } catch (err) {
         console.error("[PINI] 오류:", err);
         const msg = err instanceof Error ? err.message : "AI 추천 중 오류가 발생했어요.";
@@ -268,7 +280,7 @@ export async function POST(req: Request) {
             msg.toLowerCase().includes("high demand");
         return Response.json(
             { error: isOverload ? "AI 서버가 일시적으로 혼잡해요. 잠시 후 다시 시도해 주세요." : msg },
-            { status: isOverload ? 503 : 500 }
+            { status: isOverload ? 503 : 500, headers: CORS_HEADERS }
         );
     }
 }
