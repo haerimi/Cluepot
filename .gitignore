@@ -6,7 +6,9 @@ package-lock.json
 
 # editor / tool settings
 .claude/
-.vscode/settings.json
+!.claude/agents/
+!.claude/agents/**
+**/.vscode/settings.json
 /.pnp
 .pnp.*
 .yarn/*

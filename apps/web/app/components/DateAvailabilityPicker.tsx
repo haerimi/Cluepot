@@ -89,7 +89,8 @@ export function DateAvailabilityPicker({
           type="button"
           onClick={handlePrev}
           disabled={!canGoPrev}
-          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          aria-label="이전 달"
+          className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-white hover:shadow-sm active:scale-[0.96] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:shadow-none transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path
@@ -110,7 +111,8 @@ export function DateAvailabilityPicker({
           type="button"
           onClick={handleNext}
           disabled={!canGoNext}
-          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          aria-label="다음 달"
+          className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-white hover:shadow-sm active:scale-[0.96] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:shadow-none transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path
@@ -162,15 +164,16 @@ export function DateAvailabilityPicker({
                 onClick={() => handleDayClick(day)}
                 disabled={isDisabled}
                 className={[
-                  "w-9 h-9 rounded-full text-[13px] font-medium transition-all duration-100",
+                  "w-10 h-10 sm:w-7 sm:h-7 rounded-full text-[13px] font-medium transition-all duration-150 mt-1",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
+                  "active:scale-[0.94]",
                   isSelected
                     ? "bg-accent text-white shadow-[0_0_0_2px_#7298C7]"
                     : isToday
-                      ? "border border-accent text-accent hover:bg-accent-light"
+                      ? "border border-accent text-accent hover:bg-accent-light hover:shadow-sm"
                       : isDisabled
                         ? "text-ink-subtle opacity-30 cursor-not-allowed"
-                        : "text-ink hover:bg-surface-warm",
+                        : "text-ink hover:bg-white hover:shadow-sm",
                 ]
                   .filter(Boolean)
                   .join(" ")}

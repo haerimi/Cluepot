@@ -119,111 +119,79 @@ function TravelRows({ times }: Readonly<TravelRowsProps>) {
   );
 }
 
-interface DetailDrawerProps {
+interface DrawerContentProps {
   readonly intelligence: ReviewIntelligence;
-  readonly fairnessScore: number;
   readonly atmosphereMatch: string;
   readonly balanceTag: BalanceTag;
   readonly isSelected: boolean;
 }
 
-function DetailDrawer({
+function DrawerContent({
   intelligence,
-  fairnessScore,
   atmosphereMatch,
   balanceTag,
   isSelected,
-}: Readonly<DetailDrawerProps>) {
-  const [open, setOpen] = useState(false);
-
-  let scoreColor = "text-ink-subtle";
-  if (fairnessScore >= 90)      scoreColor = "text-success";
-  else if (fairnessScore >= 75) scoreColor = "text-warning";
+}: Readonly<DrawerContentProps>) {
 
   return (
-    <div>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 text-[11px] font-medium text-ink-subtle
-                   hover:text-ink transition-colors py-1"
-        aria-expanded={open}
+    <div
+      className="mt-3 space-y-4"
+      style={{ animation: "card-expand 0.2s ease-out both" }}
+    >
+      {/* Review intelligence */}
+      <div
+        className="rounded-xl p-4"
+        style={{
+          backgroundColor: isSelected ? "rgba(114,152,199,0.04)" : "#F7F6F2",
+          border: `1px solid ${isSelected ? "rgba(114,152,199,0.12)" : "#EAE7DF"}`,
+        }}
       >
-        <span
-          className="transition-transform duration-200"
-          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
-          aria-hidden="true"
-        >
-          ↓
-        </span>
-        {open ? "접기" : "후기 · 상세 보기"}
-      </button>
-
-      {open && (
-        <div
-          className="mt-4 space-y-4"
-          style={{ animation: "card-expand 0.2s ease-out both" }}
-        >
-          {/* Review intelligence */}
-          <div
-            className="rounded-xl p-4"
-            style={{
-              backgroundColor: isSelected ? "rgba(114,152,199,0.04)" : "#F7F6F2",
-              border: `1px solid ${isSelected ? "rgba(114,152,199,0.12)" : "#EAE7DF"}`,
-            }}
-          >
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] font-bold text-accent tracking-[1.5px] uppercase">
-                PINI 리뷰 분석
-              </span>
-              <span className="text-[10px] font-semibold bg-accent-light text-accent px-2 py-0.5 rounded-full">
-                검증 후기 {intelligence.authenticCount}개
-              </span>
-            </div>
-
-            {(intelligence.pros ?? []).length > 0 && (
-              <div className={(intelligence.cons ?? []).length > 0 ? "mb-3" : ""}>
-                <p className="text-[10px] font-bold text-success tracking-wide mb-2">좋은 점</p>
-                <ul className="space-y-1.5">
-                  {(intelligence.pros ?? []).map((pro) => (
-                    <li key={pro} className="flex items-start gap-2">
-                      <span className="text-[10px] text-success mt-0.75 shrink-0 font-bold">✓</span>
-                      <span className="text-[12px] text-ink-muted leading-[1.6]">{pro}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {(intelligence.cons ?? []).length > 0 && (
-              <div>
-                <p className="text-[10px] font-bold text-warning tracking-wide mb-2">참고할 점</p>
-                <ul className="space-y-1.5">
-                  {(intelligence.cons ?? []).map((con) => (
-                    <li key={con} className="flex items-start gap-2">
-                      <span className="text-[10px] text-warning mt-0.75 shrink-0">△</span>
-                      <span className="text-[12px] text-ink-muted leading-[1.6]">{con}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-
-          {/* Metrics row — inside the drawer, not the card default view */}
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className={["text-[12px] font-bold tabular-nums", scoreColor].join(" ")}>
-              균형도 {fairnessScore}%
-            </span>
-            <span className="text-ink-tertiary text-[11px]">·</span>
-            <span className="text-[11px] text-ink-subtle">{atmosphereMatch}</span>
-            <span className="text-ink-tertiary text-[11px]">·</span>
-            <span className="text-[11px] text-ink-subtle">
-              {BALANCE_TAG_LABEL[balanceTag]}
-            </span>
-          </div>
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-[10px] font-bold text-accent tracking-[1.5px] uppercase">
+            PINI 리뷰 분석
+          </span>
+          <span className="text-[10px] font-semibold bg-accent-light text-accent px-2 py-0.5 rounded-full">
+            검증 후기 {intelligence.authenticCount}개
+          </span>
         </div>
-      )}
+
+        {(intelligence.pros ?? []).length > 0 && (
+          <div className={(intelligence.cons ?? []).length > 0 ? "mb-3" : ""}>
+            <p className="text-[10px] font-bold text-success tracking-wide mb-2">좋은 점</p>
+            <ul className="space-y-1.5">
+              {(intelligence.pros ?? []).map((pro) => (
+                <li key={pro} className="flex items-start gap-2">
+                  <span className="text-[10px] text-success mt-0.75 shrink-0 font-bold">✓</span>
+                  <span className="text-[12px] text-ink-muted leading-[1.6]">{pro}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {(intelligence.cons ?? []).length > 0 && (
+          <div>
+            <p className="text-[10px] font-bold text-warning tracking-wide mb-2">참고할 점</p>
+            <ul className="space-y-1.5">
+              {(intelligence.cons ?? []).map((con) => (
+                <li key={con} className="flex items-start gap-2">
+                  <span className="text-[10px] text-warning mt-0.75 shrink-0">△</span>
+                  <span className="text-[12px] text-ink-muted leading-[1.6]">{con}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      {/* Metrics row */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <span className="text-[11px] text-ink-subtle">{atmosphereMatch}</span>
+        <span className="text-ink-tertiary text-[11px]">·</span>
+        <span className="text-[11px] text-ink-subtle">
+          {BALANCE_TAG_LABEL[balanceTag]}
+        </span>
+      </div>
     </div>
   );
 }
@@ -245,6 +213,12 @@ export function PlaceCard({
   reviewIntelligence,
   animationDelay = "0s",
 }: PlaceCardProps) {
+  const [open, setOpen] = useState(false);
+
+  let scoreColor = "text-ink-subtle";
+  if (fairnessScore >= 90)      scoreColor = "text-success";
+  else if (fairnessScore >= 75) scoreColor = "text-warning";
+
   return (
     <div
       className={[
@@ -275,6 +249,40 @@ export function PlaceCard({
             {placeName}
           </h3>
           <p className="text-[12px] text-ink-subtle truncate">{placeAddress}</p>
+
+          {/* fairnessScore + toggle — below place identity */}
+          <div className="mt-3">
+            <span className={["text-[13px] font-bold tabular-nums", scoreColor].join(" ")}>
+              균형도 {fairnessScore}%
+            </span>
+            <div className="mt-1.5">
+              <button
+                type="button"
+                onClick={() => setOpen((v) => !v)}
+                className="flex items-center gap-1.5 text-[11px] font-medium text-ink-subtle
+                           hover:text-ink transition-colors py-0.5"
+                aria-expanded={open}
+              >
+                <span
+                  className="transition-transform duration-200"
+                  style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+                  aria-hidden="true"
+                >
+                  ↓
+                </span>
+                {open ? "접기" : "후기 · 상세 보기"}
+              </button>
+            </div>
+
+            {open && (
+              <DrawerContent
+                intelligence={reviewIntelligence}
+                atmosphereMatch={atmosphereMatch}
+                balanceTag={balanceTag}
+                isSelected={isSelected}
+              />
+            )}
+          </div>
         </div>
 
         <div className="h-px bg-hairline" />
@@ -296,17 +304,6 @@ export function PlaceCard({
 
         {/* ── 3. Travel balance ── */}
         <TravelRows times={perParticipantTime} />
-
-        <div className="h-px bg-hairline" />
-
-        {/* ── 4. Expandable detail drawer ── */}
-        <DetailDrawer
-          intelligence={reviewIntelligence}
-          fairnessScore={fairnessScore}
-          atmosphereMatch={atmosphereMatch}
-          balanceTag={balanceTag}
-          isSelected={isSelected}
-        />
       </div>
 
       {/* Select CTA — full-width footer */}

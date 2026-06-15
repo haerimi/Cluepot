@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { Transport } from "@/types/participant";
+import { ChoiceButton } from "@/app/components/ChoiceButton";
 
 interface TransportOption {
   value: Transport;
@@ -22,25 +23,16 @@ interface TransportPickerProps {
 
 export function TransportPicker({ value, onChange }: TransportPickerProps) {
   return (
-    <div className="flex gap-2">
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
       {TRANSPORTS.map((t) => {
         const isSelected = value === t.value;
         return (
-          <button
+          <ChoiceButton
             key={t.value}
-            type="button"
-            onClick={() => onChange(t.value)}
             title={t.label}
-            aria-pressed={isSelected}
-            className={[
-              "relative flex flex-col items-center gap-1 flex-1 py-3 rounded-[10px] border text-center transition-all duration-150",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
-              isSelected
-                ? "bg-accent-light border-accent shadow-[0_0_0_1px_#7298C7]"
-                : "bg-white border-hairline hover:border-hairline-strong hover:bg-surface",
-            ]
-              .filter(Boolean)
-              .join(" ")}
+            isSelected={isSelected}
+            onClick={() => onChange(t.value)}
+            className="relative min-h-[76px] bg-white hover:bg-surface"
           >
             {isSelected && (
               <span className="absolute top-1.5 right-1.5 w-3.5 h-3.5 rounded-full bg-accent flex items-center justify-center">
@@ -64,7 +56,7 @@ export function TransportPicker({ value, onChange }: TransportPickerProps) {
             >
               {t.label}
             </span>
-          </button>
+          </ChoiceButton>
         );
       })}
     </div>

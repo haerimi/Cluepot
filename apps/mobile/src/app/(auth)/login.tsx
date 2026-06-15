@@ -1,145 +1,256 @@
+import { useState, useRef } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
   KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator,
+  StatusBar, Animated,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
+import { api } from '@/lib/api';
+import { useAuthStore } from '@/store/auth';
+
+// ── NavHeader ─────────────────────────────────────────────────────────────────
+
+function NavHeader() {
+  return (
+    <View style={nav.wrap}>
+      <Text style={nav.logo}>Clue<Text style={nav.accent}>Pot</Text></Text>
+      <View style={nav.spacer} />
+    </View>
+  );
+}
+
+const nav = StyleSheet.create({
+  wrap:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, height: 56, borderBottomWidth: 1, borderBottomColor: '#23252a', backgroundColor: '#131316' },
+  logo:   { fontSize: 20, fontWeight: '700', color: '#f7f8f8', letterSpacing: -0.3 },
+  accent: { color: '#bdc2ff' },
+  spacer: { width: 30 },
+});
+
+// ── InputField ────────────────────────────────────────────────────────────────
+
+function InputField({
+  label, value, onChangeText, placeholder,
+  keyboardType, autoCapitalize, secureTextEntry,
+  leftIcon, rightElement,
+}: {
+  label: string;
+  value: string;
+  onChangeText: (t: string) => void;
+  placeholder: string;
+  keyboardType?: any;
+  autoCapitalize?: any;
+  secureTextEntry?: boolean;
+  leftIcon?: keyof typeof Ionicons.glyphMap;
+  rightElement?: React.ReactNode;
+}) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <View style={f.group}>
+      <Text style={f.label}>{label}</Text>
+      <View style={[f.wrap, focused && f.wrapFocused]}>
+        {leftIcon && (
+          <Ionicons name={leftIcon} size={17} color={focused ? '#bdc2ff' : '#454652'} style={f.leftIcon} />
+        )}
+        <TextInput
+          style={f.input}
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={placeholder}
+          placeholderTextColor="#454652"
+          secureTextEntry={secureTextEntry}
+          keyboardType={keyboardType ?? 'default'}
+          autoCapitalize={autoCapitalize ?? 'none'}
+          autoCorrect={false}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+        />
+        {rightElement}
+      </View>
+    </View>
+  );
+}
+
+const f = StyleSheet.create({
+  group:      { marginBottom: 16 },
+  label:      { fontSize: 11, fontWeight: '600', color: '#8a8f98', textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 8 },
+  wrap:       { flexDirection: 'row', alignItems: 'center', backgroundColor: '#141516', borderWidth: 1.5, borderColor: '#23252a', borderRadius: 10, paddingHorizontal: 14, height: 52 },
+  wrapFocused:{ borderColor: '#5e6ad2', backgroundColor: 'rgba(94,106,210,0.06)' },
+  leftIcon:   { marginRight: 10 },
+  input:      { flex: 1, fontSize: 15, color: '#f7f8f8', height: '100%' },
+});
+
+// ── LoginScreen ───────────────────────────────────────────────────────────────
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState('');
+  const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [showPw,   setShowPw]   = useState(false);
+  const [error,    setError]    = useState('');
+  const [loading,  setLoading]  = useState(false);
 
-  const router = useRouter();
+  const router  = useRouter();
+  const setUser = useAuthStore((s) => s.setUser);
+  const scale   = useRef(new Animated.Value(1)).current;
 
-  function handleLogin() {
+  function pressIn()  { Animated.spring(scale, { toValue: 0.97, useNativeDriver: true, speed: 60, bounciness: 0 }).start(); }
+  function pressOut() { Animated.spring(scale, { toValue: 1,    useNativeDriver: true, speed: 40, bounciness: 5 }).start(); }
+
+  async function handleLogin() {
+    if (!email.trim())  { setError('이메일을 입력해주세요.'); return; }
+    if (!password)      { setError('비밀번호를 입력해주세요.'); return; }
     setLoading(true);
     setError('');
-    supabase.auth.signInWithPassword({ email, password }).then(({ error }) => {
+    const { error: authErr } = await supabase.auth.signInWithPassword({ email, password });
+    if (authErr) {
       setLoading(false);
-      if (error) {
-        setError('이메일 또는 비밀번호가 올바르지 않아요.');
-        return;
-      }
-      router.replace('/(app)/home');
-    });
+      setError('이메일 또는 비밀번호가 올바르지 않아요.');
+      return;
+    }
+    const { data } = await api.get('/profile');
+    setUser(data);
+    setLoading(false);
+    router.replace('/(app)/home');
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView style={s.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <StatusBar barStyle="light-content" backgroundColor="#131316" />
+      <NavHeader />
 
-        {/* 상단 다크 헤더 */}
-        <View style={styles.hero}>
-          <Text style={styles.heroLogo}>
-            Clue<Text style={styles.heroAccent}>Pot</Text>
-          </Text>
-          <Text style={styles.heroTitle}>
-            다시,{'\n'}모임의{'\n'}<Text style={styles.heroAccent}>중심으로</Text>
-          </Text>
-          <Text style={styles.heroSub}>피니가 공정한 모임 장소를 찾아드려요.</Text>
+      <ScrollView
+        contentContainerStyle={s.scroll}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* 헤딩 */}
+        <View style={s.headingSection}>
+          <Text style={s.eyebrow}>SIGN IN</Text>
+          <Text style={s.heading}>다시 오셨군요</Text>
+          <Text style={s.subheading}>계정에 로그인해 모임을 이어가세요.</Text>
         </View>
 
-        {/* 폼 영역 */}
-        <View style={styles.form}>
-          <View style={styles.formHeader}>
-            <Text style={styles.formEyebrow}>로그인</Text>
-            <Text style={styles.formTitle}>다시 오셨군요</Text>
-            <Text style={styles.formSub}>계정에 로그인해 모임을 이어가세요.</Text>
-          </View>
+        {/* 카드 */}
+        <View style={s.card}>
+          <View style={s.glowAccent} pointerEvents="none" />
 
-          <Text style={styles.label}>이메일</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="name@example.com"
-            placeholderTextColor="#B0BAC8"
+          <InputField
+            label="이메일"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(t) => { setEmail(t); setError(''); }}
+            placeholder="name@example.com"
             keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
+            leftIcon="mail-outline"
           />
 
-          <Text style={styles.label}>비밀번호</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="••••••••"
-            placeholderTextColor="#B0BAC8"
+          <InputField
+            label="비밀번호"
             value={password}
-            onChangeText={setPassword}
-            secureTextEntry
+            onChangeText={(t) => { setPassword(t); setError(''); }}
+            placeholder="••••••••"
+            secureTextEntry={!showPw}
+            leftIcon="lock-closed-outline"
+            rightElement={
+              <TouchableOpacity onPress={() => setShowPw(v => !v)} hitSlop={8}>
+                <Ionicons
+                  name={showPw ? 'eye-off-outline' : 'eye-outline'}
+                  size={18}
+                  color="#8a8f98"
+                />
+              </TouchableOpacity>
+            }
           />
 
-          {error ? <Text style={styles.error}>{error}</Text> : null}
+          {/* 에러 */}
+          {error ? (
+            <View style={s.errorRow}>
+              <Ionicons name="alert-circle-outline" size={14} color="#ffb4ab" />
+              <Text style={s.errorText}>{error}</Text>
+            </View>
+          ) : null}
 
-          <TouchableOpacity
-            style={[styles.btn, loading && styles.btnDisabled]}
-            onPress={handleLogin}
-            disabled={loading}
-            activeOpacity={0.8}
-          >
-            {loading
-              ? <ActivityIndicator color="#fff" />
-              : <Text style={styles.btnText}>로그인하기</Text>}
-          </TouchableOpacity>
+          {/* CTA */}
+          <Animated.View style={[{ transform: [{ scale }] }, s.btnWrap]}>
+            <TouchableOpacity
+              style={[s.btn, loading && { opacity: 0.5 }]}
+              onPress={handleLogin}
+              onPressIn={pressIn}
+              onPressOut={pressOut}
+              disabled={loading}
+              activeOpacity={1}
+              accessibilityRole="button"
+              accessibilityLabel="로그인하기"
+            >
+              {loading
+                ? <ActivityIndicator color="#fdfaff" size="small" />
+                : (
+                  <>
+                    <Text style={s.btnText}>로그인하기</Text>
+                    <Ionicons name="arrow-forward" size={16} color="#fdfaff" />
+                  </>
+                )
+              }
+            </TouchableOpacity>
+          </Animated.View>
 
-          <View style={styles.dividerRow}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>또는</Text>
-            <View style={styles.dividerLine} />
+          {/* 구분선 */}
+          <View style={s.dividerRow}>
+            <View style={s.dividerLine} />
+            <Text style={s.dividerText}>또는</Text>
+            <View style={s.dividerLine} />
           </View>
 
-          <TouchableOpacity onPress={() => router.push('/(auth)/signup')} style={styles.link}>
-            <Text style={styles.linkText}>
-              처음이세요? <Text style={styles.linkAccent}>계정 만들기</Text>
+          {/* 회원가입 링크 */}
+          <TouchableOpacity
+            onPress={() => router.push('/(auth)/signup')}
+            style={s.linkBtn}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+          >
+            <Text style={s.linkText}>
+              처음이세요?{'  '}
+              <Text style={s.linkAccent}>계정 만들기</Text>
             </Text>
           </TouchableOpacity>
         </View>
-
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F5F0' },
-  scroll: { flexGrow: 1 },
+// ── Styles ────────────────────────────────────────────────────────────────────
 
-  // 다크 헤더
-  hero: { backgroundColor: '#1A2033', paddingHorizontal: 28, paddingTop: 64, paddingBottom: 36 },
-  heroLogo: { fontSize: 18, fontWeight: '900', color: '#fff', marginBottom: 20 },
-  heroAccent: { color: '#7298C7' },
-  heroTitle: { fontSize: 44, fontWeight: '900', color: '#fff', lineHeight: 42, letterSpacing: -2, marginBottom: 16 },
-  heroSub: { fontSize: 13, color: '#5A6A85', lineHeight: 22 },
+const s = StyleSheet.create({
+  root:  { flex: 1, backgroundColor: '#131316' },
+  scroll: { paddingHorizontal: 20, paddingTop: 36, paddingBottom: 60 },
 
-  // 폼
-  form: { flex: 1, paddingHorizontal: 28, paddingTop: 36, paddingBottom: 48 },
-  formHeader: { marginBottom: 28 },
-  formEyebrow: { fontSize: 10, fontWeight: '700', color: '#9AAFC5', letterSpacing: 3, textTransform: 'uppercase', marginBottom: 10 },
-  formTitle: { fontSize: 26, fontWeight: '900', color: '#1A2033', marginBottom: 6 },
-  formSub: { fontSize: 13, color: '#5A6A85' },
+  /* 헤딩 */
+  headingSection: { marginBottom: 28 },
+  eyebrow:    { fontSize: 11, fontWeight: '600', color: '#5e6ad2', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 10 },
+  heading:    { fontSize: 32, fontWeight: '700', color: '#f7f8f8', letterSpacing: -0.8, lineHeight: 38, marginBottom: 8 },
+  subheading: { fontSize: 14, color: '#8a8f98', lineHeight: 20 },
 
-  label: { fontSize: 11, fontWeight: '700', color: '#5A6A85', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 6, marginTop: 16 },
-  input: {
-    height: 52, borderWidth: 1, borderColor: '#E2E6EC', borderRadius: 12,
-    paddingHorizontal: 16, fontSize: 16, color: '#1A2033', backgroundColor: '#fff',
-  },
-  error: { fontSize: 13, color: '#E05555', backgroundColor: '#FFF5F5', borderRadius: 10, padding: 12, marginTop: 12 },
+  /* 카드 */
+  card:       { backgroundColor: '#0f1011', borderWidth: 1, borderColor: '#23252a', borderRadius: 16, padding: 24, overflow: 'hidden' },
+  glowAccent: { position: 'absolute', top: -60, right: -60, width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(94,106,210,0.06)' },
 
-  btn: { height: 52, backgroundColor: '#7298C7', borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginTop: 24 },
-  btnDisabled: { opacity: 0.6 },
-  btnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  /* 에러 */
+  errorRow:  { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: -4, marginBottom: 12 },
+  errorText: { fontSize: 12, color: '#ffb4ab', flex: 1, lineHeight: 18 },
 
-  dividerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginVertical: 24 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: '#E2E6EC' },
-  dividerText: { fontSize: 11, color: '#9AAFC5', textTransform: 'uppercase', letterSpacing: 1 },
+  /* 버튼 */
+  btnWrap: { marginTop: 8 },
+  btn:     { height: 52, backgroundColor: '#5e6ad2', borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: 1, borderColor: 'rgba(189,194,255,0.2)' },
+  btnText: { fontSize: 15, fontWeight: '700', color: '#fdfaff', letterSpacing: -0.2 },
 
-  link: { alignItems: 'center' },
-  linkText: { fontSize: 13, color: '#5A6A85' },
-  linkAccent: { color: '#7298C7', fontWeight: '700' },
+  /* 구분선 */
+  dividerRow:  { flexDirection: 'row', alignItems: 'center', gap: 12, marginVertical: 24 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: '#23252a' },
+  dividerText: { fontSize: 11, fontWeight: '600', color: '#454652', textTransform: 'uppercase', letterSpacing: 1 },
+
+  /* 링크 */
+  linkBtn:    { alignItems: 'center', paddingVertical: 4 },
+  linkText:   { fontSize: 13, color: '#8a8f98' },
+  linkAccent: { color: '#bdc2ff', fontWeight: '700' },
 });

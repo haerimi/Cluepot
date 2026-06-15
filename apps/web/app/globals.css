@@ -6,6 +6,7 @@
   --color-surface: #F9FAF6;
   --color-surface-warm: #F0EDE7;
   --color-surface-subtle: #FDF6E3;
+  --color-surface-3: #EFF1F5;
   --color-dark: #1E2535;
 
   /* ── Accent — Blue Grey (primary) + Morning Butter (secondary) ── */
@@ -24,6 +25,7 @@
   --color-ink: #1A2033;
   --color-ink-muted: #5A6A85;
   --color-ink-subtle: #9AAABF;
+  --color-ink-tertiary: #B8C4D4;
   --color-ink-inverse: #FFFFFF;
 
   /* ── Borders ── */
@@ -159,6 +161,21 @@ button {
 
 /* ── Ambient motion keyframes ── */
 
+/* 확정 페이지 핀 pulse — 위치 핀이 부드럽게 숨쉬는 효과 */
+@keyframes pin-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%       { transform: scale(1.1); opacity: 0.8; }
+}
+.pin-animation {
+  animation: pin-pulse 3s ease-in-out infinite;
+}
+
+/* 확정 페이지 핀 링 — 바깥으로 퍼지는 ripple */
+@keyframes pin-ring {
+  0%   { transform: scale(0.8); opacity: 0.5; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+
 /* Gentle vertical float for hero elements */
 @keyframes float-slow {
   0%, 100% { transform: translateY(0px); }
@@ -274,6 +291,24 @@ button {
   100% { transform: translate(0, 0); }
 }
 
+/* 참가자 대기실 progress bar shimmer — 좌→우 스캔 */
+@keyframes progress-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.progress-shimmer {
+  background: linear-gradient(90deg, #7298C7 0%, #9AB3D8 50%, #7298C7 100%);
+  background-size: 200% 100%;
+  animation: progress-shimmer 2s infinite linear;
+}
+
+/* 참가자 완료 체크 아이콘 — 부드러운 pulse */
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.65; }
+}
+
 /* Thin line draw — for decorative horizontal rules */
 @keyframes line-draw {
   from { width: 0; opacity: 0; }
@@ -290,4 +325,132 @@ button {
 @keyframes card-expand {
   from { opacity: 0; transform: translateY(-6px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 랜딩 히어로 플로팅 패널 — 위아래 부유 */
+@keyframes float {
+  0%   { transform: translateY(16px); }
+  50%  { transform: translateY(0px); }
+  100% { transform: translateY(16px); }
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+/* 랜딩 페이지 다크 서피스 카드 */
+.surface-ladder-1 {
+  background-color: #0f1011;
+  border: 1px solid #23252a;
+}
+
+.surface-ladder-2 {
+  background-color: #141516;
+  border: 1px solid #34343a;
+}
+
+/* 랜딩 CTA 기본 버튼 — hover glow + active scale */
+.btn-primary-landing {
+  background: #5e6ad2;
+  color: white;
+  box-shadow: 0 4px 24px rgba(94, 106, 210, 0.25);
+  transition: background 0.15s ease, box-shadow 0.2s ease, transform 0.12s ease;
+}
+.btn-primary-landing:hover {
+  background: #6b78dc;
+  box-shadow: 0 4px 36px rgba(94, 106, 210, 0.48), 0 0 0 4px rgba(94, 106, 210, 0.12);
+}
+.btn-primary-landing:active {
+  transform: scale(0.97);
+}
+.btn-primary-landing:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(94, 106, 210, 0.5);
+}
+
+/* 랜딩 보조 버튼 */
+.btn-secondary-landing {
+  background: #141516;
+  color: #d0d6e0;
+  border: 1px solid #34343a;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.12s ease;
+}
+.btn-secondary-landing:hover {
+  background: #1e1e24;
+  border-color: #454652;
+  color: #f7f8f8;
+}
+.btn-secondary-landing:active {
+  transform: scale(0.97);
+}
+.btn-secondary-landing:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(94, 106, 210, 0.3);
+}
+
+/* 랜딩 Bento 카드 — hover lift */
+.bento-card {
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+.bento-card:hover {
+  border-color: #34343a;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+.bento-card-main:hover {
+  border-color: rgba(94, 106, 210, 0.4);
+  box-shadow: 0 8px 40px rgba(94, 106, 210, 0.08), 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* 랜딩 CTA 섹션 primary 버튼 pulse */
+@keyframes landing-cta-glow {
+  0%, 100% { box-shadow: 0 4px 24px rgba(94, 106, 210, 0.3); }
+  50%      { box-shadow: 0 4px 40px rgba(94, 106, 210, 0.55), 0 0 0 6px rgba(94, 106, 210, 0.1); }
+}
+.btn-cta-pulse {
+  animation: landing-cta-glow 2.8s ease-in-out infinite;
+}
+.btn-cta-pulse:hover {
+  animation: none;
+  background: #6b78dc;
+  box-shadow: 0 4px 40px rgba(94, 106, 210, 0.55), 0 0 0 4px rgba(94, 106, 210, 0.15);
+}
+
+/* 랜딩 페이지 공통 focus-visible ring — 개별 체인 반복 제거 */
+.focus-ring-landing:focus-visible {
+  outline: 2px solid #5e6ad2;
+  outline-offset: 2px;
+}
+
+/* ── Auth card: input focus ring ── */
+.focus-ring {
+  transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow   0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.focus-ring:focus-within {
+  border-color: #5e6ad2;
+  box-shadow: 0 0 0 2px rgba(94, 106, 210, 0.18);
+}
+
+/* ── Auth card: ambient glow overlay ── */
+.glass-glow {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at center, rgba(94, 106, 210, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Auth card: input shimmer on focus ── */
+.input-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent) !important;
+  background-size: 200% 100% !important;
+  animation: input-shimmer-sweep 3s infinite;
+}
+
+@keyframes input-shimmer-sweep {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
 }
