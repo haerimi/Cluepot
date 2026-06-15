@@ -170,11 +170,11 @@ function MapBackground() {
   );
 }
 const mapS = StyleSheet.create({
-  grid:        { ...StyleSheet.absoluteFillObject, opacity: 0.3 },
+  grid:        { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, opacity: 0.3 },
   hLine:       { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: '#34343a' },
   vLine:       { position: 'absolute', top: 0, bottom: 0, width: 1, backgroundColor: '#34343a' },
   block:       { position: 'absolute', backgroundColor: '#18191a', borderWidth: 1, borderColor: '#23252a', borderRadius: 2 },
-  fadeOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(19,19,22,0.55)' },
+  fadeOverlay: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: 'rgba(19,19,22,0.55)' },
 });
 
 // ─── PulsePin ─────────────────────────────────────────────────────────────────
