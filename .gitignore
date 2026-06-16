@@ -5,6 +5,7 @@ node_modules
 package-lock.json
 
 # editor / tool settings
+.idea/
 .claude/
 !.claude/agents/
 !.claude/agents/**
