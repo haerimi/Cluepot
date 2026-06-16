@@ -278,6 +278,7 @@ export default function PreferencesPage() {
   }
 
   return (
+    <>
     <div
       className="flex-1 overflow-y-auto pb-36 lg:pb-14"
       style={{ animation: "cinematic-up 0.5s ease-out both" }}
@@ -438,7 +439,9 @@ export default function PreferencesPage() {
 
       </div>
 
-      {/* ── Mobile sticky CTA ── */}
+    </div>
+
+    {/* ── Mobile sticky CTA ── */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-4 bg-gradient-to-t from-canvas from-75% to-transparent pointer-events-none">
         <button
           type="button"
@@ -473,7 +476,6 @@ export default function PreferencesPage() {
           )}
         </button>
       </div>
-
-    </div>
+    </>
   );
 }
