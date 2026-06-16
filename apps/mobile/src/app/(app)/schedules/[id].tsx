@@ -54,22 +54,34 @@ const ATTENDANCE: Record<AttendanceStatus, { label: string; color: string; bg: s
 
 /* ── NavHeader ─────────────────────────────────────────────────────────── */
 
-function NavHeader({ initial, profileImage, onBack, onMore }: { initial: string; profileImage?: string | null; onBack: () => void; onMore: () => void }) {
+function NavHeader({ initial, profileImage, onBack, onMore }: { initial: string; profileImage?: string | null; onBack: () => void; onMore?: () => void }) {
   return (
     <View style={nav.wrap}>
       <TouchableOpacity onPress={onBack} style={nav.btn} hitSlop={8}>
         <Ionicons name="chevron-back" size={22} color="#c6c5d5" />
       </TouchableOpacity>
       <Text style={nav.logo}>Clue<Text style={nav.accent}>Pot</Text></Text>
-      <TouchableOpacity onPress={onMore} style={nav.btn} hitSlop={8}>
-        {profileImage ? (
-          <Image source={{ uri: profileImage }} style={nav.avatar} />
-        ) : (
-          <View style={nav.avatarFallback}>
-            <Text style={nav.avatarText}>{initial}</Text>
-          </View>
-        )}
-      </TouchableOpacity>
+      {onMore ? (
+        <TouchableOpacity onPress={onMore} style={nav.btn} hitSlop={8}>
+          {profileImage ? (
+            <Image source={{ uri: profileImage }} style={nav.avatar} />
+          ) : (
+            <View style={nav.avatarFallback}>
+              <Text style={nav.avatarText}>{initial}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      ) : (
+        <View style={nav.btn}>
+          {profileImage ? (
+            <Image source={{ uri: profileImage }} style={nav.avatar} />
+          ) : (
+            <View style={nav.avatarFallback}>
+              <Text style={nav.avatarText}>{initial}</Text>
+            </View>
+          )}
+        </View>
+      )}
     </View>
   );
 }
@@ -192,7 +204,7 @@ export default function ScheduleDetailScreen() {
     return (
       <View style={s.root}>
         <StatusBar barStyle="light-content" backgroundColor="#131316" />
-        <NavHeader initial={initial} profileImage={profileImage} onBack={() => router.back()} onMore={() => setMoreOpen(true)} />
+        <NavHeader initial={initial} profileImage={profileImage} onBack={() => router.back()} />
         <View style={s.loadingWrap}>
           <ActivityIndicator color="#bdc2ff" />
         </View>
@@ -209,7 +221,7 @@ export default function ScheduleDetailScreen() {
   return (
     <View style={s.root}>
       <StatusBar barStyle="light-content" backgroundColor="#131316" />
-      <NavHeader initial={initial} profileImage={profileImage} onBack={() => router.back()} onMore={() => setMoreOpen(true)} />
+      <NavHeader initial={initial} profileImage={profileImage} onBack={() => router.back()} onMore={schedule.isCreator ? () => setMoreOpen(true) : undefined} />
 
       <ScrollView
         style={s.scroll}
