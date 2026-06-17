@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, Pressable, ScrollView,
-  TouchableOpacity, Animated, Alert, Platform, StatusBar, Share,
+  TouchableOpacity, Animated, Alert, Platform, StatusBar, Share, Image,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
@@ -18,9 +18,20 @@ type RoomRow = {
     name: string;
     category: string;
     status: string;
-    schedule: { id: string } | null;
+    schedule: { id: string; scheduledAt: string; placeName: string } | null;
   };
 };
+
+function formatScheduledAt(iso: string): string {
+  const d = new Date(iso);
+  const M = d.getMonth() + 1;
+  const D = d.getDate();
+  const h = d.getHours();
+  const m = String(d.getMinutes()).padStart(2, '0');
+  const ampm = h >= 12 ? '오후' : '오전';
+  const hour = h > 12 ? h - 12 : h === 0 ? 12 : h;
+  return `${M}월 ${D}일 ${ampm} ${hour}:${m}`;
+}
 
 /* ── Config ─────────────────────────────────────────────────────────────── */
 
@@ -43,6 +54,7 @@ const FILTERS: { key: FilterKey; label: string }[] = [
 /* ── NavHeader ─────────────────────────────────────────────────────────── */
 
 function NavHeader({ initial, onBack }: { initial: string; onBack: () => void }) {
+  const profileImage = useAuthStore((s) => s.user?.profileImage ?? null);
   return (
     <View style={navHdr.wrap}>
       <TouchableOpacity onPress={onBack} style={navHdr.backBtn} hitSlop={8}>
@@ -50,18 +62,23 @@ function NavHeader({ initial, onBack }: { initial: string; onBack: () => void })
       </TouchableOpacity>
       <Text style={navHdr.logo}>Clue<Text style={navHdr.accent}>Pot</Text></Text>
       <View style={navHdr.avatar}>
-        <Text style={navHdr.avatarText}>{initial}</Text>
+        {profileImage
+          ? <Image source={{ uri: profileImage }} style={navHdr.avatarImg} />
+          : <Text style={navHdr.avatarText}>{initial}</Text>
+        }
       </View>
     </View>
   );
 }
 
+const SB_H = Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0;
 const navHdr = StyleSheet.create({
-  wrap:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, height: 56, borderBottomWidth: 1, borderBottomColor: '#23252a', backgroundColor: '#131316' },
+  wrap:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: SB_H, height: 56 + SB_H, borderBottomWidth: 1, borderBottomColor: '#23252a', backgroundColor: '#131316' },
   backBtn:    { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   logo:       { fontSize: 20, fontWeight: '700', color: '#f7f8f8', letterSpacing: -0.3 },
   accent:     { color: '#bdc2ff' },
-  avatar:     { width: 30, height: 30, borderRadius: 15, backgroundColor: '#5e6ad2', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#34343a' },
+  avatar:     { width: 30, height: 30, borderRadius: 15, backgroundColor: '#5e6ad2', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#34343a', overflow: 'hidden' },
+  avatarImg:  { width: 30, height: 30, borderRadius: 15 },
   avatarText: { fontSize: 12, fontWeight: '700', color: '#fdfaff' },
 });
 
@@ -114,7 +131,7 @@ function SkeletonCard() {
 
 /* ── RoomDetailCard ─────────────────────────────────────────────────────── */
 
-function RoomDetailCard({ item, onEnter, onViewSchedule }: { item: RoomRow; onEnter: () => void; onViewSchedule: () => void }) {
+function RoomDetailCard({ item, onEnter, onViewSchedule, onLongPress, onCardPress }: { item: RoomRow; onEnter: () => void; onViewSchedule: () => void; onLongPress?: () => void; onCardPress?: () => void }) {
   const [copied, setCopied] = useState(false);
   const scale = useRef(new Animated.Value(1)).current;
 
@@ -159,9 +176,11 @@ function RoomDetailCard({ item, onEnter, onViewSchedule }: { item: RoomRow; onEn
       <View style={s.cardInner}>
       {/* 카드 상단 — 전체가 탭 영역 */}
       <Pressable
-        onPress={isDone ? onViewSchedule : onEnter}
-        onPressIn={pressIn}
-        onPressOut={pressOut}
+        onPress={onCardPress ?? (isDone ? onViewSchedule : onEnter)}
+        onLongPress={onLongPress}
+        onPressIn={onCardPress ? undefined : pressIn}
+        onPressOut={onCardPress ? undefined : pressOut}
+        delayLongPress={400}
         style={s.cardTop}
         accessibilityRole="button"
         accessibilityLabel={isDone ? `${item.room.name || cat.label + ' 모임'} 일정 상세보기` : `${item.room.name || cat.label + ' 모임'} 모임 입장`}
@@ -205,9 +224,15 @@ function RoomDetailCard({ item, onEnter, onViewSchedule }: { item: RoomRow; onEn
       {/* 카드 하단 — room code + CTA */}
       <View style={s.cardBottom}>
         <View style={s.codeBlock}>
-          <Text style={s.codeLabel}>ROOM CODE</Text>
+          {isDone && item.room.schedule?.scheduledAt && (
+            <View style={s.scheduleInfoRow}>
+              <Ionicons name="calendar-outline" size={11} color="#27a644" />
+              <Text style={s.scheduleInfoText} allowFontScaling={false}>{formatScheduledAt(item.room.schedule.scheduledAt)}</Text>
+            </View>
+          )}
+          <Text style={s.codeLabel} allowFontScaling={false}>ROOM CODE</Text>
           <View style={s.codeRow}>
-            <Text style={s.codeText}>{item.room.roomCode}</Text>
+            <Text style={s.codeText} allowFontScaling={false}>{item.room.roomCode}</Text>
             <TouchableOpacity
               onPress={handleCopy}
               hitSlop={12}
@@ -217,20 +242,22 @@ function RoomDetailCard({ item, onEnter, onViewSchedule }: { item: RoomRow; onEn
               accessibilityLabel={copied ? '코드 복사됨' : '코드 복사'}
             >
               <Ionicons name={copied ? 'checkmark' : 'copy-outline'} size={13} color={copied ? '#27a644' : '#bdc2ff'} />
-              <Text style={[s.copyText, copied && s.copyTextDone]}>{copied ? '복사됨' : 'Copy'}</Text>
+              <Text style={[s.copyText, copied && s.copyTextDone]} allowFontScaling={false}>{copied ? '복사됨' : 'Copy'}</Text>
             </TouchableOpacity>
           </View>
         </View>
 
         <Pressable
-          onPress={isDone ? onViewSchedule : onEnter}
-          onPressIn={pressIn}
-          onPressOut={pressOut}
+          onPress={onCardPress ?? (isDone ? onViewSchedule : onEnter)}
+          onLongPress={onLongPress}
+          onPressIn={onCardPress ? undefined : pressIn}
+          onPressOut={onCardPress ? undefined : pressOut}
+          delayLongPress={400}
           style={({ pressed }) => [s.enterBtn, isDone && s.enterBtnDone, pressed && { opacity: 0.82 }]}
           accessibilityRole="button"
           accessibilityLabel={isDone ? '일정 상세보기' : '모임 입장'}
         >
-          <Text style={[s.enterBtnText, isDone && s.enterBtnTextDone]}>{isDone ? '상세보기' : '입장'}</Text>
+          <Text style={[s.enterBtnText, isDone && s.enterBtnTextDone]} allowFontScaling={false}>{isDone ? '상세보기' : '입장'}</Text>
           <Ionicons name={isDone ? 'calendar-outline' : 'arrow-forward'} size={13} color={isDone ? '#8a8f98' : '#fdfaff'} />
         </Pressable>
       </View>
@@ -261,11 +288,82 @@ export default function RoomsListScreen() {
   const nickname = useAuthStore((s) => s.user?.nickname ?? s.user?.email ?? '?');
   const initial  = nickname[0].toUpperCase();
 
-  const [rooms,   setRooms]   = useState<RoomRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filter,  setFilter]  = useState<FilterKey>('all');
+  const [rooms,        setRooms]        = useState<RoomRow[]>([]);
+  const [loading,      setLoading]      = useState(true);
+  const [filter,       setFilter]       = useState<FilterKey>('all');
+  const [selectMode,   setSelectMode]   = useState(false);
+  const [selectedIds,  setSelectedIds]  = useState<Set<string>>(new Set());
+  const [deleting,     setDeleting]     = useState(false);
 
-  useEffect(() => { fetchRooms(); }, []);
+  useFocusEffect(useCallback(() => {
+    cancelSelect();
+    fetchRooms();
+  }, []));
+
+  function enterSelectMode(id: string) {
+    setSelectMode(true);
+    setSelectedIds(new Set([id]));
+  }
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  function cancelSelect() {
+    setSelectMode(false);
+    setSelectedIds(new Set());
+  }
+
+  async function handleDeleteSelected() {
+    const selected = rooms.filter((r) => selectedIds.has(r.id));
+    const count = selected.length;
+    const hostCount = selected.filter((r) => r.isHost).length;
+    const memberCount = count - hostCount;
+
+    let message = `선택한 ${count}개의 모임을 처리할까요?`;
+    if (hostCount > 0 && memberCount > 0) {
+      message += `\n• 호스트 ${hostCount}개 → 삭제\n• 참가자 ${memberCount}개 → 나가기`;
+    } else if (hostCount > 0) {
+      message += `\n모임이 완전히 삭제돼요.`;
+    } else {
+      message += `\n모임에서 나가게 돼요.`;
+    }
+
+    Alert.alert('모임 삭제/나가기', message, [
+      { text: '취소', style: 'cancel' },
+      {
+        text: hostCount > 0 && memberCount === 0 ? '삭제' : '확인',
+        style: 'destructive',
+        onPress: async () => {
+          setDeleting(true);
+          const results = await Promise.allSettled(
+            selected.map((r) =>
+              r.isHost
+                ? api.delete(`/rooms/${r.room.roomCode}`)
+                : api.delete(`/rooms/${r.room.roomCode}/participants`)
+            )
+          );
+          const failed = results.filter((r) => r.status === 'rejected').length;
+          const succeededIds = new Set(
+            selected
+              .filter((_, i) => results[i].status === 'fulfilled')
+              .map((r) => r.id)
+          );
+          setRooms((prev) => prev.filter((r) => !succeededIds.has(r.id)));
+          setDeleting(false);
+          cancelSelect();
+          fetchRooms();
+          if (failed > 0) {
+            Alert.alert('일부 실패', `${failed}개를 처리하지 못했어요.`);
+          }
+        },
+      },
+    ]);
+  }
 
   async function fetchRooms() {
     setLoading(true);
@@ -292,6 +390,27 @@ export default function RoomsListScreen() {
     <View style={s.root}>
       <StatusBar barStyle="light-content" backgroundColor="#131316" />
       <NavHeader initial={initial} onBack={() => router.back()} />
+
+      {/* 선택 모드 상단 바 */}
+      {selectMode && (
+        <View style={s.selectBar}>
+          <TouchableOpacity onPress={cancelSelect} hitSlop={8}>
+            <Ionicons name="close" size={22} color="#c6c5d5" />
+          </TouchableOpacity>
+          <Text allowFontScaling={false} style={s.selectBarText}>
+            {selectedIds.size > 0 ? `${selectedIds.size}개 선택됨` : '모임을 선택하세요'}
+          </Text>
+          <TouchableOpacity
+            onPress={handleDeleteSelected}
+            disabled={selectedIds.size === 0 || deleting}
+            hitSlop={8}
+          >
+            <Text allowFontScaling={false} style={[s.selectDeleteText, selectedIds.size === 0 && { opacity: 0.3 }]}>
+              삭제
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <ScrollView
         style={s.scroll}
@@ -358,14 +477,27 @@ export default function RoomsListScreen() {
           ) : filtered.length === 0 ? (
             <EmptyState filter={filter} />
           ) : (
-            filtered.map((item) => (
-              <RoomDetailCard
-                key={item.id}
-                item={item}
-                onEnter={() => router.push(`/(app)/rooms/${item.room.roomCode}`)}
-                onViewSchedule={() => router.push(`/(app)/schedules/${item.room.schedule!.id}`)}
-              />
-            ))
+            filtered.map((item) => {
+              const isSelected = selectedIds.has(item.id);
+              return (
+                <View key={item.id} style={{ position: 'relative' }}>
+                  {selectMode && (
+                    <View style={s.selectOverlay} pointerEvents="none">
+                      <View style={[s.selectCheck, isSelected && s.selectCheckActive]}>
+                        {isSelected && <Ionicons name="checkmark" size={14} color="#fdfaff" />}
+                      </View>
+                    </View>
+                  )}
+                  <RoomDetailCard
+                    item={item}
+                    onLongPress={() => enterSelectMode(item.id)}
+                    onCardPress={selectMode ? () => toggleSelect(item.id) : undefined}
+                    onEnter={() => router.push(`/(app)/rooms/${item.room.roomCode}` as any)}
+                    onViewSchedule={() => router.push(`/(app)/schedules/${item.room.schedule!.id}` as any)}
+                  />
+                </View>
+              );
+            })
           )}
         </View>
 
@@ -526,11 +658,13 @@ const s = StyleSheet.create({
 
   /* card bottom */
   cardBottom: {
-    flexDirection: 'row', alignItems: 'center',
+    flexDirection: 'row', alignItems: 'flex-end',
     justifyContent: 'space-between',
     paddingHorizontal: 14, paddingVertical: 13,
   },
-  codeBlock: { flex: 1 },
+  codeBlock: { flex: 1, marginRight: 12 },
+  scheduleInfoRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 6 },
+  scheduleInfoText: { fontSize: 11, fontWeight: '600', color: '#27a644' },
   codeLabel: {
     fontSize: 10, fontWeight: '600', color: '#454652',
     letterSpacing: 1.4, textTransform: 'uppercase', marginBottom: 4,
@@ -559,7 +693,7 @@ const s = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 5,
     paddingHorizontal: 16, paddingVertical: 10,
     backgroundColor: '#5e6ad2', borderRadius: 10,
-    minHeight: 40,
+    minHeight: 40, flexShrink: 0,
   },
   enterBtnDone: {
     backgroundColor: 'transparent',
@@ -593,4 +727,25 @@ const s = StyleSheet.create({
 
   /* shared */
   dot: { width: 6, height: 6, borderRadius: 3 },
+
+  /* 선택 모드 */
+  selectBar: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 16, paddingVertical: 12,
+    backgroundColor: '#18191a', borderBottomWidth: 1, borderBottomColor: '#23252a',
+  },
+  selectBarText: { fontSize: 14, fontWeight: '600', color: '#f7f8f8' },
+  selectDeleteText: { fontSize: 14, fontWeight: '600', color: '#ff6b6b' },
+  selectOverlay: {
+    position: 'absolute', top: 12, right: 12, zIndex: 10,
+  },
+  selectCheck: {
+    width: 22, height: 22, borderRadius: 11,
+    borderWidth: 2, borderColor: '#454652',
+    backgroundColor: 'transparent',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  selectCheckActive: {
+    backgroundColor: '#5e6ad2', borderColor: '#5e6ad2',
+  },
 });
