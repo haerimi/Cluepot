@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TextInput,
-  TouchableOpacity, ActivityIndicator,
+  TouchableOpacity, ActivityIndicator, Platform, StatusBar, Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,24 +9,30 @@ import { useAuthStore } from '@/store/auth';
 import { api } from '@/lib/api';
 
 function NavHeader({ initial, onBack }: { initial: string; onBack: () => void }) {
+  const profileImage = useAuthStore((s) => s.user?.profileImage ?? null);
   return (
     <View style={navHdr.wrap}>
       <TouchableOpacity onPress={onBack} style={navHdr.backBtn} hitSlop={8}>
         <Ionicons name="chevron-back" size={22} color="#c6c5d5" />
       </TouchableOpacity>
-      <Text style={navHdr.logo}>Clue<Text style={navHdr.accent}>Pot</Text></Text>
+      <Text allowFontScaling={false} style={navHdr.logo}>Clue<Text allowFontScaling={false} style={navHdr.accent}>Pot</Text></Text>
       <View style={navHdr.avatar}>
-        <Text style={navHdr.avatarText}>{initial}</Text>
+        {profileImage
+          ? <Image source={{ uri: profileImage }} style={navHdr.avatarImg} />
+          : <Text allowFontScaling={false} style={navHdr.avatarText}>{initial}</Text>
+        }
       </View>
     </View>
   );
 }
+const SB_H = Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0;
 const navHdr = StyleSheet.create({
-  wrap:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, height: 56, borderBottomWidth: 1, borderBottomColor: '#23252a', backgroundColor: '#131316' },
+  wrap:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: SB_H, height: 56 + SB_H, borderBottomWidth: 1, borderBottomColor: '#23252a', backgroundColor: '#131316' },
   backBtn:    { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   logo:       { fontSize: 20, fontWeight: '700', color: '#f7f8f8', letterSpacing: -0.3 },
   accent:     { color: '#bdc2ff' },
-  avatar:     { width: 30, height: 30, borderRadius: 15, backgroundColor: '#5e6ad2', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#34343a' },
+  avatar:     { width: 30, height: 30, borderRadius: 15, backgroundColor: '#5e6ad2', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#34343a', overflow: 'hidden' },
+  avatarImg:  { width: 30, height: 30, borderRadius: 15 },
   avatarText: { fontSize: 12, fontWeight: '700', color: '#fdfaff' },
 });
 
@@ -45,18 +51,29 @@ export default function JoinRoomScreen() {
   const isFull = code.length === CODE_LENGTH;
 
   function handleChange(text: string, index: number) {
-    const char = text.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(-1);
+    const cleaned = text.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    setError('');
+
+    if (cleaned.length > 1) {
+      // 붙여넣기: index부터 순서대로 채움
+      const next = [...digits];
+      let lastIdx = index;
+      for (let i = 0; i < cleaned.length && index + i < CODE_LENGTH; i++) {
+        next[index + i] = cleaned[i];
+        lastIdx = index + i;
+      }
+      setDigits(next);
+      refs.current[Math.min(lastIdx, CODE_LENGTH - 1)]?.focus();
+      if (next.every(Boolean)) handleJoin(next.join(''));
+      return;
+    }
+
+    const char = cleaned;
     const next = [...digits];
     next[index] = char;
     setDigits(next);
-    setError('');
-
-    if (char && index < CODE_LENGTH - 1) {
-      refs.current[index + 1]?.focus();
-    }
-    if (char && index === CODE_LENGTH - 1) {
-      handleJoin(next.join(''));
-    }
+    if (char && index < CODE_LENGTH - 1) refs.current[index + 1]?.focus();
+    if (char && index === CODE_LENGTH - 1) handleJoin(next.join(''));
   }
 
   function handleKeyPress(key: string, index: number) {
@@ -97,9 +114,9 @@ export default function JoinRoomScreen() {
 
       {/* 타이틀 */}
       <View style={s.titleSection}>
-        <Text style={s.eyebrow}>JOIN WITH CODE</Text>
-        <Text style={s.title}>모임 코드 입력</Text>
-        <Text style={s.subtitle}>호스트에게 받은 6자리 코드를 입력해주세요</Text>
+        <Text allowFontScaling={false} style={s.eyebrow}>JOIN WITH CODE</Text>
+        <Text allowFontScaling={false} style={s.title}>모임 코드 입력</Text>
+        <Text allowFontScaling={false} style={s.subtitle}>호스트에게 받은 6자리 코드를 입력해주세요</Text>
       </View>
 
       {/* 6박스 입력 */}
@@ -125,10 +142,10 @@ export default function JoinRoomScreen() {
       {error ? (
         <View style={s.errorRow}>
           <Ionicons name="alert-circle-outline" size={14} color="#ffb4ab" />
-          <Text style={s.errorText}>{error}</Text>
+          <Text allowFontScaling={false} style={s.errorText}>{error}</Text>
         </View>
       ) : (
-        <Text style={s.hint}>영문 + 숫자 조합 6자리</Text>
+        <Text allowFontScaling={false} style={s.hint}>영문 + 숫자 조합 6자리</Text>
       )}
 
       {/* 참가 버튼 */}
@@ -140,7 +157,7 @@ export default function JoinRoomScreen() {
       >
         {loading
           ? <ActivityIndicator color="#fdfaff" size="small" />
-          : <Text style={s.btnText}>참가하기</Text>}
+          : <Text allowFontScaling={false} style={s.btnText}>참가하기</Text>}
       </TouchableOpacity>
 
       {/* 새 모임 만들기 */}
@@ -149,7 +166,7 @@ export default function JoinRoomScreen() {
         onPress={() => router.push('/(app)/rooms/create')}
         activeOpacity={0.7}
       >
-        <Text style={s.createLinkText}>새 모임 만들기</Text>
+        <Text allowFontScaling={false} style={s.createLinkText}>새 모임 만들기</Text>
         <Ionicons name="arrow-forward" size={14} color="#bdc2ff" />
       </TouchableOpacity>
     </View>
@@ -188,7 +205,7 @@ function BoxCell({
         onKeyPress={onKeyPress}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
-        maxLength={2}
+        maxLength={CODE_LENGTH}
         autoCapitalize="characters"
         autoCorrect={false}
         keyboardType="default"
