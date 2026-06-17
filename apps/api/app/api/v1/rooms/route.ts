@@ -21,7 +21,9 @@ export async function GET(req: NextRequest) {
                         status: true,
                         schedule: {
                             select: {
-                                id: true
+                                id: true,
+                                scheduledAt: true,
+                                placeName: true,
                             }
                         }
                     }
