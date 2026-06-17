@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
         if (!user) return NextResponse.json({ error: '인증 필요' }, { status: 401 });
 
         const room = await prisma.participant.findMany({
-            where: { userId: user.id },
+            where: { userId: user.id, leftAt: null },
             select: {
                 id: true,
                 isHost: true,
@@ -21,7 +21,9 @@ export async function GET(req: NextRequest) {
                         status: true,
                         schedule: {
                             select: {
-                                id: true
+                                id: true,
+                                scheduledAt: true,
+                                placeName: true,
                             }
                         }
                     }
