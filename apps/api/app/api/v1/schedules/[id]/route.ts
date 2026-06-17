@@ -107,7 +107,10 @@ export async function DELETE(
     if (!schedule) return NextResponse.json({ error: '일정을 찾을 수 없어요.' }, { status: 404 });
     if (schedule.createdBy !== user.id) return NextResponse.json({ error: '삭제 권한이 없어요.' }, { status: 403 });
 
-    await prisma.schedule.delete({ where: { id } });
+    await prisma.$transaction([
+      prisma.schedule.delete({ where: { id } }),
+      prisma.room.update({ where: { roomCode: schedule.roomCode }, data: { status: 'active' } }),
+    ]);
 
     return NextResponse.json({ ok: true });
   } catch (e) {

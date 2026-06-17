@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TextInput,
   TouchableOpacity, ActivityIndicator, Alert, Animated, Modal, Platform, AppState,
+  StatusBar, Image,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -110,21 +111,22 @@ function kakaoMapHtml(lat: number, lng: number, name: string): string {
 <body>
 <div id="map"></div>
 <script type="text/javascript"
-  src="//dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_MAP_KEY}&autoload=false">
+  src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_MAP_KEY}&autoload=false">
 </script>
 <script>
+window.onerror = function(msg, src, line) {
+  window.ReactNativeWebView && window.ReactNativeWebView.postMessage('ERR:' + msg + ' src=' + src + ':' + line);
+};
 kakao.maps.load(function() {
   var container = document.getElementById('map');
-  var options = { center: new kakao.maps.LatLng(${lat}, ${lng}), level: 4 };
+  var latlng = new kakao.maps.LatLng(${lat}, ${lng});
+  var options = { center: latlng, level: 4 };
   var map = new kakao.maps.Map(container, options);
-  var marker = new kakao.maps.Marker({
-    position: new kakao.maps.LatLng(${lat}, ${lng}),
-    map: map
-  });
-  var infowindow = new kakao.maps.InfoWindow({
-    content: '<div style="padding:6px 10px;font-size:12px;background:#1a1b1f;color:#f7f8f8;border:1px solid #34343a;border-radius:6px;white-space:nowrap;">${safeName}</div>'
-  });
-  infowindow.open(map, marker);
+  new kakao.maps.Marker({ position: latlng, map: map });
+  setTimeout(function() {
+    map.relayout();
+    map.setCenter(latlng);
+  }, 300);
 });
 </script>
 </body>
@@ -155,27 +157,36 @@ function formatTime(d: Date): string {
   return `${h >= 12 ? '오후' : '오전'} ${h > 12 ? h - 12 : h === 0 ? 12 : h}:${m}`;
 }
 function toISOWithKST(d: Date): string {
-  return d.toISOString().replace('Z', '+09:00');
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}+09:00`;
 }
 
 function NavHeader({ initial, onBack }: { initial: string; onBack?: () => void }) {
   const router = useRouter();
+  const profileImage = useAuthStore((s) => s.user?.profileImage ?? null);
   return (
     <View style={navHdr.wrap}>
       <TouchableOpacity onPress={onBack ?? (() => router.back())} style={navHdr.backBtn} hitSlop={8}>
         <Ionicons name="chevron-back" size={22} color="#c6c5d5" />
       </TouchableOpacity>
-      <Text style={navHdr.logo}>Clue<Text style={navHdr.accent}>Pot</Text></Text>
-      <View style={navHdr.avatar}><Text style={navHdr.avatarText}>{initial}</Text></View>
+      <Text allowFontScaling={false} style={navHdr.logo}>Clue<Text allowFontScaling={false} style={navHdr.accent}>Pot</Text></Text>
+      <View style={navHdr.avatar}>
+        {profileImage
+          ? <Image source={{ uri: profileImage }} style={navHdr.avatarImg} />
+          : <Text allowFontScaling={false} style={navHdr.avatarText}>{initial}</Text>
+        }
+      </View>
     </View>
   );
 }
+const SB_H = Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0;
 const navHdr = StyleSheet.create({
-  wrap: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, height: 56, borderBottomWidth: 1, borderBottomColor: '#23252a', backgroundColor: '#131316' },
+  wrap: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: SB_H, height: 56 + SB_H, borderBottomWidth: 1, borderBottomColor: '#23252a', backgroundColor: '#131316' },
   backBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   logo: { fontSize: 20, fontWeight: '700', color: '#f7f8f8', letterSpacing: -0.3 },
   accent: { color: '#bdc2ff' },
-  avatar: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#5e6ad2', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#34343a' },
+  avatar: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#5e6ad2', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#34343a', overflow: 'hidden' },
+  avatarImg: { width: 30, height: 30, borderRadius: 15 },
   avatarText: { fontSize: 12, fontWeight: '700', color: '#fdfaff' },
 });
 
@@ -218,11 +229,14 @@ export default function RoomScreen() {
   tomorrow.setHours(18, 0, 0, 0);
   const [scheduledDateTime, setScheduledDateTime] = useState<Date>(tomorrow);
   const [showDateModal, setShowDateModal] = useState(false);
+  const [showNativeDatePicker, setShowNativeDatePicker] = useState(false);
+  const [showNativeTimePicker, setShowNativeTimePicker] = useState(false);
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const shimmerAnim = useRef(new Animated.Value(0.4)).current;
   const piniGlow = useRef(new Animated.Value(0.5)).current;
   const piniPulse = useRef(new Animated.Value(1)).current;
+  const piniProgressAnim = useRef(new Animated.Value(0)).current;
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => { init(); }, [roomCode]);
@@ -230,8 +244,12 @@ export default function RoomScreen() {
   useEffect(() => {
     const channel = supabase
       .channel(`room-${roomCode}`)
-      .on('broadcast', { event: 'room-done' }, () => {
-        router.replace('/(app)/calendar' as any);
+      .on('broadcast', { event: 'room-done' }, ({ payload }: { payload: { scheduleId?: string } }) => {
+        if (payload?.scheduleId) {
+          router.replace(`/(app)/schedules/${payload.scheduleId}` as any);
+        } else {
+          router.replace('/(app)/calendar' as any);
+        }
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
@@ -242,7 +260,11 @@ export default function RoomScreen() {
       if (state === 'active') {
         try {
           const { data } = await api.post(`/rooms/${roomCode}/join`);
-          if (data?.roomStatus === 'done') router.replace('/(app)/calendar' as any);
+          if (data?.roomStatus === 'done' && data?.scheduleId) {
+            router.replace(`/(app)/schedules/${data.scheduleId}` as any);
+          } else if (data?.roomStatus === 'done') {
+            router.replace('/(app)/calendar' as any);
+          }
         } catch {}
       }
     });
@@ -333,12 +355,24 @@ export default function RoomScreen() {
 
   async function handleRunPini(excludePlaces: string[] = []) {
     setPiniLoading(true);
+    piniProgressAnim.setValue(0);
+    const slowProgress = Animated.timing(piniProgressAnim, {
+      toValue: 0.88,
+      duration: 12000,
+      useNativeDriver: false,
+    });
+    slowProgress.start();
     try {
       const places = await runPini(excludePlaces);
+      slowProgress.stop();
+      await new Promise<void>((resolve) => {
+        Animated.timing(piniProgressAnim, { toValue: 1, duration: 350, useNativeDriver: false }).start(() => resolve());
+      });
       setAiPlaces(places);
       setSelectedPlace(places[0]);
       setAiResults(true);
     } catch (e) {
+      slowProgress.stop();
       const msg = e instanceof Error ? e.message : 'PINI 추천에 실패했어요.';
       Alert.alert('오류', msg);
     } finally {
@@ -356,7 +390,7 @@ export default function RoomScreen() {
     setShowDateModal(false);
     setConfirming(true);
     try {
-      await api.post('/schedules', {
+      const { data: scheduleData } = await api.post('/schedules', {
         roomCode,
         title: selectedPlace.placeName,
         placeName: selectedPlace.placeName,
@@ -368,9 +402,9 @@ export default function RoomScreen() {
       await supabase.channel(`room-${roomCode}`).send({
         type: 'broadcast',
         event: 'room-done',
-        payload: {},
+        payload: { scheduleId: scheduleData.id },
       });
-      router.replace('/(app)/calendar' as any);
+      router.replace(`/(app)/schedules/${scheduleData.id}` as any);
     } catch (e) {
       const msg = e instanceof Error ? e.message : '일정 저장에 실패했어요.';
       Alert.alert('오류', msg);
@@ -380,6 +414,23 @@ export default function RoomScreen() {
   }
 
   async function init() {
+    setLoading(true);
+    setIsHost(false);
+    setParticipants([]);
+    setLocation('');
+    setUserLat(0);
+    setUserLng(0);
+    setTransport(null);
+    setDistance(null);
+    setAtmosphere(null);
+    setLocationSaved(false);
+    setFormError('');
+    setRoomCategory('');
+    setPiniLoading(false);
+    setAiResults(false);
+    setAiPlaces([]);
+    setSelectedPlace(null);
+    setOpenDrawerIdx(null);
     try {
       const { data: joinData } = await api.post(`/rooms/${roomCode}/join`);
       if (joinData.roomStatus === 'done' && joinData.scheduleId) {
@@ -399,8 +450,11 @@ export default function RoomScreen() {
       }
       const { data: pData } = await api.get(`/rooms/${roomCode}/participants`);
       setParticipants(pData.participants);
-    } catch {
-      Alert.alert('오류', '방에 입장할 수 없어요.', [{ text: '확인', onPress: () => router.back() }]);
+    } catch (e: any) {
+      const msg = e?.response?.status === 404 || e?.response?.data?.error?.includes('없')
+        ? '삭제된 모임이에요.'
+        : '방에 입장할 수 없어요.';
+      Alert.alert('오류', msg, [{ text: '확인', onPress: () => router.back() }]);
     } finally {
       setLoading(false);
     }
@@ -449,10 +503,12 @@ export default function RoomScreen() {
             <Animated.View style={[styles.piniIconBg, { transform: [{ scale: piniPulse }] }]}>
               <Ionicons name="flash" size={36} color="#bdc2ff" />
             </Animated.View>
-            <Text style={styles.piniTitle}>PINI AI</Text>
-            <Text style={styles.piniSubtitle}>Analyzing Preferences</Text>
+            <Text allowFontScaling={false} style={styles.piniTitle}>PINI AI</Text>
+            <Text allowFontScaling={false} style={styles.piniSubtitle}>Analyzing Preferences</Text>
             <View style={styles.piniProgressTrack}>
-              <Animated.View style={[styles.piniShimmerFill, { opacity: piniGlow }]} />
+              <Animated.View style={[styles.piniShimmerFill, {
+                width: piniProgressAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }),
+              }]} />
             </View>
             <Animated.Text style={[styles.piniStatusText, { opacity: piniGlow }]}>
               {PINI_STATUSES[statusIdx]}
@@ -460,7 +516,7 @@ export default function RoomScreen() {
           </View>
           <View style={styles.piniBadge}>
             <Ionicons name="flash" size={11} color="#bdc2ff" />
-            <Text style={styles.piniBadgeText}>Powered by PINI</Text>
+            <Text allowFontScaling={false} style={styles.piniBadgeText}>Powered by PINI</Text>
           </View>
         </View>
       </View>
@@ -478,6 +534,7 @@ export default function RoomScreen() {
       <View style={styles.container}>
         <NavHeader initial={currentNickname[0].toUpperCase()} />
 
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 140 }}>
         {/* 카카오 지도 + 정보 섹션 */}
         <View style={styles.mapSection}>
           {Platform.OS !== 'web' ? (
@@ -488,14 +545,18 @@ export default function RoomScreen() {
               originWhitelist={['*']}
               javaScriptEnabled
               domStorageEnabled
+              mixedContentMode="always"
               scrollEnabled={false}
               showsHorizontalScrollIndicator={false}
               showsVerticalScrollIndicator={false}
+              onError={(e) => console.warn('[Map] WebView error:', e.nativeEvent)}
+              onHttpError={(e) => console.warn('[Map] HTTP error:', e.nativeEvent.statusCode, e.nativeEvent.url)}
+              onMessage={(e) => console.log('[Map] message:', e.nativeEvent.data)}
             />
           ) : (
             <View style={[styles.mapWebView, styles.mapWebFallback]}>
               <Ionicons name="map-outline" size={32} color="#34343a" />
-              <Text style={styles.mapWebFallbackText}>지도는 앱에서 확인하세요</Text>
+              <Text allowFontScaling={false} style={styles.mapWebFallbackText}>지도는 앱에서 확인하세요</Text>
             </View>
           )}
 
@@ -504,24 +565,22 @@ export default function RoomScreen() {
             {isTopPick && (
               <View style={styles.topPickBadge}>
                 <Ionicons name="star" size={11} color="#ffb867" />
-                <Text style={styles.topPickText}>Top Pick</Text>
+                <Text allowFontScaling={false} style={styles.topPickText}>Top Pick</Text>
               </View>
             )}
-            <Text style={styles.mapPlaceName}>{selectedPlace?.placeName}</Text>
+            <Text allowFontScaling={false} style={styles.mapPlaceName}>{selectedPlace?.placeName}</Text>
             <View style={styles.mapAddressRow}>
               <Ionicons name="location-outline" size={12} color="#8a8f98" />
-              <Text style={styles.mapAddress}>{selectedPlace?.placeAddress}</Text>
+              <Text allowFontScaling={false} style={styles.mapAddress}>{selectedPlace?.placeAddress}</Text>
             </View>
             <View style={styles.mapMatchRow}>
-              <Text style={styles.mapMatchPct}>{selectedPlace?.atmosphereMatch}</Text>
-              <Text style={styles.mapMatchLabel}> 매칭</Text>
+              <Text allowFontScaling={false} style={styles.mapMatchPct}>{selectedPlace?.atmosphereMatch}</Text>
+              <Text allowFontScaling={false} style={styles.mapMatchLabel}> 매칭</Text>
             </View>
           </View>
         </View>
-
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 140 }}>
           {/* 대안 가로 스크롤 */}
-          <Text style={styles.resultEyebrow}>ALTERNATIVE OPTIONS</Text>
+          <Text allowFontScaling={false} style={styles.resultEyebrow}>ALTERNATIVE OPTIONS</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.altScrollContent}>
             {aiPlaces.map((alt, i) => {
               const isActive = selectedPlace?.placeName === alt.placeName;
@@ -538,15 +597,15 @@ export default function RoomScreen() {
                   <View style={[styles.altIconBox, isActive && styles.altIconBoxActive]}>
                     <Ionicons name="location-outline" size={18} color={isActive ? '#bdc2ff' : '#8a8f98'} />
                   </View>
-                  <Text style={[styles.altName, isActive && { color: '#f7f8f8' }]} numberOfLines={2}>{alt.placeName}</Text>
-                  <Text style={[styles.altMatch, isActive && { color: '#bdc2ff' }]}>{alt.atmosphereMatch}</Text>
+                  <Text allowFontScaling={false} style={[styles.altName, isActive && { color: '#f7f8f8' }]} numberOfLines={2}>{alt.placeName}</Text>
+                  <Text allowFontScaling={false} style={[styles.altMatch, isActive && { color: '#bdc2ff' }]}>{alt.atmosphereMatch}</Text>
                 </TouchableOpacity>
               );
             })}
           </ScrollView>
 
           {/* 추천 목록 */}
-          <Text style={[styles.resultEyebrow, { paddingHorizontal: 16, marginTop: 24 }]}>RECOMMENDATIONS</Text>
+          <Text allowFontScaling={false} style={[styles.resultEyebrow, { paddingHorizontal: 16, marginTop: 24 }]}>RECOMMENDATIONS</Text>
           {aiPlaces.map((place, i) => {
             const isSelected = selectedPlace?.placeName === place.placeName;
             const drawerOpen = openDrawerIdx === i;
@@ -563,33 +622,33 @@ export default function RoomScreen() {
               >
                 <View style={styles.recCardHeader}>
                   <View style={[styles.recRankBox, i === 0 && styles.recRankBoxTop]}>
-                    <Text style={[styles.recRank, i === 0 && styles.recRankTop]}>{i + 1}</Text>
+                    <Text allowFontScaling={false} style={[styles.recRank, i === 0 && styles.recRankTop]}>{i + 1}</Text>
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.recName}>{place.placeName}</Text>
-                    <Text style={styles.recAddress}>{place.placeAddress}</Text>
+                    <Text allowFontScaling={false} style={styles.recName}>{place.placeName}</Text>
+                    <Text allowFontScaling={false} style={styles.recAddress}>{place.placeAddress}</Text>
                     <View style={styles.recMetaRow}>
                       <View style={[styles.recScorePill, { backgroundColor: `${scoreColor}22` }]}>
-                        <Text style={[styles.recScoreText, { color: scoreColor }]}>균형도 {place.fairnessScore}%</Text>
+                        <Text allowFontScaling={false} style={[styles.recScoreText, { color: scoreColor }]}>균형도 {place.fairnessScore}%</Text>
                       </View>
-                      <Text style={styles.recAtmosphere}>{place.atmosphereMatch}</Text>
+                      <Text allowFontScaling={false} style={styles.recAtmosphere}>{place.atmosphereMatch}</Text>
                     </View>
                   </View>
                   <View style={[styles.recMatchChip, i === 0 && styles.recMatchChipTop]}>
-                    <Text style={[styles.recMatchText, i === 0 && styles.recMatchTextTop]}>★ {place.rating.toFixed(1)}</Text>
+                    <Text allowFontScaling={false} style={[styles.recMatchText, i === 0 && styles.recMatchTextTop]}>★ {place.rating.toFixed(1)}</Text>
                   </View>
                 </View>
 
-                <Text style={styles.recReasoning}>{place.reasoning}</Text>
+                <Text allowFontScaling={false} style={styles.recReasoning}>{place.reasoning}</Text>
                 <View style={styles.recDivider} />
 
                 <View style={styles.recTravelSection}>
-                  <Text style={styles.recTravelLabel}>참가자별 이동</Text>
+                  <Text allowFontScaling={false} style={styles.recTravelLabel}>참가자별 이동</Text>
                   {place.perParticipantTime.map(p => (
                     <View key={p.nickname} style={styles.recTravelRow}>
-                      <Text style={styles.recTravelEmoji}>{TRANSPORT_EMOJI[p.transport] ?? '🚌'}</Text>
-                      <Text style={styles.recTravelNickname}>{p.nickname}</Text>
-                      <Text style={styles.recTravelMinutes}>{p.minutes}분</Text>
+                      <Text allowFontScaling={false} style={styles.recTravelEmoji}>{TRANSPORT_EMOJI[p.transport] ?? '🚌'}</Text>
+                      <Text allowFontScaling={false} style={styles.recTravelNickname}>{p.nickname}</Text>
+                      <Text allowFontScaling={false} style={styles.recTravelMinutes}>{p.minutes}분</Text>
                     </View>
                   ))}
                   {(() => {
@@ -599,7 +658,7 @@ export default function RoomScreen() {
                     const diffText = diff <= 5 ? `${diff}분 차이 — 균등해요 ✓` : `최대 ${diff}분 차이`;
                     return (
                       <View style={[styles.recDiffPill, { backgroundColor: `${diffColor}18` }]}>
-                        <Text style={[styles.recDiffText, { color: diffColor }]}>{diffText}</Text>
+                        <Text allowFontScaling={false} style={[styles.recDiffText, { color: diffColor }]}>{diffText}</Text>
                       </View>
                     );
                   })()}
@@ -612,31 +671,31 @@ export default function RoomScreen() {
                   accessibilityLabel={drawerOpen ? '후기 접기' : '후기 및 상세 보기'}
                   accessibilityState={{ expanded: drawerOpen }}
                 >
-                  <Text style={styles.drawerToggleText}>{drawerOpen ? '접기' : '후기 · 상세 보기'}</Text>
+                  <Text allowFontScaling={false} style={styles.drawerToggleText}>{drawerOpen ? '접기' : '후기 · 상세 보기'}</Text>
                   <Ionicons name={drawerOpen ? 'chevron-up' : 'chevron-down'} size={13} color="#5e6ad2" />
                 </TouchableOpacity>
 
                 {drawerOpen && (
                   <View style={styles.drawerContent}>
                     <View style={styles.drawerHeader}>
-                      <Text style={styles.drawerTitle}>PINI 리뷰 분석</Text>
+                      <Text allowFontScaling={false} style={styles.drawerTitle}>PINI 리뷰 분석</Text>
                       <View style={styles.drawerCountChip}>
-                        <Text style={styles.drawerCountText}>검증 후기 {place.reviewIntelligence.authenticCount}개</Text>
+                        <Text allowFontScaling={false} style={styles.drawerCountText}>검증 후기 {place.reviewIntelligence.authenticCount}개</Text>
                       </View>
                     </View>
                     {place.reviewIntelligence.pros.length > 0 && (
                       <View style={styles.drawerProsSection}>
-                        <Text style={styles.drawerProsLabel}>좋은 점</Text>
+                        <Text allowFontScaling={false} style={styles.drawerProsLabel}>좋은 점</Text>
                         {place.reviewIntelligence.pros.map(pro => (
-                          <Text key={pro} style={styles.drawerProItem}>✓  {pro}</Text>
+                          <Text allowFontScaling={false} key={pro} style={styles.drawerProItem}>✓  {pro}</Text>
                         ))}
                       </View>
                     )}
                     {place.reviewIntelligence.cons.length > 0 && (
                       <View>
-                        <Text style={styles.drawerConsLabel}>참고할 점</Text>
+                        <Text allowFontScaling={false} style={styles.drawerConsLabel}>참고할 점</Text>
                         {place.reviewIntelligence.cons.map(con => (
-                          <Text key={con} style={styles.drawerConItem}>△  {con}</Text>
+                          <Text allowFontScaling={false} key={con} style={styles.drawerConItem}>△  {con}</Text>
                         ))}
                       </View>
                     )}
@@ -647,13 +706,47 @@ export default function RoomScreen() {
           })}
         </ScrollView>
 
+        {/* Android 네이티브 날짜/시간 피커 (Modal 외부) */}
+        {Platform.OS === 'android' && showNativeDatePicker && (
+          <DateTimePicker
+            value={scheduledDateTime}
+            mode="date"
+            display="default"
+            minimumDate={new Date()}
+            onChange={(_: DateTimePickerEvent, date?: Date) => {
+              setShowNativeDatePicker(false);
+              if (date) {
+                const next = new Date(date);
+                next.setHours(scheduledDateTime.getHours(), scheduledDateTime.getMinutes());
+                setScheduledDateTime(next);
+              }
+            }}
+          />
+        )}
+        {Platform.OS === 'android' && showNativeTimePicker && (
+          <DateTimePicker
+            value={scheduledDateTime}
+            mode="time"
+            display="default"
+            minuteInterval={10}
+            onChange={(_: DateTimePickerEvent, date?: Date) => {
+              setShowNativeTimePicker(false);
+              if (date) {
+                const next = new Date(scheduledDateTime);
+                next.setHours(date.getHours(), date.getMinutes());
+                setScheduledDateTime(next);
+              }
+            }}
+          />
+        )}
+
         {/* 날짜/시간 선택 모달 */}
         <Modal visible={showDateModal} transparent animationType="slide" onRequestClose={() => setShowDateModal(false)}>
           <View style={styles.modalOverlay}>
             <View style={styles.modalCard}>
               <View style={styles.modalHandleBar} />
-              <Text style={styles.modalTitle}>일정 날짜 · 시간 선택</Text>
-              <Text style={styles.modalSubtitle}>{selectedPlace?.placeName}</Text>
+              <Text allowFontScaling={false} style={styles.modalTitle}>일정 날짜 · 시간 선택</Text>
+              <Text allowFontScaling={false} style={styles.modalSubtitle}>{selectedPlace?.placeName}</Text>
 
               {Platform.OS === 'web' ? (
                 /* Web 폴백: TextInput */
@@ -661,7 +754,7 @@ export default function RoomScreen() {
                   <View style={styles.pickerRow}>
                     <View style={styles.pickerRowLeft}>
                       <Ionicons name="calendar-outline" size={18} color="#bdc2ff" />
-                      <Text style={styles.pickerRowLabel}>날짜</Text>
+                      <Text allowFontScaling={false} style={styles.pickerRowLabel}>날짜</Text>
                     </View>
                     <TextInput
                       style={styles.pickerTextInput}
@@ -681,7 +774,7 @@ export default function RoomScreen() {
                   <View style={styles.pickerRow}>
                     <View style={styles.pickerRowLeft}>
                       <Ionicons name="time-outline" size={18} color="#bdc2ff" />
-                      <Text style={styles.pickerRowLabel}>시간</Text>
+                      <Text allowFontScaling={false} style={styles.pickerRowLabel}>시간</Text>
                     </View>
                     <TextInput
                       style={styles.pickerTextInput}
@@ -699,19 +792,37 @@ export default function RoomScreen() {
                     />
                   </View>
                 </>
+              ) : Platform.OS === 'android' ? (
+                /* Android: 버튼으로 네이티브 다이얼로그 트리거 */
+                <>
+                  <TouchableOpacity style={styles.pickerRow} onPress={() => setShowNativeDatePicker(true)} activeOpacity={0.8}>
+                    <View style={styles.pickerRowLeft}>
+                      <Ionicons name="calendar-outline" size={18} color="#bdc2ff" />
+                      <Text allowFontScaling={false} style={styles.pickerRowLabel}>날짜</Text>
+                    </View>
+                    <Text allowFontScaling={false} style={styles.pickerRowValue}>{formatDate(scheduledDateTime)}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.pickerRow} onPress={() => setShowNativeTimePicker(true)} activeOpacity={0.8}>
+                    <View style={styles.pickerRowLeft}>
+                      <Ionicons name="time-outline" size={18} color="#bdc2ff" />
+                      <Text allowFontScaling={false} style={styles.pickerRowLabel}>시간</Text>
+                    </View>
+                    <Text allowFontScaling={false} style={styles.pickerRowValue}>{formatTime(scheduledDateTime)}</Text>
+                  </TouchableOpacity>
+                </>
               ) : (
-                /* iOS / Android: 인라인 스피너 피커 */
+                /* iOS: 인라인 스피너 피커 */
                 <>
                   <View style={styles.pickerLabelRow}>
                     <Ionicons name="calendar-outline" size={15} color="#636878" />
-                    <Text style={styles.pickerSectionLabel}>날짜</Text>
-                    <Text style={styles.pickerSectionValue}>{formatDate(scheduledDateTime)}</Text>
+                    <Text allowFontScaling={false} style={styles.pickerSectionLabel}>날짜</Text>
+                    <Text allowFontScaling={false} style={styles.pickerSectionValue}>{formatDate(scheduledDateTime)}</Text>
                   </View>
                   <DateTimePicker
                     value={scheduledDateTime}
                     mode="date"
                     display="spinner"
-                    {...(Platform.OS === 'ios' ? { textColor: '#f7f8f8' } : {})}
+                    textColor="#f7f8f8"
                     minimumDate={new Date()}
                     onChange={(_: DateTimePickerEvent, date?: Date) => {
                       if (date) {
@@ -724,14 +835,14 @@ export default function RoomScreen() {
                   />
                   <View style={[styles.pickerLabelRow, { marginTop: 8 }]}>
                     <Ionicons name="time-outline" size={15} color="#636878" />
-                    <Text style={styles.pickerSectionLabel}>시간</Text>
-                    <Text style={styles.pickerSectionValue}>{formatTime(scheduledDateTime)}</Text>
+                    <Text allowFontScaling={false} style={styles.pickerSectionLabel}>시간</Text>
+                    <Text allowFontScaling={false} style={styles.pickerSectionValue}>{formatTime(scheduledDateTime)}</Text>
                   </View>
                   <DateTimePicker
                     value={scheduledDateTime}
                     mode="time"
                     display="spinner"
-                    {...(Platform.OS === 'ios' ? { textColor: '#f7f8f8' } : {})}
+                    textColor="#f7f8f8"
                     minuteInterval={10}
                     onChange={(_: DateTimePickerEvent, date?: Date) => {
                       if (date) {
@@ -751,14 +862,14 @@ export default function RoomScreen() {
                   onPress={() => setShowDateModal(false)}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.modalCancelText}>취소</Text>
+                  <Text allowFontScaling={false} style={styles.modalCancelText}>취소</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.modalConfirmBtn}
                   onPress={handleScheduleConfirm}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.modalConfirmText}>확정하기</Text>
+                  <Text allowFontScaling={false} style={styles.modalConfirmText}>확정하기</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -779,7 +890,7 @@ export default function RoomScreen() {
               ? <ActivityIndicator color="#fdfaff" size="small" />
               : <>
                   <Ionicons name="checkmark-circle" size={20} color="#fdfaff" />
-                  <Text style={styles.confirmBtnText}>선택 플랜 확정하기</Text>
+                  <Text allowFontScaling={false} style={styles.confirmBtnText}>선택 플랜 확정하기</Text>
                 </>
             }
           </TouchableOpacity>
@@ -791,7 +902,7 @@ export default function RoomScreen() {
             accessibilityRole="button"
           >
             <Ionicons name="refresh-outline" size={15} color="#8a8f98" />
-            <Text style={styles.retryBtnText}>다시 추천받기</Text>
+            <Text allowFontScaling={false} style={styles.retryBtnText}>다시 추천받기</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -810,15 +921,15 @@ export default function RoomScreen() {
         >
           {/* 스텝 헤더 */}
           <View style={styles.stepHeader}>
-            <Text style={styles.stepEyebrow}>STEP 2 OF 4</Text>
-            <Text style={styles.stepTitle}>내 정보 알려주기</Text>
+            <Text allowFontScaling={false} style={styles.stepEyebrow}>STEP 2 OF 4</Text>
+            <Text allowFontScaling={false} style={styles.stepTitle}>내 정보 알려주기</Text>
             <View style={styles.progressTrack}>
               <View style={[styles.progressFill, { width: '50%' }]} />
             </View>
           </View>
 
           {/* 출발 지역 — 카카오 검색 */}
-          <Text style={styles.fieldLabel}>출발 지역</Text>
+          <Text allowFontScaling={false} style={styles.fieldLabel}>출발 지역</Text>
           <View style={styles.locationWrap}>
             <View style={[styles.locationInputRow, showSuggestions && styles.locationInputRowOpen]}>
               <Ionicons name="search-outline" size={16} color="#636878" style={{ marginLeft: 12 }} />
@@ -852,8 +963,8 @@ export default function RoomScreen() {
                   >
                     <Ionicons name="location-outline" size={14} color="#5e6ad2" style={{ marginTop: 1 }} />
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.suggestionName}>{item.place_name}</Text>
-                      <Text style={styles.suggestionAddress} numberOfLines={1}>
+                      <Text allowFontScaling={false} style={styles.suggestionName}>{item.place_name}</Text>
+                      <Text allowFontScaling={false} style={styles.suggestionAddress} numberOfLines={1}>
                         {item.road_address_name || item.address_name}
                       </Text>
                     </View>
@@ -864,13 +975,13 @@ export default function RoomScreen() {
             {userLat !== 0 && (
               <View style={styles.locationConfirmed}>
                 <Ionicons name="checkmark-circle" size={13} color="#27a644" />
-                <Text style={styles.locationConfirmedText}>위치 확인됨</Text>
+                <Text allowFontScaling={false} style={styles.locationConfirmedText}>위치 확인됨</Text>
               </View>
             )}
           </View>
 
           {/* 이동 수단 — 2열 그리드 */}
-          <Text style={styles.sectionTitle}>이동 수단</Text>
+          <Text allowFontScaling={false} style={styles.sectionTitle}>이동 수단</Text>
           <View style={styles.grid2}>
             {TRANSPORT_OPTIONS.map((opt) => {
               const active = transport === opt.value;
@@ -882,7 +993,7 @@ export default function RoomScreen() {
                   activeOpacity={0.8}
                 >
                   <Ionicons name={opt.icon} size={22} color={active ? opt.iconColor : '#8a8f98'} />
-                  <Text style={[styles.gridCardLabel, active && styles.gridCardLabelActive]}>{opt.label}</Text>
+                  <Text allowFontScaling={false} style={[styles.gridCardLabel, active && styles.gridCardLabelActive]}>{opt.label}</Text>
                   {active && <View style={styles.gridCheck}><Ionicons name="checkmark-circle" size={14} color="#bdc2ff" /></View>}
                 </TouchableOpacity>
               );
@@ -890,7 +1001,7 @@ export default function RoomScreen() {
           </View>
 
           {/* 이동 거리 — 3열 */}
-          <Text style={styles.sectionTitle}>이동 거리 선호</Text>
+          <Text allowFontScaling={false} style={styles.sectionTitle}>이동 거리 선호</Text>
           <View style={styles.grid3}>
             {DISTANCE_OPTIONS.map((opt) => {
               const active = distance === opt.value;
@@ -902,15 +1013,15 @@ export default function RoomScreen() {
                   activeOpacity={0.8}
                 >
                   <Ionicons name={opt.icon} size={20} color={active ? '#bdc2ff' : '#8a8f98'} />
-                  <Text style={[styles.gridCardLabel, active && styles.gridCardLabelActive]}>{opt.label}</Text>
-                  <Text style={styles.grid3Desc}>{opt.desc}</Text>
+                  <Text allowFontScaling={false} style={[styles.gridCardLabel, active && styles.gridCardLabelActive]}>{opt.label}</Text>
+                  <Text allowFontScaling={false} style={styles.grid3Desc}>{opt.desc}</Text>
                 </TouchableOpacity>
               );
             })}
           </View>
 
           {/* 선호 분위기 — 2열 그리드 */}
-          <Text style={styles.sectionTitle}>선호 분위기</Text>
+          <Text allowFontScaling={false} style={styles.sectionTitle}>선호 분위기</Text>
           <View style={styles.grid2}>
             {ATMOSPHERE_OPTIONS.map((opt) => {
               const active = atmosphere === opt.value;
@@ -922,7 +1033,7 @@ export default function RoomScreen() {
                   activeOpacity={0.8}
                 >
                   <Ionicons name={opt.icon} size={22} color={active ? opt.iconColor : '#8a8f98'} />
-                  <Text style={[styles.gridCardLabel, active && styles.gridCardLabelActive]}>{opt.label}</Text>
+                  <Text allowFontScaling={false} style={[styles.gridCardLabel, active && styles.gridCardLabelActive]}>{opt.label}</Text>
                   {active && <View style={styles.gridCheck}><Ionicons name="checkmark-circle" size={14} color="#bdc2ff" /></View>}
                 </TouchableOpacity>
               );
@@ -932,7 +1043,7 @@ export default function RoomScreen() {
           {formError ? (
             <View style={styles.errorRow}>
               <Ionicons name="warning-outline" size={14} color="#ffb4ab" />
-              <Text style={styles.errorText}>{formError}</Text>
+              <Text allowFontScaling={false} style={styles.errorText}>{formError}</Text>
             </View>
           ) : null}
         </ScrollView>
@@ -947,13 +1058,13 @@ export default function RoomScreen() {
             {saving
               ? <ActivityIndicator color="#fdfaff" size="small" />
               : <>
-                <Text style={styles.primaryBtnText}>선호 저장하기</Text>
+                <Text allowFontScaling={false} style={styles.primaryBtnText}>선호 저장하기</Text>
                 <Ionicons name="arrow-forward" size={16} color="#fdfaff" />
               </>
             }
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.back()} activeOpacity={0.8} style={styles.ghostBtn}>
-            <Text style={styles.ghostBtnText}>나중에 저장하기</Text>
+            <Text allowFontScaling={false} style={styles.ghostBtnText}>나중에 저장하기</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -969,8 +1080,8 @@ export default function RoomScreen() {
           {/* 진행 현황 */}
           <View style={styles.progressSection}>
             <View style={styles.progressHeader}>
-              <Text style={styles.sectionEyebrow}>준비 현황</Text>
-              <Text style={styles.progressCount}>{readyCount}/{participants.length} 준비됨</Text>
+              <Text allowFontScaling={false} style={styles.sectionEyebrow}>준비 현황</Text>
+              <Text allowFontScaling={false} style={styles.progressCount}>{readyCount}/{participants.length} 준비됨</Text>
             </View>
             <View style={styles.progressTrack}>
               <View style={[styles.progressFill, styles.progressGlow, { width: `${progressPct}%` as any }]} />
@@ -978,28 +1089,31 @@ export default function RoomScreen() {
           </View>
 
           {/* 참가자 목록 */}
-          <Text style={[styles.sectionEyebrow, { marginBottom: 8 }]}>참가자</Text>
+          <Text allowFontScaling={false} style={[styles.sectionEyebrow, { marginBottom: 8 }]}>참가자</Text>
           <View style={styles.participantList}>
             {participants.map((p) => {
               const isReady = p.userId === currentUserId ? locationSaved : Boolean(p.abstractLocation);
               return (
                 <View key={p.id} style={[styles.participantCard, { borderLeftColor: isReady ? '#27a644' : '#5e6ad2' }]}>
                   <View style={styles.participantAvatar}>
-                    <Text style={styles.participantAvatarText}>{p.user.nickname[0]?.toUpperCase()}</Text>
+                    {p.user.profileImage
+                      ? <Image source={{ uri: p.user.profileImage }} style={styles.participantAvatarImg} />
+                      : <Text allowFontScaling={false} style={styles.participantAvatarText}>{p.user.nickname[0]?.toUpperCase()}</Text>
+                    }
                   </View>
                   <View style={styles.participantInfo}>
-                    <Text style={styles.participantName}>{p.user.nickname}</Text>
-                    <Text style={styles.participantRole}>{p.isHost ? '호스트' : '참가자'}</Text>
+                    <Text allowFontScaling={false} style={styles.participantName}>{p.user.nickname}</Text>
+                    <Text allowFontScaling={false} style={styles.participantRole}>{p.isHost ? '호스트' : '참가자'}</Text>
                   </View>
                   <View style={styles.participantStatusRow}>
                     {isReady ? (
                       <>
-                        <Text style={styles.statusReady}>READY</Text>
+                        <Text allowFontScaling={false} style={styles.statusReady}>READY</Text>
                         <Ionicons name="checkmark-circle-outline" size={18} color="#27a644" />
                       </>
                     ) : (
                       <>
-                        <Text style={styles.statusWaiting}>WAITING</Text>
+                        <Text allowFontScaling={false} style={styles.statusWaiting}>WAITING</Text>
                         <Ionicons name="hourglass-outline" size={18} color="#8a8f98" />
                       </>
                     )}
@@ -1011,7 +1125,7 @@ export default function RoomScreen() {
 
           <TouchableOpacity onPress={() => setLocationSaved(false)} style={styles.editLink} activeOpacity={0.8}>
             <Ionicons name="create-outline" size={14} color="#8a8f98" />
-            <Text style={styles.editLinkText}>내 선호 수정하기</Text>
+            <Text allowFontScaling={false} style={styles.editLinkText}>내 선호 수정하기</Text>
           </TouchableOpacity>
         </ScrollView>
 
@@ -1023,7 +1137,7 @@ export default function RoomScreen() {
             onPress={() => handleRunPini()}
           >
             <Ionicons name="flash" size={18} color="#fdfaff" />
-            <Text style={styles.piniBtnText}>
+            <Text allowFontScaling={false} style={styles.piniBtnText}>
               {allReady ? 'PINI 실행하기' : `대기 중 (${readyCount}/${participants.length})`}
             </Text>
           </TouchableOpacity>
@@ -1042,18 +1156,18 @@ export default function RoomScreen() {
           <View style={styles.successIconBg}>
             <Ionicons name="checkmark-circle" size={40} color="#bdc2ff" />
           </View>
-          <Text style={styles.successTitle}>선호가 저장됐어요!</Text>
-          <Text style={styles.successSub}>호스트가 일정을 확정하는 동안 잠시 기다려주세요.</Text>
+          <Text allowFontScaling={false} style={styles.successTitle}>선호가 저장됐어요!</Text>
+          <Text allowFontScaling={false} style={styles.successSub}>호스트가 일정을 확정하는 동안 잠시 기다려주세요.</Text>
         </View>
 
         {/* 호스트 상태 카드 */}
         <View style={styles.hostStatusCard}>
           <View style={styles.hostStatusTop}>
             <View>
-              <Text style={styles.sectionEyebrow}>호스트 현황</Text>
+              <Text allowFontScaling={false} style={styles.sectionEyebrow}>호스트 현황</Text>
               <View style={styles.hostStatusRow}>
                 <Animated.View style={[styles.pulseDot, { opacity: pulseAnim }]} />
-                <Text style={styles.hostStatusLabel}>일정 분석 중</Text>
+                <Text allowFontScaling={false} style={styles.hostStatusLabel}>일정 분석 중</Text>
               </View>
             </View>
             <View style={styles.syncBox}>
@@ -1063,13 +1177,13 @@ export default function RoomScreen() {
           <View style={styles.progressTrack}>
             <Animated.View style={[styles.shimmerBar, { opacity: shimmerAnim }]} />
           </View>
-          <Text style={styles.hostStatusHint}>참가자들의 일정을 분석하고 있어요...</Text>
+          <Text allowFontScaling={false} style={styles.hostStatusHint}>참가자들의 일정을 분석하고 있어요...</Text>
         </View>
 
         {/* 참가자 준비 현황 */}
         <View style={styles.readinessHeader}>
-          <Text style={styles.sectionEyebrow}>참가자 ({readyCount}/{participants.length})</Text>
-          <Text style={styles.readinessPct}>{participants.length > 0 ? Math.round(progressPct) : 0}% 준비</Text>
+          <Text allowFontScaling={false} style={styles.sectionEyebrow}>참가자 ({readyCount}/{participants.length})</Text>
+          <Text allowFontScaling={false} style={styles.readinessPct}>{participants.length > 0 ? Math.round(progressPct) : 0}% 준비</Text>
         </View>
         <View style={styles.participantList}>
           {participants.map((p) => {
@@ -1077,17 +1191,20 @@ export default function RoomScreen() {
             return (
               <View key={p.id} style={[styles.participantCard, { borderLeftColor: isReady ? '#27a644' : '#ffb867' }]}>
                 <View style={styles.participantAvatar}>
-                  <Text style={styles.participantAvatarText}>{p.user.nickname[0]?.toUpperCase()}</Text>
+                  {p.user.profileImage
+                    ? <Image source={{ uri: p.user.profileImage }} style={styles.participantAvatarImg} />
+                    : <Text allowFontScaling={false} style={styles.participantAvatarText}>{p.user.nickname[0]?.toUpperCase()}</Text>
+                  }
                 </View>
                 <View style={styles.participantInfo}>
-                  <Text style={styles.participantName}>{p.user.nickname}</Text>
-                  <Text style={[styles.participantStatus2, { color: isReady ? '#27a644' : '#ffb867' }]}>
+                  <Text allowFontScaling={false} style={styles.participantName}>{p.user.nickname}</Text>
+                  <Text allowFontScaling={false} style={[styles.participantStatus2, { color: isReady ? '#27a644' : '#ffb867' }]}>
                     {isReady ? '준비됨' : '검토 중'}
                   </Text>
                 </View>
                 {p.isHost && (
                   <View style={styles.hostBadge}>
-                    <Text style={styles.hostBadgeText}>호스트</Text>
+                    <Text allowFontScaling={false} style={styles.hostBadgeText}>호스트</Text>
                   </View>
                 )}
               </View>
@@ -1099,12 +1216,12 @@ export default function RoomScreen() {
         <View style={styles.sessionCard}>
           <View style={styles.sessionCardRow}>
             <Ionicons name="calendar-outline" size={16} color="#bdc2ff" />
-            <Text style={styles.sectionEyebrow}>모임 코드</Text>
+            <Text allowFontScaling={false} style={styles.sectionEyebrow}>모임 코드</Text>
           </View>
-          <Text style={styles.sessionCode}>{roomCode}</Text>
+          <Text allowFontScaling={false} style={styles.sessionCode}>{roomCode}</Text>
           <TouchableOpacity onPress={() => setLocationSaved(false)} style={styles.editLink} activeOpacity={0.8}>
             <Ionicons name="create-outline" size={13} color="#8a8f98" />
-            <Text style={styles.editLinkText}>선호 수정하기</Text>
+            <Text allowFontScaling={false} style={styles.editLinkText}>선호 수정하기</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -1112,7 +1229,7 @@ export default function RoomScreen() {
       <View style={styles.footer}>
         <View style={styles.waitingBtn}>
           <Ionicons name="hourglass-outline" size={16} color="#8a8f98" />
-          <Text style={styles.waitingBtnText}>호스트를 기다리는 중...</Text>
+          <Text allowFontScaling={false} style={styles.waitingBtnText}>호스트를 기다리는 중...</Text>
         </View>
       </View>
     </View>
@@ -1125,7 +1242,7 @@ const styles = StyleSheet.create({
   body: { padding: 16, paddingBottom: 32 },
 
   /* 공통 */
-  footer: { padding: 16, borderTopWidth: 1, borderTopColor: '#23252a', gap: 10 },
+  footer: { paddingHorizontal: 16, paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#23252a', gap: 6 },
   primaryBtn: { height: 56, backgroundColor: '#5e6ad2', borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   primaryBtnText: { fontSize: 14, fontWeight: '700', color: '#fdfaff' },
   ghostBtn: { height: 40, alignItems: 'center', justifyContent: 'center' },
@@ -1186,7 +1303,8 @@ const styles = StyleSheet.create({
   /* 참가자 카드 */
   participantList: { gap: 6, marginBottom: 16 },
   participantCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#0f1011', borderWidth: 1, borderColor: '#23252a', borderRadius: 8, borderLeftWidth: 4, padding: 14, gap: 12 },
-  participantAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#141516', borderWidth: 1, borderColor: '#34343a', alignItems: 'center', justifyContent: 'center' },
+  participantAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#141516', borderWidth: 1, borderColor: '#34343a', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  participantAvatarImg: { width: 40, height: 40, borderRadius: 20 },
   participantAvatarText: { fontSize: 16, fontWeight: '700', color: '#bdc2ff' },
   participantInfo: { flex: 1 },
   participantName: { fontSize: 14, fontWeight: '600', color: '#f7f8f8' },
@@ -1253,7 +1371,7 @@ const styles = StyleSheet.create({
   piniBadgeText: { fontSize: 11, fontWeight: '600', color: '#8a8f98', letterSpacing: 0.5 },
 
   /* ── AI 결과 화면 ── */
-  mapSection: { height: 260, position: 'relative', overflow: 'hidden', borderBottomWidth: 1, borderBottomColor: '#23252a' },
+  mapSection: { height: 360, position: 'relative', overflow: 'hidden', borderBottomWidth: 1, borderBottomColor: '#23252a' },
   mapWebView: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#1c1e24' },
   mapWebFallback: { alignItems: 'center', justifyContent: 'center', gap: 8 },
   mapWebFallbackText: { fontSize: 12, color: '#454652' },
@@ -1356,12 +1474,12 @@ const styles = StyleSheet.create({
   modalConfirmText: { fontSize: 15, fontWeight: '800', color: '#fdfaff' },
 
   confirmBtn: {
-    height: 58, backgroundColor: '#5e6ad2', borderRadius: 14,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    shadowColor: '#5e6ad2', shadowOpacity: 0.45, shadowRadius: 12, shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
+    height: 46, backgroundColor: '#5e6ad2', borderRadius: 12,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7,
+    shadowColor: '#5e6ad2', shadowOpacity: 0.4, shadowRadius: 8, shadowOffset: { width: 0, height: 3 },
+    elevation: 4,
   },
-  confirmBtnText: { fontSize: 15, fontWeight: '800', color: '#fdfaff', letterSpacing: -0.2 },
-  retryBtn: { height: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
-  retryBtnText: { fontSize: 12, fontWeight: '600', color: '#636878' },
+  confirmBtnText: { fontSize: 14, fontWeight: '700', color: '#fdfaff', letterSpacing: -0.2 },
+  retryBtn: { height: 32, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5 },
+  retryBtnText: { fontSize: 12, fontWeight: '500', color: '#636878' },
 });

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, Modal, TextInput, Animated, Alert,
+  ActivityIndicator, Modal, TextInput, Animated, Alert, Image, Platform, StatusBar,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,15 +17,17 @@ function NavHeader({ initial, onBack }: { initial: string; onBack: () => void })
       <TouchableOpacity onPress={onBack} style={navHdr.backBtn} hitSlop={8}>
         <Ionicons name="chevron-back" size={22} color="#c6c5d5" />
       </TouchableOpacity>
-      <Text style={navHdr.logo}>Clue<Text style={navHdr.accent}>Pot</Text></Text>
+      <Text allowFontScaling={false} style={navHdr.logo}>Clue<Text allowFontScaling={false} style={navHdr.accent}>Pot</Text></Text>
       <View style={navHdr.avatar}>
-        <Text style={navHdr.avatarText}>{initial}</Text>
+        <Text allowFontScaling={false} style={navHdr.avatarText}>{initial}</Text>
       </View>
     </View>
   );
 }
+const SB_H = Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0;
+
 const navHdr = StyleSheet.create({
-  wrap:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, height: 56, borderBottomWidth: 1, borderBottomColor: '#23252a', backgroundColor: '#131316' },
+  wrap:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: SB_H, height: 56 + SB_H, borderBottomWidth: 1, borderBottomColor: '#23252a', backgroundColor: '#131316' },
   backBtn:    { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   logo:       { fontSize: 20, fontWeight: '700', color: '#f7f8f8', letterSpacing: -0.3 },
   accent:     { color: '#bdc2ff' },
@@ -187,25 +189,25 @@ function DatePickerModal({ visible, initial, onConfirm, onClose }: {
       <View style={s.modalOverlay}>
         <View style={s.modalSheet}>
           <View style={s.modalHandle} />
-          <Text style={s.modalTitle}>날짜 선택</Text>
+          <Text allowFontScaling={false} style={s.modalTitle}>날짜 선택</Text>
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <View style={{ flex: 2 }}>
-              <Text style={s.modalFieldLabel}>연도</Text>
+              <Text allowFontScaling={false} style={s.modalFieldLabel}>연도</Text>
               <TextInput style={s.modalInput} value={year} onChangeText={setYear} keyboardType="number-pad" maxLength={4} placeholder="2025" placeholderTextColor="#454652" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={s.modalFieldLabel}>월</Text>
+              <Text allowFontScaling={false} style={s.modalFieldLabel}>월</Text>
               <TextInput style={s.modalInput} value={month} onChangeText={v => setMonth(v.replace(/\D/g, ''))} keyboardType="number-pad" maxLength={2} placeholder="06" placeholderTextColor="#454652" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={s.modalFieldLabel}>일</Text>
+              <Text allowFontScaling={false} style={s.modalFieldLabel}>일</Text>
               <TextInput style={s.modalInput} value={day} onChangeText={v => setDay(v.replace(/\D/g, ''))} keyboardType="number-pad" maxLength={2} placeholder="15" placeholderTextColor="#454652" />
             </View>
           </View>
           <View style={s.modalActions}>
-            <TouchableOpacity style={s.modalCancelBtn} onPress={onClose}><Text style={s.modalCancelText}>취소</Text></TouchableOpacity>
+            <TouchableOpacity style={s.modalCancelBtn} onPress={onClose}><Text allowFontScaling={false} style={s.modalCancelText}>취소</Text></TouchableOpacity>
             <TouchableOpacity style={s.modalSaveBtn} onPress={() => { onConfirm(`${year}-${month.padStart(2,'0')}-${day.padStart(2,'0')}`); onClose(); }}>
-              <Text style={s.modalSaveText}>확인</Text>
+              <Text allowFontScaling={false} style={s.modalSaveText}>확인</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -239,25 +241,25 @@ function TimePickerModal({ visible, initial, onConfirm, onClose }: {
       <View style={s.modalOverlay}>
         <View style={s.modalSheet}>
           <View style={s.modalHandle} />
-          <Text style={s.modalTitle}>시간 선택</Text>
+          <Text allowFontScaling={false} style={s.modalTitle}>시간 선택</Text>
           <View style={{ flexDirection: 'row', gap: 10, alignItems: 'flex-end' }}>
             <View style={{ gap: 6 }}>
-              <Text style={s.modalFieldLabel}>오전/오후</Text>
+              <Text allowFontScaling={false} style={s.modalFieldLabel}>오전/오후</Text>
               <View style={{ flexDirection: 'row', gap: 6 }}>
                 {(['AM', 'PM'] as const).map(v => (
                   <TouchableOpacity key={v} onPress={() => setAmpm(v)} style={[s.ampmBtn, ampm === v && s.ampmBtnActive]}>
-                    <Text style={[s.ampmBtnText, ampm === v && s.ampmBtnTextActive]}>{v === 'AM' ? '오전' : '오후'}</Text>
+                    <Text allowFontScaling={false} style={[s.ampmBtnText, ampm === v && s.ampmBtnTextActive]}>{v === 'AM' ? '오전' : '오후'}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={s.modalFieldLabel}>시</Text>
+              <Text allowFontScaling={false} style={s.modalFieldLabel}>시</Text>
               <TextInput style={s.modalInput} value={hour} onChangeText={v => setHour(v.replace(/\D/g,''))} keyboardType="number-pad" maxLength={2} placeholder="12" placeholderTextColor="#454652" />
             </View>
-            <Text style={{ fontSize: 22, fontWeight: '700', color: '#8a8f98', paddingBottom: 14 }}>:</Text>
+            <Text allowFontScaling={false} style={{ fontSize: 22, fontWeight: '700', color: '#8a8f98', paddingBottom: 14 }}>:</Text>
             <View style={{ flex: 1 }}>
-              <Text style={s.modalFieldLabel}>분</Text>
+              <Text allowFontScaling={false} style={s.modalFieldLabel}>분</Text>
               <TextInput style={s.modalInput} value={minute} onChangeText={v => setMinute(v.replace(/\D/g,''))} keyboardType="number-pad" maxLength={2} placeholder="00" placeholderTextColor="#454652" />
             </View>
           </View>
@@ -269,13 +271,13 @@ function TimePickerModal({ visible, initial, onConfirm, onClose }: {
                 setHour(String(h === 0 ? 12 : h > 12 ? h - 12 : h));
                 setMinute(String(m).padStart(2, '0'));
               }}>
-                <Text style={s.quickChipText}>{t}</Text>
+                <Text allowFontScaling={false} style={s.quickChipText}>{t}</Text>
               </TouchableOpacity>
             ))}
           </View>
           <View style={s.modalActions}>
-            <TouchableOpacity style={s.modalCancelBtn} onPress={onClose}><Text style={s.modalCancelText}>취소</Text></TouchableOpacity>
-            <TouchableOpacity style={s.modalSaveBtn} onPress={handleConfirm}><Text style={s.modalSaveText}>확인</Text></TouchableOpacity>
+            <TouchableOpacity style={s.modalCancelBtn} onPress={onClose}><Text allowFontScaling={false} style={s.modalCancelText}>취소</Text></TouchableOpacity>
+            <TouchableOpacity style={s.modalSaveBtn} onPress={handleConfirm}><Text allowFontScaling={false} style={s.modalSaveText}>확인</Text></TouchableOpacity>
           </View>
         </View>
       </View>
@@ -311,55 +313,58 @@ function ConfirmedScreen({ schedule, editTitle, editDate, editTime }: {
           <View style={cs.checkBg}>
             <Ionicons name="checkmark-circle" size={32} color="#27a644" />
           </View>
-          <Text style={cs.heroTitle}>플랜이 확정됐어요!</Text>
-          <Text style={cs.heroSub}>모든 참가자에게 알림이 발송됩니다.</Text>
+          <Text allowFontScaling={false} style={cs.heroTitle}>플랜이 확정됐어요!</Text>
+          <Text allowFontScaling={false} style={cs.heroSub}>모든 참가자에게 알림이 발송됩니다.</Text>
         </View>
 
         <View style={cs.card}>
           <View style={cs.section}>
-            <Text style={cs.label}>MEETING NAME</Text>
-            <Text style={cs.meetingName}>{editTitle || schedule.title}</Text>
+            <Text allowFontScaling={false} style={cs.label}>MEETING NAME</Text>
+            <Text allowFontScaling={false} style={cs.meetingName}>{editTitle || schedule.title}</Text>
           </View>
 
           <View style={[cs.section, cs.row, cs.borderTop]}>
             <View style={{ flex: 1 }}>
-              <Text style={cs.label}>날짜 · 시간</Text>
+              <Text allowFontScaling={false} style={cs.label}>날짜 · 시간</Text>
               <View style={cs.infoRow}>
                 <Ionicons name="calendar-outline" size={13} color="#bdc2ff" />
-                <Text style={cs.infoVal}>{displayDate}</Text>
+                <Text allowFontScaling={false} style={cs.infoVal}>{displayDate}</Text>
               </View>
               <View style={cs.infoRow}>
                 <Ionicons name="time-outline" size={13} color="#8a8f98" />
-                <Text style={[cs.infoVal, { color: '#d0d6e0' }]}>{displayTime}</Text>
+                <Text allowFontScaling={false} style={[cs.infoVal, { color: '#d0d6e0' }]}>{displayTime}</Text>
               </View>
             </View>
             <View style={cs.dividerV} />
             <View style={{ flex: 1 }}>
-              <Text style={cs.label}>장소</Text>
+              <Text allowFontScaling={false} style={cs.label}>장소</Text>
               <View style={cs.infoRow}>
                 <Ionicons name="location-outline" size={13} color="#8a8f98" />
-                <Text style={cs.infoVal} numberOfLines={1}>{schedule.placeName}</Text>
+                <Text allowFontScaling={false} style={cs.infoVal} numberOfLines={1}>{schedule.placeName}</Text>
               </View>
-              <Text style={cs.infoSub}>{schedule.placeAddress}</Text>
+              <Text allowFontScaling={false} style={cs.infoSub}>{schedule.placeAddress}</Text>
             </View>
           </View>
 
           <View style={[cs.section, cs.borderTop]}>
-            <Text style={cs.label}>참가자</Text>
+            <Text allowFontScaling={false} style={cs.label}>참가자</Text>
             <View style={cs.participantsRow}>
               <View style={{ flexDirection: 'row' }}>
                 {shown.map((p, i) => (
-                  <View key={p.id} style={{ marginLeft: i === 0 ? 0 : -10, zIndex: 10 - i }}>
-                    <InitialAvatar name={p.nickname} size={34} />
+                  <View key={p.id} style={{ marginLeft: i === 0 ? 0 : -10, zIndex: 10 - i, width: 34, height: 34, borderRadius: 17, overflow: 'hidden', borderWidth: 1.5, borderColor: '#131316' }}>
+                    {p.profileImage
+                      ? <Image source={{ uri: p.profileImage }} style={{ width: 34, height: 34, borderRadius: 17 }} />
+                      : <InitialAvatar name={p.nickname} size={34} />
+                    }
                   </View>
                 ))}
                 {extra > 0 && (
                   <View style={[cs.extraBadge, { marginLeft: -10 }]}>
-                    <Text style={cs.extraText}>+{extra}</Text>
+                    <Text allowFontScaling={false} style={cs.extraText}>+{extra}</Text>
                   </View>
                 )}
               </View>
-              <Text style={cs.participantsLabel} numberOfLines={1}>{names}</Text>
+              <Text allowFontScaling={false} style={cs.participantsLabel} numberOfLines={1}>{names}</Text>
             </View>
           </View>
 
@@ -370,20 +375,20 @@ function ConfirmedScreen({ schedule, editTitle, editDate, editTime }: {
                 activeOpacity={0.8}
                 onPress={() => router.replace(`/(app)/schedules/${schedule.id}` as any)}
               >
-                <Text style={cs.secondaryBtnText}>상세 보기</Text>
+                <Text allowFontScaling={false} style={cs.secondaryBtnText}>상세 보기</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={cs.secondaryBtn}
                 activeOpacity={0.8}
                 onPress={() => router.replace('/(app)/home' as any)}
               >
-                <Text style={cs.secondaryBtnText}>완료</Text>
+                <Text allowFontScaling={false} style={cs.secondaryBtnText}>완료</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
 
-        <Text style={cs.footnote}>확정 알림이 모든 참가자에게 발송됩니다.</Text>
+        <Text allowFontScaling={false} style={cs.footnote}>확정 알림이 모든 참가자에게 발송됩니다.</Text>
       </ScrollView>
     </View>
   );
@@ -391,7 +396,7 @@ function ConfirmedScreen({ schedule, editTitle, editDate, editTime }: {
 
 const cs = StyleSheet.create({
   container:       { flex: 1, backgroundColor: '#131316' },
-  scroll:          { paddingHorizontal: 20, paddingTop: 72, paddingBottom: 48 },
+  scroll:          { paddingHorizontal: 20, paddingTop: 72 + SB_H, paddingBottom: 48 },
 
   heroSection:     { alignItems: 'center', marginBottom: 28 },
   checkBg:         { width: 58, height: 58, borderRadius: 29, backgroundColor: 'rgba(39,166,68,0.12)', borderWidth: 1, borderColor: 'rgba(39,166,68,0.28)', alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
@@ -535,11 +540,11 @@ export default function FinalizeScheduleScreen() {
       <NavHeader initial={initial} onBack={() => router.back()} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.body}>
-        <Text style={s.pageTitle}>일정을 확정해요</Text>
-        <Text style={s.pageSubtitle}>AI가 추천한 장소로 최종 일정을 작성해주세요.</Text>
+        <Text allowFontScaling={false} style={s.pageTitle}>일정을 확정해요</Text>
+        <Text allowFontScaling={false} style={s.pageSubtitle}>AI가 추천한 장소로 최종 일정을 작성해주세요.</Text>
 
         {/* PLAN NAME */}
-        <Text style={s.fieldLabel}>PLAN NAME</Text>
+        <Text allowFontScaling={false} style={s.fieldLabel}>PLAN NAME</Text>
         <TextInput
           style={s.input}
           value={editTitle}
@@ -552,7 +557,7 @@ export default function FinalizeScheduleScreen() {
         {/* DATE / TIME */}
         <View style={s.rowGrid}>
           <View style={{ flex: 1 }}>
-            <Text style={s.fieldLabel}>DATE</Text>
+            <Text allowFontScaling={false} style={s.fieldLabel}>DATE</Text>
             <TouchableOpacity
               style={[s.infoCell, s.infoCellEditable, !!editDate && s.infoCellFilled]}
               onPress={() => setShowDatePick(true)}
@@ -561,14 +566,14 @@ export default function FinalizeScheduleScreen() {
               accessibilityLabel="날짜 선택"
             >
               <Ionicons name="calendar-outline" size={15} color={editDate ? '#bdc2ff' : '#8a8f98'} />
-              <Text style={[s.infoCellText, !!editDate && { color: '#f7f8f8' }]} numberOfLines={1}>
+              <Text allowFontScaling={false} style={[s.infoCellText, !!editDate && { color: '#f7f8f8' }]} numberOfLines={1}>
                 {editDate ? formatDateDisplay(editDate) : date}
               </Text>
               <Ionicons name="chevron-down" size={13} color={editDate ? '#bdc2ff' : '#454652'} />
             </TouchableOpacity>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={s.fieldLabel}>TIME</Text>
+            <Text allowFontScaling={false} style={s.fieldLabel}>TIME</Text>
             <TouchableOpacity
               style={[s.infoCell, s.infoCellEditable, !!editTime && s.infoCellFilled]}
               onPress={() => setShowTimePick(true)}
@@ -577,7 +582,7 @@ export default function FinalizeScheduleScreen() {
               accessibilityLabel="시간 선택"
             >
               <Ionicons name="time-outline" size={15} color={editTime ? '#bdc2ff' : '#8a8f98'} />
-              <Text style={[s.infoCellText, !!editTime && { color: '#f7f8f8' }]}>
+              <Text allowFontScaling={false} style={[s.infoCellText, !!editTime && { color: '#f7f8f8' }]}>
                 {editTime ? formatTimeDisplay(editTime) : time}
               </Text>
               <Ionicons name="chevron-down" size={13} color={editTime ? '#bdc2ff' : '#454652'} />
@@ -586,30 +591,33 @@ export default function FinalizeScheduleScreen() {
         </View>
 
         {/* LOCATION */}
-        <Text style={s.fieldLabel}>LOCATION</Text>
+        <Text allowFontScaling={false} style={s.fieldLabel}>LOCATION</Text>
         <View style={[s.infoCell, { marginBottom: 20, opacity: 0.65 }]}>
           <Ionicons name="location-outline" size={15} color="#8a8f98" />
-          <Text style={s.infoCellText}>{schedule.placeName}</Text>
+          <Text allowFontScaling={false} style={s.infoCellText}>{schedule.placeName}</Text>
         </View>
 
         {/* PARTICIPANTS */}
-        <Text style={s.fieldLabel}>PARTICIPANTS</Text>
+        <Text allowFontScaling={false} style={s.fieldLabel}>PARTICIPANTS</Text>
         <View style={s.participantsCard}>
           <View style={s.avatarRow}>
             {schedule.participants.slice(0, 5).map((p, i) => (
               <View key={p.id} style={[s.miniAvatar, { marginLeft: i === 0 ? 0 : -8 }]}>
-                <Text style={s.miniAvatarText}>{p.nickname[0].toUpperCase()}</Text>
+                {p.profileImage
+                  ? <Image source={{ uri: p.profileImage }} style={{ width: 26, height: 26, borderRadius: 13 }} />
+                  : <Text allowFontScaling={false} style={s.miniAvatarText}>{p.nickname[0].toUpperCase()}</Text>
+                }
               </View>
             ))}
           </View>
-          <Text style={s.participantCount}>{schedule.participants.length}명</Text>
+          <Text allowFontScaling={false} style={s.participantCount}>{schedule.participants.length}명</Text>
           <View style={s.participantStatusRow}>
             {Object.entries(STATUS_CONFIG).map(([key, cfg]) => {
               const cnt = schedule.participants.filter(p => p.status === key).length;
               if (cnt === 0) return null;
               return (
                 <View key={key} style={[s.statusDot, { backgroundColor: cfg.bg }]}>
-                  <Text style={[s.statusDotText, { color: cfg.color }]}>{cfg.label} {cnt}</Text>
+                  <Text allowFontScaling={false} style={[s.statusDotText, { color: cfg.color }]}>{cfg.label} {cnt}</Text>
                 </View>
               );
             })}
@@ -617,7 +625,7 @@ export default function FinalizeScheduleScreen() {
         </View>
 
         {/* NOTES */}
-        <Text style={s.fieldLabel}>NOTES</Text>
+        <Text allowFontScaling={false} style={s.fieldLabel}>NOTES</Text>
         <TextInput
           style={[s.input, s.textarea]}
           value={editMemo}
@@ -634,8 +642,8 @@ export default function FinalizeScheduleScreen() {
           <View style={s.aiLeft}>
             <Ionicons name="flash" size={15} color="#bdc2ff" />
             <View>
-              <Text style={s.aiTitle}>PINI AI 최적화 완료</Text>
-              <Text style={s.aiDesc}>모든 참가자의 선호도가 반영됐어요.</Text>
+              <Text allowFontScaling={false} style={s.aiTitle}>PINI AI 최적화 완료</Text>
+              <Text allowFontScaling={false} style={s.aiDesc}>모든 참가자의 선호도가 반영됐어요.</Text>
             </View>
           </View>
           <Ionicons name="checkmark-circle" size={19} color="#27a644" />
@@ -646,11 +654,11 @@ export default function FinalizeScheduleScreen() {
           <View style={s.creatorRow}>
             <TouchableOpacity style={s.creatorBtn} onPress={() => setShowEdit(true)} activeOpacity={0.8}>
               <Ionicons name="create-outline" size={14} color="#d0d6e0" />
-              <Text style={s.creatorBtnText}>일정 수정</Text>
+              <Text allowFontScaling={false} style={s.creatorBtnText}>일정 수정</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[s.creatorBtn, s.creatorDanger]} onPress={() => setShowDelete(true)} activeOpacity={0.8}>
               <Ionicons name="trash-outline" size={14} color="#ffb4ab" />
-              <Text style={[s.creatorBtnText, { color: '#ffb4ab' }]}>삭제</Text>
+              <Text allowFontScaling={false} style={[s.creatorBtnText, { color: '#ffb4ab' }]}>삭제</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -660,10 +668,10 @@ export default function FinalizeScheduleScreen() {
       <View style={s.footer}>
         <View style={s.footerMeta}>
           <Ionicons name="people-outline" size={12} color="#8a8f98" />
-          <Text style={s.footerMetaText}>{schedule.participants.length}명 참가</Text>
+          <Text allowFontScaling={false} style={s.footerMetaText}>{schedule.participants.length}명 참가</Text>
           <View style={s.metaDot} />
           <Ionicons name="location-outline" size={12} color="#8a8f98" />
-          <Text style={s.footerMetaText}>{schedule.placeName}</Text>
+          <Text allowFontScaling={false} style={s.footerMetaText}>{schedule.placeName}</Text>
         </View>
         <TouchableOpacity
           style={[s.lockBtn, (!editTitle.trim() || locking) && { opacity: 0.38 }]}
@@ -676,7 +684,7 @@ export default function FinalizeScheduleScreen() {
             : (
               <>
                 <Ionicons name="checkmark-circle" size={18} color="#fdfaff" />
-                <Text style={s.lockBtnText}>Lock It In</Text>
+                <Text allowFontScaling={false} style={s.lockBtnText}>Lock It In</Text>
               </>
             )
           }
@@ -691,14 +699,14 @@ export default function FinalizeScheduleScreen() {
         <View style={s.modalOverlay}>
           <View style={s.modalSheet}>
             <View style={s.modalHandle} />
-            <Text style={s.modalTitle}>일정 수정</Text>
-            <Text style={s.modalFieldLabel}>제목</Text>
+            <Text allowFontScaling={false} style={s.modalTitle}>일정 수정</Text>
+            <Text allowFontScaling={false} style={s.modalFieldLabel}>제목</Text>
             <TextInput style={s.modalInput} value={editTitle} onChangeText={setEditTitle} placeholder="일정 제목" placeholderTextColor="#454652" maxLength={50} />
-            <Text style={s.modalFieldLabel}>메모</Text>
+            <Text allowFontScaling={false} style={s.modalFieldLabel}>메모</Text>
             <TextInput style={[s.modalInput, { height: 80, textAlignVertical: 'top' }]} value={editMemo} onChangeText={setEditMemo} placeholder="메모" placeholderTextColor="#454652" multiline />
             <View style={s.modalActions}>
-              <TouchableOpacity style={s.modalCancelBtn} onPress={() => setShowEdit(false)}><Text style={s.modalCancelText}>취소</Text></TouchableOpacity>
-              <TouchableOpacity style={s.modalSaveBtn} onPress={() => setShowEdit(false)}><Text style={s.modalSaveText}>저장</Text></TouchableOpacity>
+              <TouchableOpacity style={s.modalCancelBtn} onPress={() => setShowEdit(false)}><Text allowFontScaling={false} style={s.modalCancelText}>취소</Text></TouchableOpacity>
+              <TouchableOpacity style={s.modalSaveBtn} onPress={() => setShowEdit(false)}><Text allowFontScaling={false} style={s.modalSaveText}>저장</Text></TouchableOpacity>
             </View>
           </View>
         </View>
@@ -708,14 +716,14 @@ export default function FinalizeScheduleScreen() {
       <Modal visible={showDelete} animationType="fade" transparent>
         <View style={[s.modalOverlay, { justifyContent: 'center', padding: 24 }]}>
           <View style={[s.modalSheet, { borderRadius: 16 }]}>
-            <Text style={[s.modalTitle, { textAlign: 'center' }]}>일정을 삭제할까요?</Text>
-            <Text style={{ fontSize: 13, color: '#8a8f98', textAlign: 'center', lineHeight: 20, marginBottom: 20 }}>
+            <Text allowFontScaling={false} style={[s.modalTitle, { textAlign: 'center' }]}>일정을 삭제할까요?</Text>
+            <Text allowFontScaling={false} style={{ fontSize: 13, color: '#8a8f98', textAlign: 'center', lineHeight: 20, marginBottom: 20 }}>
               삭제된 일정은 복구할 수 없으며,{'\n'}모든 참가자에게서 제거돼요.
             </Text>
             <View style={s.modalActions}>
-              <TouchableOpacity style={s.modalCancelBtn} onPress={() => setShowDelete(false)}><Text style={s.modalCancelText}>취소</Text></TouchableOpacity>
+              <TouchableOpacity style={s.modalCancelBtn} onPress={() => setShowDelete(false)}><Text allowFontScaling={false} style={s.modalCancelText}>취소</Text></TouchableOpacity>
               <TouchableOpacity style={[s.modalSaveBtn, { backgroundColor: '#7f1d1d' }]} onPress={handleDelete} disabled={actionLoading}>
-                {actionLoading ? <ActivityIndicator color="#fdfaff" size="small" /> : <Text style={s.modalSaveText}>삭제</Text>}
+                {actionLoading ? <ActivityIndicator color="#fdfaff" size="small" /> : <Text allowFontScaling={false} style={s.modalSaveText}>삭제</Text>}
               </TouchableOpacity>
             </View>
           </View>

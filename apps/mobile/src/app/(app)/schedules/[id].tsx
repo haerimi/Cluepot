@@ -14,8 +14,39 @@ import { formatDateTime, InitialAvatar } from '@/lib/scheduleUtils';
 
 const KAKAO_MAP_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_KEY ?? '';
 
-function kakaoMapHtml(lat: number, lng: number, name: string): string {
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><style>*{margin:0;padding:0}html,body,#map{width:100%;height:100%}</style></head><body><div id="map"></div><script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_MAP_KEY}"></script><script>var map=new kakao.maps.Map(document.getElementById('map'),{center:new kakao.maps.LatLng(${lat},${lng}),level:4});var marker=new kakao.maps.Marker({map:map,position:new kakao.maps.LatLng(${lat},${lng})});var info=new kakao.maps.InfoWindow({content:'<div style="padding:5px 10px;font-size:12px;white-space:nowrap">${name.replace(/'/g, "\\'")}</div>'});info.open(map,marker);</script></body></html>`;
+function kakaoMapHtml(lat: number, lng: number, _name: string): string {
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #1c1e24; }
+  #map { width: 100vw; height: 100vh; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<script type="text/javascript"
+  src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_MAP_KEY}&autoload=false">
+</script>
+<script>
+window.onerror = function(msg, src, line) {
+  window.ReactNativeWebView && window.ReactNativeWebView.postMessage('ERR:' + msg + ' ' + src + ':' + line);
+};
+kakao.maps.load(function() {
+  var container = document.getElementById('map');
+  var options = { center: new kakao.maps.LatLng(${lat}, ${lng}), level: 4 };
+  var map = new kakao.maps.Map(container, options);
+  new kakao.maps.Marker({
+    position: new kakao.maps.LatLng(${lat}, ${lng}),
+    map: map,
+  });
+});
+</script>
+</body>
+</html>`;
 }
 
 /* ── Types ─────────────────────────────────────────────────────────────── */
@@ -26,6 +57,7 @@ type Participant = {
   id: string;
   userId: string;
   nickname: string;
+  profileImage: string | null;
   status: AttendanceStatus;
   isMe: boolean;
 };
@@ -60,40 +92,37 @@ function NavHeader({ initial, profileImage, onBack, onMore }: { initial: string;
       <TouchableOpacity onPress={onBack} style={nav.btn} hitSlop={8}>
         <Ionicons name="chevron-back" size={22} color="#c6c5d5" />
       </TouchableOpacity>
-      <Text style={nav.logo}>Clue<Text style={nav.accent}>Pot</Text></Text>
-      {onMore ? (
-        <TouchableOpacity onPress={onMore} style={nav.btn} hitSlop={8}>
-          {profileImage ? (
-            <Image source={{ uri: profileImage }} style={nav.avatar} />
-          ) : (
-            <View style={nav.avatarFallback}>
-              <Text style={nav.avatarText}>{initial}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-      ) : (
-        <View style={nav.btn}>
-          {profileImage ? (
-            <Image source={{ uri: profileImage }} style={nav.avatar} />
-          ) : (
-            <View style={nav.avatarFallback}>
-              <Text style={nav.avatarText}>{initial}</Text>
-            </View>
-          )}
+      <Text allowFontScaling={false} style={nav.logo}>Clue<Text allowFontScaling={false} style={nav.accent}>Pot</Text></Text>
+      <View style={nav.right}>
+        <View style={nav.avatarWrap}>
+          {profileImage
+            ? <Image source={{ uri: profileImage }} style={nav.avatar} />
+            : <View style={nav.avatarFallback}><Text allowFontScaling={false} style={nav.avatarText}>{initial}</Text></View>
+          }
         </View>
-      )}
+        {onMore && (
+          <TouchableOpacity onPress={onMore} style={nav.moreBtn} hitSlop={8} accessibilityLabel="더보기">
+            <Ionicons name="ellipsis-vertical" size={18} color="#8a8f98" />
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 }
 
+const SB_H = Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0;
+
 const nav = StyleSheet.create({
-  wrap:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, height: 56, borderBottomWidth: 1, borderBottomColor: '#23252a', backgroundColor: '#131316' },
+  wrap:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: SB_H, height: 56 + SB_H, borderBottomWidth: 1, borderBottomColor: '#23252a', backgroundColor: '#131316' },
   btn:          { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   logo:         { fontSize: 20, fontWeight: '700', color: '#f7f8f8', letterSpacing: -0.3 },
   accent:       { color: '#bdc2ff' },
+  right:        { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  avatarWrap:   { width: 30, height: 30, borderRadius: 15, overflow: 'hidden', borderWidth: 1, borderColor: '#34343a' },
   avatar:       { width: 30, height: 30, borderRadius: 15 },
   avatarFallback: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#5e6ad2', alignItems: 'center', justifyContent: 'center' },
   avatarText:   { fontSize: 12, fontWeight: '700', color: '#fdfaff' },
+  moreBtn:      { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
 });
 
 /* ── ScheduleDetailScreen ──────────────────────────────────────────────── */
@@ -191,7 +220,7 @@ export default function ScheduleDetailScreen() {
         onPress: async () => {
           try {
             await api.delete(`/schedules/${id}`);
-            router.back();
+            router.replace('/(app)/rooms/index' as any);
           } catch {
             Alert.alert('오류', '삭제하지 못했어요.');
           }
@@ -232,10 +261,10 @@ export default function ScheduleDetailScreen() {
         <View style={s.titleSection}>
           <View style={s.confirmedBadge}>
             <View style={[s.dot, { backgroundColor: '#27a644' }]} />
-            <Text style={s.confirmedBadgeText}>일정 확정됨</Text>
+            <Text allowFontScaling={false} style={s.confirmedBadgeText}>일정 확정됨</Text>
           </View>
-          <Text style={s.title}>{schedule.title}</Text>
-          <Text style={s.participantSummary}>
+          <Text allowFontScaling={false} style={s.title}>{schedule.title}</Text>
+          <Text allowFontScaling={false} style={s.participantSummary}>
             {accepted}/{total}명 참석 확정
           </Text>
         </View>
@@ -247,8 +276,8 @@ export default function ScheduleDetailScreen() {
               <Ionicons name="calendar-outline" size={16} color="#bdc2ff" />
             </View>
             <View>
-              <Text style={s.infoLabel}>날짜</Text>
-              <Text style={s.infoValue}>{date}</Text>
+              <Text allowFontScaling={false} style={s.infoLabel}>날짜</Text>
+              <Text allowFontScaling={false} style={s.infoValue}>{date}</Text>
             </View>
           </View>
 
@@ -259,8 +288,8 @@ export default function ScheduleDetailScreen() {
               <Ionicons name="time-outline" size={16} color="#bdc2ff" />
             </View>
             <View>
-              <Text style={s.infoLabel}>시간</Text>
-              <Text style={s.infoValue}>{time}</Text>
+              <Text allowFontScaling={false} style={s.infoLabel}>시간</Text>
+              <Text allowFontScaling={false} style={s.infoValue}>{time}</Text>
             </View>
           </View>
 
@@ -271,9 +300,9 @@ export default function ScheduleDetailScreen() {
               <Ionicons name="location-outline" size={16} color="#bdc2ff" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={s.infoLabel}>장소</Text>
-              <Text style={s.infoValue}>{schedule.placeName}</Text>
-              <Text style={s.infoSub}>{schedule.placeAddress}</Text>
+              <Text allowFontScaling={false} style={s.infoLabel}>장소</Text>
+              <Text allowFontScaling={false} style={s.infoValue}>{schedule.placeName}</Text>
+              <Text allowFontScaling={false} style={s.infoSub}>{schedule.placeAddress}</Text>
             </View>
           </View>
         </View>
@@ -288,33 +317,39 @@ export default function ScheduleDetailScreen() {
               originWhitelist={['*']}
               javaScriptEnabled
               domStorageEnabled
+              mixedContentMode="always"
               scrollEnabled={false}
+              onError={(e) => console.warn('[Map] error:', e.nativeEvent)}
+              onMessage={(e) => console.log('[Map] msg:', e.nativeEvent.data)}
             />
           ) : (
             <View style={[s.map, s.mapFallback]}>
               <Ionicons name="map-outline" size={32} color="#34343a" />
-              <Text style={s.mapFallbackText}>지도는 앱에서 확인하세요</Text>
+              <Text allowFontScaling={false} style={s.mapFallbackText}>지도는 앱에서 확인하세요</Text>
             </View>
           )}
         </View>
 
         {/* ── 참가자 ── */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>참가자 {total}명</Text>
+          <Text allowFontScaling={false} style={s.sectionTitle}>참가자 {total}명</Text>
           <View style={s.participantList}>
             {schedule.participants.map((p, idx) => {
               const att = ATTENDANCE[p.status];
               const isLast = idx === schedule.participants.length - 1;
               return (
                 <View key={p.id} style={[s.participantRow, !isLast && s.participantRowBorder]}>
-                  <InitialAvatar name={p.nickname} size={36} />
+                  {p.profileImage
+                    ? <Image source={{ uri: p.profileImage }} style={s.participantImg} />
+                    : <InitialAvatar name={p.nickname} size={36} />
+                  }
                   <View style={s.participantInfo}>
-                    <Text style={s.participantName}>
+                    <Text allowFontScaling={false} style={s.participantName}>
                       {p.nickname}{p.isMe ? ' (나)' : ''}
                     </Text>
                   </View>
                   <View style={[s.attBadge, { backgroundColor: att.bg }]}>
-                    <Text style={[s.attBadgeText, { color: att.color }]}>{att.label}</Text>
+                    <Text allowFontScaling={false} style={[s.attBadgeText, { color: att.color }]}>{att.label}</Text>
                   </View>
                 </View>
               );
@@ -325,32 +360,32 @@ export default function ScheduleDetailScreen() {
         {/* ── 메모 ── */}
         {schedule.memo && (
           <View style={s.section}>
-            <Text style={s.sectionTitle}>메모</Text>
+            <Text allowFontScaling={false} style={s.sectionTitle}>메모</Text>
             <View style={s.memoBox}>
               <Ionicons name="document-text-outline" size={14} color="#8a8f98" style={{ marginTop: 1 }} />
-              <Text style={s.memoText}>{schedule.memo}</Text>
+              <Text allowFontScaling={false} style={s.memoText}>{schedule.memo}</Text>
             </View>
           </View>
         )}
 
-        {/* ── 캘린더에 추가 ── */}
+        {/* ── 일정 확인하기 ── */}
         <View style={s.section}>
           <TouchableOpacity
             style={s.calendarBtn}
-            onPress={handleAddToCalendar}
+            onPress={() => router.push('/(app)/calendar' as any)}
             activeOpacity={0.8}
             accessibilityRole="button"
-            accessibilityLabel="기기 캘린더에 일정 추가"
+            accessibilityLabel="캘린더에서 일정 확인하기"
           >
             <Ionicons name="calendar-outline" size={16} color="#bdc2ff" />
-            <Text style={s.calendarBtnText}>캘린더에 추가</Text>
+            <Text allowFontScaling={false} style={s.calendarBtnText}>일정 확인하기</Text>
           </TouchableOpacity>
         </View>
 
         {/* ── 내 참석 응답 (비호스트) ── */}
         {!schedule.isCreator && (
           <View style={s.section}>
-            <Text style={s.sectionTitle}>내 참석 응답</Text>
+            <Text allowFontScaling={false} style={s.sectionTitle}>내 참석 응답</Text>
             <View style={s.rsvpRow}>
               <Pressable
                 style={({ pressed }) => [
@@ -366,7 +401,7 @@ export default function ScheduleDetailScreen() {
                   size={16}
                   color={schedule.myStatus === 'accepted' ? '#27a644' : '#8a8f98'}
                 />
-                <Text style={[s.rsvpBtnText, schedule.myStatus === 'accepted' && s.rsvpBtnTextAccepted]}>
+                <Text allowFontScaling={false} style={[s.rsvpBtnText, schedule.myStatus === 'accepted' && s.rsvpBtnTextAccepted]}>
                   참석
                 </Text>
               </Pressable>
@@ -384,7 +419,7 @@ export default function ScheduleDetailScreen() {
                   size={16}
                   color={schedule.myStatus === 'declined' ? '#ffb4ab' : '#8a8f98'}
                 />
-                <Text style={[s.rsvpBtnText, schedule.myStatus === 'declined' && s.rsvpBtnTextDeclined]}>
+                <Text allowFontScaling={false} style={[s.rsvpBtnText, schedule.myStatus === 'declined' && s.rsvpBtnTextDeclined]}>
                   불참
                 </Text>
               </Pressable>
@@ -402,10 +437,10 @@ export default function ScheduleDetailScreen() {
           <View style={s.sheetHandle} />
           <TouchableOpacity
             style={s.sheetItem}
-            onPress={() => { setMoreOpen(false); router.push(`/(app)/calendar/${id}`); }}
+            onPress={() => { setMoreOpen(false); router.push({ pathname: '/(app)/calendar/[scheduleId]', params: { scheduleId: id } } as any); }}
           >
             <Ionicons name="create-outline" size={20} color="#d0d6e0" />
-            <Text style={s.sheetItemText}>일정 수정</Text>
+            <Text allowFontScaling={false} style={s.sheetItemText}>일정 수정</Text>
           </TouchableOpacity>
           <View style={s.sheetDivider} />
           <TouchableOpacity
@@ -413,7 +448,7 @@ export default function ScheduleDetailScreen() {
             onPress={() => { setMoreOpen(false); handleDelete(); }}
           >
             <Ionicons name="trash-outline" size={20} color="#ffb4ab" />
-            <Text style={[s.sheetItemText, { color: '#ffb4ab' }]}>일정 삭제</Text>
+            <Text allowFontScaling={false} style={[s.sheetItemText, { color: '#ffb4ab' }]}>일정 삭제</Text>
           </TouchableOpacity>
         </View>
       </Modal>
@@ -526,6 +561,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
   },
+  participantImg: { width: 36, height: 36, borderRadius: 18, borderWidth: 1, borderColor: '#34343a' },
   participantRowBorder: { borderBottomWidth: 1, borderBottomColor: '#1c1b1f' },
   participantInfo: { flex: 1 },
   participantName: { fontSize: 14, fontWeight: '600', color: '#f7f8f8', letterSpacing: -0.1 },
@@ -599,7 +635,7 @@ const s = StyleSheet.create({
   calendarBtnText: { fontSize: 14, fontWeight: '600', color: '#bdc2ff' },
 
   /* map */
-  map: { height: 200, borderRadius: 14, overflow: 'hidden' },
+  map: { height: 260, borderRadius: 14, overflow: 'hidden' },
   mapFallback: { backgroundColor: '#0f1011', borderWidth: 1, borderColor: '#23252a', alignItems: 'center', justifyContent: 'center', gap: 8 },
   mapFallbackText: { fontSize: 13, color: '#454652' },
 
