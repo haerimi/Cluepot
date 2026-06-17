@@ -100,8 +100,8 @@ export default function ProfileScreen() {
 
         {/* 헤더 */}
         <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle}>계정 설정</Text>
-          <Text style={styles.cardSubtitle}>공개 프로필과 설정을 관리하세요.</Text>
+          <Text allowFontScaling={false} style={styles.cardTitle}>계정 설정</Text>
+          <Text allowFontScaling={false} style={styles.cardSubtitle}>공개 프로필과 설정을 관리하세요.</Text>
         </View>
 
         {/* 아바타 */}
@@ -109,24 +109,24 @@ export default function ProfileScreen() {
           <TouchableOpacity onPress={handlePickImage} style={styles.avatarWrap} activeOpacity={0.85}>
             {avatarUri
               ? <Image source={{ uri: avatarUri }} style={styles.avatarImg} />
-              : <View style={styles.avatarFallback}><Text style={styles.avatarInitial}>{initial}</Text></View>
+              : <View style={styles.avatarFallback}><Text allowFontScaling={false} style={styles.avatarInitial}>{initial}</Text></View>
             }
             <View style={styles.avatarOverlay}>
               <Ionicons name="camera-outline" size={24} color="#f7f8f8" />
-              <Text style={styles.avatarOverlayLabel}>변경</Text>
+              <Text allowFontScaling={false} style={styles.avatarOverlayLabel}>변경</Text>
             </View>
           </TouchableOpacity>
 
           {(user?.profileImage || localPreview) && localPreview !== 'DELETE' && (
             <TouchableOpacity onPress={() => setLocalPreview('DELETE')} style={styles.removeBtn} activeOpacity={0.8}>
-              <Text style={styles.removeBtnText}>이미지 삭제</Text>
+              <Text allowFontScaling={false} style={styles.removeBtnText}>이미지 삭제</Text>
             </TouchableOpacity>
           )}
         </View>
 
         {/* 닉네임 */}
         <View style={styles.fieldGroup}>
-          <Text style={styles.fieldLabel}>닉네임</Text>
+          <Text allowFontScaling={false} style={styles.fieldLabel}>닉네임</Text>
           <TextInput
             style={styles.input}
             value={nickname}
@@ -139,9 +139,9 @@ export default function ProfileScreen() {
 
         {/* 이메일 (read-only) */}
         <View style={styles.fieldGroup}>
-          <Text style={styles.fieldLabel}>이메일</Text>
+          <Text allowFontScaling={false} style={styles.fieldLabel}>이메일</Text>
           <View style={styles.inputReadonly}>
-            <Text style={styles.inputReadonlyText} numberOfLines={1}>{user?.email ?? '-'}</Text>
+            <Text allowFontScaling={false} style={styles.inputReadonlyText} numberOfLines={1}>{user?.email ?? '-'}</Text>
           </View>
         </View>
 
@@ -151,7 +151,7 @@ export default function ProfileScreen() {
         {/* 액션 버튼 */}
         <View style={styles.actions}>
           <TouchableOpacity style={styles.cancelBtn} onPress={handleCancel} disabled={saving} activeOpacity={0.8}>
-            <Text style={styles.cancelBtnText}>취소</Text>
+            <Text allowFontScaling={false} style={styles.cancelBtnText}>취소</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.saveBtn, saveSuccess && styles.saveBtnSuccess, saving && { opacity: 0.5 }]}
@@ -161,7 +161,7 @@ export default function ProfileScreen() {
           >
             {saving
               ? <ActivityIndicator color="#fdfaff" size="small" />
-              : <Text style={styles.saveBtnText}>{saveSuccess ? '저장됨' : '저장하기'}</Text>
+              : <Text allowFontScaling={false} style={styles.saveBtnText}>{saveSuccess ? '저장됨' : '저장하기'}</Text>
             }
           </TouchableOpacity>
         </View>
@@ -170,7 +170,7 @@ export default function ProfileScreen() {
       {/* 로그아웃 */}
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.8}>
         <Ionicons name="log-out-outline" size={16} color="#ffb4ab" />
-        <Text style={styles.logoutBtnText}>로그아웃</Text>
+        <Text allowFontScaling={false} style={styles.logoutBtnText}>로그아웃</Text>
       </TouchableOpacity>
 
     </ScrollView>
