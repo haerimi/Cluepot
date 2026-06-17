@@ -57,6 +57,11 @@ export default function AppLayout() {
             borderTopColor: '#23252a',
             borderTopWidth: 1,
           },
+          tabBarItemStyle: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingVertical: 8,
+          },
           tabBarActiveTintColor:   '#bdc2ff',
           tabBarInactiveTintColor: '#8a8f98',
           tabBarShowLabel: false,
