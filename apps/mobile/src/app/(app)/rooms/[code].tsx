@@ -251,6 +251,12 @@ export default function RoomScreen() {
           router.replace('/(app)/calendar' as any);
         }
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'room_members' }, async () => {
+        try {
+          const { data: pData } = await api.get(`/rooms/${roomCode}/participants`);
+          setParticipants(pData.participants);
+        } catch {}
+      })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [roomCode]);

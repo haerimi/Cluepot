@@ -11,7 +11,7 @@ import { formatDateTime, InitialAvatar } from '@/lib/scheduleUtils';
 
 // ─── NavHeader ────────────────────────────────────────────────────────────────
 
-function NavHeader({ initial, onBack }: { initial: string; onBack: () => void }) {
+function NavHeader({ initial, profileImage, onBack }: { initial: string; profileImage?: string | null; onBack: () => void }) {
   return (
     <View style={navHdr.wrap}>
       <TouchableOpacity onPress={onBack} style={navHdr.backBtn} hitSlop={8}>
@@ -19,7 +19,9 @@ function NavHeader({ initial, onBack }: { initial: string; onBack: () => void })
       </TouchableOpacity>
       <Text allowFontScaling={false} style={navHdr.logo}>Clue<Text allowFontScaling={false} style={navHdr.accent}>Pot</Text></Text>
       <View style={navHdr.avatar}>
-        <Text allowFontScaling={false} style={navHdr.avatarText}>{initial}</Text>
+        {profileImage
+          ? <Image source={{ uri: profileImage }} style={{ width: 30, height: 30, borderRadius: 15 }} />
+          : <Text allowFontScaling={false} style={navHdr.avatarText}>{initial}</Text>}
       </View>
     </View>
   );
@@ -432,8 +434,9 @@ const cs = StyleSheet.create({
 export default function FinalizeScheduleScreen() {
   const { scheduleId } = useLocalSearchParams<{ scheduleId: string }>();
   const router  = useRouter();
-  const user    = useAuthStore((s) => s.user);
-  const initial = (user?.nickname?.[0] ?? user?.email?.[0] ?? '?').toUpperCase();
+  const user         = useAuthStore((s) => s.user);
+  const initial      = (user?.nickname?.[0] ?? user?.email?.[0] ?? '?').toUpperCase();
+  const profileImage = user?.profileImage ?? null;
 
   const [schedule,  setSchedule]  = useState<ScheduleDetail | null>(null);
   const [loading,   setLoading]   = useState(true);
@@ -509,10 +512,32 @@ export default function FinalizeScheduleScreen() {
     }
   }
 
+  async function handleCancel() {
+    if (!schedule) { router.back(); return; }
+    Alert.alert(
+      '일정을 취소할까요?',
+      '생성된 일정이 삭제됩니다.',
+      [
+        { text: '계속 진행', style: 'cancel' },
+        {
+          text: '삭제하고 나가기',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await api.delete(`/schedules/${scheduleId}`);
+            } finally {
+              router.back();
+            }
+          },
+        },
+      ],
+    );
+  }
+
   if (loading) {
     return (
       <View style={s.container}>
-        <NavHeader initial={initial} onBack={() => router.back()} />
+        <NavHeader initial={initial} profileImage={profileImage} onBack={() => router.back()} />
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <ActivityIndicator color="#bdc2ff" size="large" />
         </View>
@@ -537,7 +562,7 @@ export default function FinalizeScheduleScreen() {
 
   return (
     <View style={s.container}>
-      <NavHeader initial={initial} onBack={() => router.back()} />
+      <NavHeader initial={initial} onBack={handleCancel} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.body}>
         <Text allowFontScaling={false} style={s.pageTitle}>일정을 확정해요</Text>
