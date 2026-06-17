@@ -17,6 +17,9 @@ export async function POST(req: NextRequest) {
     }
 
     const schedule = await prisma.$transaction(async (tx) => {
+      const existing = await tx.schedule.findUnique({ where: { roomCode }, select: { id: true } });
+      if (existing) return existing;
+
       await tx.room.update({ where: { roomCode }, data: { status: 'done' } });
 
       const participants = await tx.participant.findMany({
@@ -32,7 +35,7 @@ export async function POST(req: NextRequest) {
           roomCode,
           title,
           placeName,
-          placeAddress,
+          placeAddress: placeAddress ?? '',
           lat: lat ?? 0,
           lng: lng ?? 0,
           scheduledAt: new Date(scheduledAt),
@@ -64,7 +67,10 @@ export async function GET(req: NextRequest) {
     const userId = user.id;
 
     const rows = await prisma.schedule.findMany({
-      where: { members: { some: { userId } } },
+      where: {
+        members: { some: { userId } },
+        room: { participants: { some: { userId, leftAt: null } } },
+      },
       include: { members: { select: { userId: true, status: true } } },
       orderBy: { scheduledAt: 'asc' },
     });
