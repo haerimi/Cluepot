@@ -1,10 +1,10 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet, Pressable,
   Alert, ScrollView, Platform, StatusBar,
   Animated, TouchableWithoutFeedback,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
@@ -88,21 +88,20 @@ function PulseDot({ color, pulse }: { color: string; pulse: boolean }) {
 function SummaryCard({ total, active, done }: { total: number; active: number; done: number }) {
   return (
     <View style={styles.summaryCard}>
-      <View style={styles.summaryTopRow}>
-        <View style={styles.summaryLeft}>
-          <Text style={styles.summaryEyebrow}>내 모임 현황</Text>
-          <View style={styles.summaryCountRow}>
-            <Text style={styles.summaryNumber}>{String(total).padStart(2, '0')}</Text>
-            <Text style={styles.summaryUnit}>개의 모임</Text>
-          </View>
+      <Text allowFontScaling={false} style={styles.summaryEyebrow}>내 모임 현황</Text>
+      <View style={styles.summaryCountRow}>
+        <Text allowFontScaling={false} style={styles.summaryNumber}>{String(total).padStart(2, '0')}</Text>
+        <Text allowFontScaling={false} style={styles.summaryUnit}>개의 모임</Text>
+      </View>
+
+      <View style={styles.summaryStatRow}>
+        <View style={styles.summaryStatItem}>
+          <Text allowFontScaling={false} style={styles.summaryStatNum}>{active}</Text>
+          <Text allowFontScaling={false} style={styles.summaryStatLabel}>진행 중</Text>
         </View>
-        <View style={styles.summaryStatCol}>
-          <Text style={styles.summaryStatNum}>{active}</Text>
-          <Text style={styles.summaryStatLabel}>진행 중</Text>
-        </View>
-        <View style={[styles.summaryStatCol, styles.summaryStatColBorder]}>
-          <Text style={[styles.summaryStatNum, done > 0 && styles.summaryStatNumGreen]}>{done}</Text>
-          <Text style={styles.summaryStatLabel}>확정됨</Text>
+        <View style={[styles.summaryStatItem, styles.summaryStatItemBorder]}>
+          <Text allowFontScaling={false} style={[styles.summaryStatNum, done > 0 && styles.summaryStatNumGreen]}>{done}</Text>
+          <Text allowFontScaling={false} style={styles.summaryStatLabel}>확정됨</Text>
         </View>
       </View>
 
@@ -112,17 +111,17 @@ function SummaryCard({ total, active, done }: { total: number; active: number; d
         {active > 0 ? (
           <View style={styles.chipActive}>
             <PulseDot color="#ffb867" pulse />
-            <Text style={styles.chipActiveText}>{active}개 진행 중</Text>
+            <Text allowFontScaling={false} style={styles.chipActiveText}>{active}개 진행 중</Text>
           </View>
         ) : (
           <View style={styles.chipIdle}>
-            <Text style={styles.chipIdleText}>진행 중 없음</Text>
+            <Text allowFontScaling={false} style={styles.chipIdleText}>진행 중 없음</Text>
           </View>
         )}
         {done > 0 && (
           <View style={styles.chipDone}>
             <View style={[styles.dot, { backgroundColor: '#27a644' }]} />
-            <Text style={styles.chipDoneText}>{done}개 확정됨</Text>
+            <Text allowFontScaling={false} style={styles.chipDoneText}>{done}개 확정됨</Text>
           </View>
         )}
       </View>
@@ -237,17 +236,17 @@ function RoomCard({ item, onPress }: { item: RoomRow; onPress: () => void }) {
         <View style={styles.cardBody}>
           <View style={styles.cardStatusRow} accessible accessibilityLabel={`상태: ${status.label}`}>
             <PulseDot color={status.dot} pulse={status.pulse} />
-            <Text style={[styles.cardStatusText, { color: status.color }]}>{status.label}</Text>
+            <Text allowFontScaling={false} style={[styles.cardStatusText, { color: status.color }]}>{status.label}</Text>
             {item.isHost && (
               <View style={styles.hostBadge}>
-                <Text style={styles.hostBadgeText}>호스트</Text>
+                <Text allowFontScaling={false} style={styles.hostBadgeText}>호스트</Text>
               </View>
             )}
           </View>
-          <Text style={[styles.cardName, isDone && styles.cardNameDone]} numberOfLines={1}>
+          <Text allowFontScaling={false} style={[styles.cardName, isDone && styles.cardNameDone]} numberOfLines={1}>
             {roomLabel}
           </Text>
-          <Text style={styles.cardMeta} accessibilityLabel={`${cat.label} · 모임 코드 ${item.room.roomCode}`}>
+          <Text allowFontScaling={false} style={styles.cardMeta} accessibilityLabel={`${cat.label} · 모임 코드 ${item.room.roomCode}`}>
             {cat.label} · {item.room.roomCode}
           </Text>
         </View>
@@ -269,7 +268,7 @@ function TodayScheduleList({ schedules }: { schedules: ScheduleRow[] }) {
   if (schedules.length === 0) {
     return (
       <View style={tod.empty}>
-        <Text style={tod.emptyText}>오늘 예정된 약속이 없어요</Text>
+        <Text allowFontScaling={false} style={tod.emptyText}>오늘 예정된 약속이 없어요</Text>
       </View>
     );
   }
@@ -294,14 +293,14 @@ function TodayScheduleList({ schedules }: { schedules: ScheduleRow[] }) {
           >
             {/* 시간 — Stitch: 모노 폰트, 시간/AM-PM 스택 */}
             <View style={tod.timeCol}>
-              <Text style={tod.timeText}>{`${hour12}:${minute}`}</Text>
-              <Text style={tod.ampm}>{ampm}</Text>
+              <Text allowFontScaling={false} style={tod.timeText}>{`${hour12}:${minute}`}</Text>
+              <Text allowFontScaling={false} style={tod.ampm}>{ampm}</Text>
             </View>
 
             {/* 내용 */}
             <View style={tod.content}>
-              <Text style={tod.title} numberOfLines={1}>{s.title}</Text>
-              <Text style={tod.place} numberOfLines={1}>{s.placeName} · {s.memberCount}명</Text>
+              <Text allowFontScaling={false} style={tod.title} numberOfLines={1}>{s.title}</Text>
+              <Text allowFontScaling={false} style={tod.place} numberOfLines={1}>{s.placeName} · {s.memberCount}명</Text>
             </View>
 
             <Ionicons name="ellipsis-vertical" size={16} color="#454652" />
@@ -429,8 +428,8 @@ function FAB() {
 
           {/* 헤더 */}
           <View style={fab.sheetHeader}>
-            <Text style={fab.sheetTitle}>새 모임 시작</Text>
-            <Text style={fab.sheetSub}>어떻게 모임을 시작할까요?</Text>
+            <Text allowFontScaling={false} style={fab.sheetTitle}>새 모임 시작</Text>
+            <Text allowFontScaling={false} style={fab.sheetSub}>어떻게 모임을 시작할까요?</Text>
           </View>
 
           {/* 모임 만들기 — primary-container */}
@@ -441,7 +440,7 @@ function FAB() {
             accessibilityLabel="모임 만들기"
           >
             <Ionicons name="add-circle-outline" size={22} color="#fdfaff" style={fab.sheetBtnIcon} />
-            <Text style={[fab.sheetBtnText, fab.sheetBtnTextPrimary]}>모임 만들기</Text>
+            <Text allowFontScaling={false} style={[fab.sheetBtnText, fab.sheetBtnTextPrimary]}>모임 만들기</Text>
             <Ionicons name="chevron-forward" size={18} color="rgba(253,250,255,0.35)" />
           </Pressable>
 
@@ -453,7 +452,7 @@ function FAB() {
             accessibilityLabel="코드로 참가"
           >
             <Ionicons name="qr-code-outline" size={22} color="#c6c5d5" style={fab.sheetBtnIcon} />
-            <Text style={fab.sheetBtnText}>코드로 참가</Text>
+            <Text allowFontScaling={false} style={fab.sheetBtnText}>코드로 참가</Text>
             <Ionicons name="chevron-forward" size={18} color="#454652" />
           </Pressable>
         </Animated.View>
@@ -485,9 +484,10 @@ export default function HomeScreen() {
   const [schedules, setSchedules] = useState<ScheduleRow[]>([]);
   const [loading,   setLoading]   = useState(true);
 
-  useEffect(() => { fetchAll(); }, []);
+  useFocusEffect(useCallback(() => { fetchAll(); }, []));
 
   async function fetchAll() {
+    setLoading(true);
     try {
       const [roomsRes, schedulesRes] = await Promise.all([
         api.get('/rooms'),
@@ -530,19 +530,11 @@ export default function HomeScreen() {
         {/* ── 헤더 ── */}
         <View style={styles.header}>
           <View style={styles.headerTextCol}>
-            <Text style={styles.greeting}>
+            <Text allowFontScaling={false} style={styles.greeting}>
               {user?.nickname ? `${user.nickname}님, 안녕하세요` : '안녕하세요'}
             </Text>
-            <Text style={styles.headerTitle}>내 모임</Text>
+            <Text allowFontScaling={false} style={styles.headerTitle}>내 모임</Text>
           </View>
-          <Pressable
-            onPress={fetchAll}
-            style={styles.refreshBtn}
-            accessibilityRole="button"
-            accessibilityLabel="새로고침"
-          >
-            <Ionicons name="refresh-outline" size={18} color="#bdc2ff" />
-          </Pressable>
         </View>
 
         {/* ── 요약 카드 ── */}
@@ -554,11 +546,11 @@ export default function HomeScreen() {
 
         {/* ── 내 모임 목록 (최근 2개) ── */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>내 모임 목록</Text>
+          <Text allowFontScaling={false} style={styles.sectionTitle}>내 모임 목록</Text>
           <View style={styles.sectionHeaderRight}>
             {rooms.length > 0 && (
               <View style={styles.sectionCount}>
-                <Text style={styles.sectionCountText}>{rooms.length}</Text>
+                <Text allowFontScaling={false} style={styles.sectionCountText}>{rooms.length}</Text>
               </View>
             )}
             <Pressable
@@ -567,7 +559,7 @@ export default function HomeScreen() {
               accessibilityRole="button"
               accessibilityLabel="전체 보기"
             >
-              <Text style={styles.sectionViewAll}>전체 보기</Text>
+              <Text allowFontScaling={false} style={styles.sectionViewAll}>전체 보기</Text>
             </Pressable>
           </View>
         </View>
@@ -581,8 +573,8 @@ export default function HomeScreen() {
           <View style={styles.sectionPad}>
             <View style={styles.empty}>
               <Ionicons name="calendar-outline" size={36} color="#454652" style={{ marginBottom: 14 }} />
-              <Text style={styles.emptyTitle}>아직 참여한 모임이 없어요</Text>
-              <Text style={styles.emptyText}>모임을 만들거나 코드로 참가해보세요</Text>
+              <Text allowFontScaling={false} style={styles.emptyTitle}>아직 참여한 모임이 없어요</Text>
+              <Text allowFontScaling={false} style={styles.emptyText}>모임을 만들거나 코드로 참가해보세요</Text>
             </View>
           </View>
         ) : (
@@ -591,7 +583,13 @@ export default function HomeScreen() {
               <RoomCard
                 key={item.id}
                 item={item}
-                onPress={() => router.push(`/(app)/rooms/${item.room.roomCode}`)}
+                onPress={() => {
+                  if (item.room.schedule) {
+                    router.push(`/(app)/schedules/${item.room.schedule.id}` as any);
+                  } else {
+                    router.push(`/(app)/rooms/${item.room.roomCode}` as any);
+                  }
+                }}
               />
             ))}
           </View>
@@ -599,7 +597,7 @@ export default function HomeScreen() {
 
         {/* ── 오늘 예정된 약속 — Stitch "Scheduled Today" ── */}
         <View style={[styles.sectionHeader, { marginTop: 28 }]}>
-          <Text style={styles.sectionTitle}>오늘 예정된 약속</Text>
+          <Text allowFontScaling={false} style={styles.sectionTitle}>오늘 예정된 약속</Text>
         </View>
 
         <View style={styles.sectionPad}>
@@ -659,16 +657,6 @@ const styles = StyleSheet.create({
     color: '#f7f8f8',
     letterSpacing: -0.6,
   },
-  refreshBtn: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#0f1011',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#23252a',
-  },
 
   /* 섹션 패딩 */
   sectionPad: {
@@ -685,12 +673,6 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 28,
   },
-  summaryTopRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  summaryLeft: { flex: 1 },
   summaryEyebrow: {
     fontSize: 11,
     fontWeight: '600',
@@ -703,6 +685,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: 6,
+    marginBottom: 14,
   },
   summaryNumber: {
     fontSize: 42,
@@ -716,16 +699,21 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#8a8f98',
   },
-  summaryStatCol: {
+  summaryStatRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 14,
+  },
+  summaryStatItem: {
+    flex: 1,
     alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 4,
-    minWidth: 52,
+    paddingVertical: 10,
+    backgroundColor: '#141516',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#23252a',
   },
-  summaryStatColBorder: {
-    borderLeftWidth: 1,
-    borderLeftColor: '#23252a',
-  },
+  summaryStatItemBorder: {},
   summaryStatNum: {
     fontSize: 20,
     fontWeight: '700',
@@ -1023,7 +1011,7 @@ const fab = StyleSheet.create({
   fabWrap: {
     position: 'absolute',
     right: 20,
-    bottom: 88,
+    bottom: 20,
     zIndex: 20,
   },
   btn: {
