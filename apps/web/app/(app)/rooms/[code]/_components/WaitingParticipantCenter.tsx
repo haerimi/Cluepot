@@ -79,7 +79,7 @@ export function WaitingParticipantCenter({
         {/* 선호 수정 버튼 — 체크 섹션 바로 아래, 항상 노출 */}
         <button
           onClick={onResetPreference}
-          className="mt-3 inline-flex items-center gap-1.5 text-[12px] font-medium text-ink-subtle hover:text-ink hover:bg-surface-warm px-3 py-1.5 rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="mt-3 inline-flex items-center gap-1.5 text-[12px] font-medium text-ink-subtle hover:text-ink hover:bg-surface-2 px-3 py-1.5 rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           aria-label="선호 다시 입력하기"
         >
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
@@ -91,7 +91,7 @@ export function WaitingParticipantCenter({
 
       {/* 호스트 대기 상태 카드 */}
       <div
-        className="bg-white border border-hairline rounded-2xl px-4 py-3.5 flex items-center justify-between gap-3 shadow-xs"
+        className="bg-surface border border-hairline rounded-2xl px-4 py-3.5 flex items-center justify-between gap-3"
         role="status"
         aria-live="polite"
         aria-label="호스트가 참가자 선호를 확인하고 있습니다"
@@ -129,8 +129,8 @@ export function WaitingParticipantCenter({
           className="flex items-center gap-3 px-4 py-3.5 bg-accent-light rounded-xl border border-accent/20"
           style={{ animation: "fade-up 0.3s ease-out both" }}
         >
-          <div className="w-9 h-9 rounded-xl bg-white/70 flex items-center justify-center shrink-0">
-            <span className="text-[18px]" aria-hidden="true">📅</span>
+          <div className="w-9 h-9 rounded-xl bg-surface-2/50 flex items-center justify-center shrink-0 text-accent">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" strokeWidth="1.4"/><path d="M2 7h12" stroke="currentColor" strokeWidth="1.4"/><path d="M5 1v3M11 1v3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-semibold text-accent leading-tight">
@@ -143,7 +143,7 @@ export function WaitingParticipantCenter({
           {/* 터치 타겟 최소 44px 확보 */}
           <button
             onClick={onResetDates}
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center text-[12px] font-medium text-accent hover:text-accent-hover hover:bg-white/60 rounded-lg transition-colors shrink-0 -mr-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center text-[12px] font-medium text-accent hover:text-accent-hover hover:bg-accent/10 rounded-lg transition-colors shrink-0 -mr-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             aria-label="날짜 수정"
           >
             수정
@@ -152,7 +152,7 @@ export function WaitingParticipantCenter({
       ) : (
         /* 날짜 선택 카드 */
         <div
-          className="bg-white border border-hairline rounded-2xl p-5 shadow-xs space-y-4"
+          className="bg-surface border border-hairline rounded-2xl p-5 space-y-4"
           style={{ animation: "fade-up 0.3s ease-out both" }}
         >
           <div>
@@ -175,12 +175,12 @@ export function WaitingParticipantCenter({
                 : "날짜 저장하기"
             }
           >
-            <span aria-hidden="true">📅</span>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" strokeWidth="1.4"/><path d="M2 7h12" stroke="currentColor" strokeWidth="1.4"/><path d="M5 1v3M11 1v3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
             날짜 저장하기
           </Button>
           {dateError && (
             <p className="text-[12px] text-error flex items-center gap-1.5" role="alert">
-              <span aria-hidden="true">⚠️</span>
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1L15 14H1L8 1z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M8 6v4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/><circle cx="8" cy="11.5" r="0.8" fill="currentColor"/></svg>
               {dateError}
             </p>
           )}

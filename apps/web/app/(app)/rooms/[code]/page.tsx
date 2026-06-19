@@ -122,8 +122,11 @@ function ScheduleView({
     <div className="w-full flex-1">
       <div className="mx-auto flex min-h-[calc(100dvh-56px)] max-w-[576px] flex-col px-6 py-12 items-center">
         {/* Icon */}
-        <div className="w-16 h-16 rounded-full bg-success-bg flex items-center justify-center text-[32px] mb-8">
-          ✅
+        <div className="w-16 h-16 rounded-full bg-success-bg flex items-center justify-center text-success mb-8">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <circle cx="16" cy="16" r="14" fill="rgba(39,166,68,0.18)" stroke="#27a644" strokeWidth="2"/>
+            <path d="M9 16l5 5 9-10" stroke="#27a644" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </div>
 
         <h2 className="text-[28px] lg:text-[34px] font-black text-ink tracking-tight text-center mb-3">
@@ -134,7 +137,7 @@ function ScheduleView({
         </p>
 
         {/* Confirmed card */}
-        <div className="w-full bg-white rounded-2xl border border-hairline shadow-md p-6 mb-6">
+        <div className="w-full bg-surface rounded-2xl border border-hairline p-6 mb-6">
           <div className="flex items-center gap-2 mb-4">
             <Badge variant="success" dot>
               확정
@@ -145,17 +148,23 @@ function ScheduleView({
             {placeName}
           </h3>
           <p className="text-[13px] text-ink-subtle mb-5">{placeAddress}</p>
-          <div className="h-px bg-surface-warm mb-5" />
+          <div className="h-px bg-hairline mb-5" />
           <div className="flex gap-2">
             <button
               onClick={() => window.open(handleViewMap(placeName, lat, lng), '_blank')}
               className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl bg-surface-3 text-ink-muted text-[13px] font-semibold hover:bg-hairline transition-colors">
-              🗺 지도 보기
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1.5C4.52 1.5 2.5 3.52 2.5 6c0 3.75 4.5 7.5 4.5 7.5S11.5 9.75 11.5 6c0-2.48-2.02-4.5-4.5-4.5Z" stroke="currentColor" strokeWidth="1.3"/><circle cx="7" cy="6" r="1.5" stroke="currentColor" strokeWidth="1.3"/></svg>
+              지도 보기
             </button>
             <button
               onClick={handleCopy}
               className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl bg-surface-3 text-ink-muted text-[13px] font-semibold hover:bg-hairline transition-colors">
-              {copied ? "✓" : "📋"} 복사
+              {copied ? (
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 7l3.5 3.5L12 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              ) : (
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><rect x="5" y="1.5" width="7.5" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.3"/><path d="M1.5 4.5h2M1.5 12.5h8.5V4.5H1.5V12.5z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              )}
+              복사
             </button>
           </div>
         </div>
@@ -169,7 +178,7 @@ function ScheduleView({
             {participants.map((p) => (
               <div
                 key={p.id}
-                className="flex items-center gap-2 bg-white border border-hairline rounded-full px-3 py-1.5"
+                className="flex items-center gap-2 bg-surface border border-hairline rounded-full px-3 py-1.5"
               >
                 <div
                   className={
@@ -379,7 +388,7 @@ function RoomLinkSheet({
 
       {/* sheet */}
       <div
-        className="relative w-full max-w-90 bg-white rounded-t-[24px] sm:rounded-2xl shadow-xl px-6 pt-6 pb-8"
+        className="relative w-full max-w-90 bg-surface border border-hairline rounded-t-[24px] sm:rounded-2xl px-6 pt-6 pb-8"
         style={{ animation: "cinematic-up 0.3s cubic-bezier(0.16,1,0.3,1) both" }}
       >
         {/* mobile drag handle */}
@@ -397,7 +406,13 @@ function RoomLinkSheet({
           <span className="font-mono text-[28px] font-black text-ink tracking-[4px]">
             {roomCode}
           </span>
-          <span className="text-[20px]">{copied ? "✓" : "📋"}</span>
+          <span className="text-ink-muted">
+            {copied ? (
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10l4.5 4.5L16 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="7" y="2" width="10" height="13" rx="2" stroke="currentColor" strokeWidth="1.4"/><path d="M3 7h3M3 18h12V7H3V18z" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            )}
+          </span>
         </button>
         {copied && (
           <p className="text-[12px] text-success text-center font-medium mb-3">
@@ -412,7 +427,13 @@ function RoomLinkSheet({
             warning ? "bg-warning-fill" : "bg-surface-3",
           ].join(" ")}
         >
-          <span className="text-[18px] shrink-0">{warning ? "⚠️" : "⏰"}</span>
+          <span className={`shrink-0 ${warning ? "text-warning-orange" : "text-ink-muted"}`}>
+            {warning ? (
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M9 1.5L16.5 15H1.5L9 1.5z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M9 7.5v3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/><circle cx="9" cy="12.5" r="0.8" fill="currentColor"/></svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><circle cx="9" cy="9" r="7" stroke="currentColor" strokeWidth="1.4"/><path d="M9 5.5v3.75l2.25 1.75" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            )}
+          </span>
           <div>
             <p className="text-[10px] font-bold text-ink-subtle tracking-[1.5px] uppercase">
               링크 유효 시간
@@ -432,9 +453,10 @@ function RoomLinkSheet({
         {isHost && (
           <button
             onClick={onExtend}
-            className="w-full h-11 rounded-xl bg-accent text-white text-[14px] font-semibold hover:bg-accent/90 transition-colors mb-3"
+            className="w-full h-11 rounded-xl bg-accent text-white text-[14px] font-semibold hover:bg-accent/90 transition-colors mb-3 flex items-center justify-center gap-2"
           >
-            🔗 4시간 연장하기
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M5.5 8.5l3-3M3.5 9L2 10.5A2 2 0 104.5 13L6 11.5M8 5l1.5-1.5A2 2 0 1112 6.5L10.5 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+            4시간 연장하기
           </button>
         )}
 
@@ -846,12 +868,12 @@ export default function RoomPage() {
         </div>
         <button
           onClick={() => setShowLinkSheet(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-hairline rounded-full
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-hairline rounded-full
                      text-[13px] font-semibold text-ink-muted
-                     hover:border-hairline-strong hover:bg-surface-3 transition-colors"
+                     hover:border-hairline-strong hover:bg-surface-2 transition-colors"
         >
           <span className="font-mono tracking-wider text-ink">{roomCode}</span>
-          <span className="text-ink-subtle">🔗</span>
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true" className="text-ink-subtle"><path d="M5.5 8.5l3-3M3.5 9L2 10.5A2 2 0 104.5 13L6 11.5M8 5l1.5-1.5A2 2 0 1112 6.5L10.5 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
         </button>
       </header>
 
@@ -897,7 +919,9 @@ export default function RoomPage() {
           {/* 재선정 배너 — 호스트는 이미 장소를 고르는 중이므로 참가자에게만 표시 */}
           {roomStatus === "reselecting" && !isHost && (
             <div className="mx-6 lg:mx-10 mt-6 px-4 py-3 rounded-xl bg-warning-bg-alt border border-warning-border flex items-start gap-3">
-              <span className="text-[18px] shrink-0 mt-0.5">✨</span>
+              <span className="text-warning-orange shrink-0 mt-0.5" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 1l1.5 5.5L16 8l-5.5 1.5L9 15l-1.5-5.5L2 8l5.5-1.5L9 1z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/></svg>
+              </span>
               <div>
                 <p className="text-[13px] font-semibold text-warning-text">호스트가 새 장소를 고르고 있어요</p>
                 <p className="text-[12px] text-warning-amber mt-0.5">잠시 후 새로운 장소가 확정되면 알림을 받게 돼요.</p>
@@ -980,13 +1004,13 @@ export default function RoomPage() {
               {!locationSaved ? (
                 /* 선호 미입력 시 — preferences 페이지로 이동 */
                 <div
-                  className="flex flex-col items-center gap-4 py-6 px-4 bg-white rounded-2xl border border-hairline mt-0 lg:mt-6"
+                  className="flex flex-col items-center gap-4 py-6 px-4 bg-surface rounded-2xl border border-hairline mt-0 lg:mt-6"
                   style={{ animation: "fade-up 0.4s ease-out both" }}
                 >
                   <div className="w-12 h-12 rounded-full bg-accent-light flex items-center justify-center shrink-0">
                     <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-                      <path d="M11 2C7.68 2 5 4.68 5 8c0 4.67 6 12 6 12s6-7.33 6-12c0-3.32-2.68-6-6-6Z" stroke="#7298C7" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                      <circle cx="11" cy="8" r="2" stroke="#7298C7" strokeWidth="1.6"/>
+                      <path d="M11 2C7.68 2 5 4.68 5 8c0 4.67 6 12 6 12s6-7.33 6-12c0-3.32-2.68-6-6-6Z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                      <circle cx="11" cy="8" r="2" stroke="currentColor" strokeWidth="1.6"/>
                     </svg>
                   </div>
                   <div className="text-center">
@@ -1039,8 +1063,10 @@ export default function RoomPage() {
                     ? `${names[0]}님`
                     : `${names.slice(0, -1).join("님, ")}님, ${names.at(-1)}님`;
                 return (
-                  <div className="flex mt-4 items-center gap-3 p-4 bg-white rounded-xl border border-hairline">
-                    <span className="text-[20px]" aria-hidden="true">⏳</span>
+                  <div className="flex mt-4 items-center gap-3 p-4 bg-surface rounded-xl border border-hairline">
+                    <span className="text-ink-muted" aria-hidden="true">
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 2h12M4 18h12M6 2v4l4 4-4 4v4M14 2v4l-4 4 4 4v4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </span>
                     <div>
                       <p className="text-[13px] font-semibold text-ink-muted">
                         참가자 대기 중
@@ -1129,7 +1155,7 @@ export default function RoomPage() {
           </div>
         ) : (
           <div
-            className="flex items-center gap-3 py-3.5 px-4 bg-white rounded-xl border border-hairline pointer-events-auto"
+            className="flex items-center gap-3 py-3.5 px-4 bg-surface rounded-xl border border-hairline pointer-events-auto"
             style={{ animation: "fade-up 0.3s ease-out both" }}
           >
             <div className="flex gap-[3px] shrink-0">

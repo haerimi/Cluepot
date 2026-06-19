@@ -99,7 +99,7 @@ export default function JoinRoomPage() {
         className="pointer-events-none fixed inset-0 z-0"
         aria-hidden="true"
         style={{
-          background: "radial-gradient(ellipse 60% 50% at 50% 40%, rgba(114,152,199,0.07) 0%, transparent 70%)",
+          background: "radial-gradient(ellipse 60% 50% at 50% 40%, rgba(94,106,210,0.07) 0%, transparent 70%)",
         }}
       />
 
@@ -107,10 +107,10 @@ export default function JoinRoomPage() {
       <header
         className="fixed top-0 w-full z-50"
         style={{
-          background: "rgba(244,245,240,0.92)",
+          background: "rgba(1,1,2,0.92)",
           backdropFilter: "blur(14px)",
           WebkitBackdropFilter: "blur(14px)",
-          borderBottom: "1px solid #E2E6EC",
+          borderBottom: "1px solid #23252a",
         }}
       >
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
@@ -119,7 +119,7 @@ export default function JoinRoomPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => router.back()}
-              className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-hairline text-ink-subtle hover:border-hairline-strong hover:text-ink-muted transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-surface border border-hairline text-ink-subtle hover:border-hairline-strong hover:text-ink-muted transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               aria-label="뒤로 가기"
             >
               <IconBack />
@@ -151,7 +151,7 @@ export default function JoinRoomPage() {
             </span>
             <Link
               href="/rooms/create"
-              className="h-9 px-4 text-[13px] font-medium rounded-lg border border-hairline text-ink-muted hover:text-ink hover:border-hairline-strong hover:bg-surface flex items-center gap-1.5 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="h-9 px-4 text-[13px] font-medium rounded-lg border border-hairline text-ink-muted hover:text-ink hover:border-hairline-strong hover:bg-surface-2 flex items-center gap-1.5 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               <IconPlus />
               모임 만들기
@@ -169,13 +169,13 @@ export default function JoinRoomPage() {
         <div className="w-full max-w-[440px]">
 
           {/* ── 카드 ── */}
-          <div className="bg-white rounded-2xl border border-hairline shadow-[0_8px_32px_rgba(26,32,51,0.06)] overflow-hidden">
+          <div className="bg-surface rounded-2xl border border-hairline shadow-[0_8px_32px_rgba(0,0,0,0.35)] overflow-hidden">
 
             {/* 상단 accent 라인 */}
             <div
               className="h-px w-full"
               aria-hidden="true"
-              style={{ background: "linear-gradient(90deg, transparent, rgba(114,152,199,0.5), transparent)" }}
+              style={{ background: "linear-gradient(90deg, transparent, rgba(94,106,210,0.5), transparent)" }}
             />
 
             <div className="p-8 sm:p-10">
@@ -217,7 +217,7 @@ export default function JoinRoomPage() {
                   <div
                     className={[
                       "relative rounded-xl transition-all duration-200",
-                      error ? "" : "focus-within:[box-shadow:0_0_0_3px_rgba(114,152,199,0.15),0_0_18px_rgba(114,152,199,0.12)]",
+                      error ? "" : "focus-within:[box-shadow:0_0_0_3px_rgba(94,106,210,0.15),0_0_18px_rgba(94,106,210,0.12)]",
                     ].join(" ")}
                   >
                     <input
@@ -260,7 +260,7 @@ export default function JoinRoomPage() {
                       aria-live="assertive"
                       style={{ animation: "fade-up 0.25s ease-out both" }}
                     >
-                      <span className="text-error text-[13px] shrink-0" aria-hidden="true">⚠️</span>
+                      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true" className="shrink-0 text-error mt-0.5"><path d="M8 1L15 14H1L8 1z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M8 6v4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/><circle cx="8" cy="11.5" r="0.8" fill="currentColor"/></svg>
                       <p className="text-[13px] text-error leading-snug">{error}</p>
                     </div>
                   )}
@@ -288,18 +288,18 @@ export default function JoinRoomPage() {
                       isValid && !isJoining ? "group" : "",
                     ].join(" ")}
                     style={{
-                      backgroundColor: "#7298C7",
+                      backgroundColor: "#5e6ad2",
                       color: "#fff",
-                      boxShadow: isValid && !isJoining ? "0 2px 8px rgba(114,152,199,0.35)" : undefined,
+                      boxShadow: isValid && !isJoining ? "0 2px 8px rgba(94,106,210,0.35)" : undefined,
                       animation: isValid && !isJoining ? "cta-glow 2.8s ease-in-out infinite" : undefined,
                     }}
                     onMouseEnter={(e) => {
                       if (isValid && !isJoining)
-                        (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#5C7FB5";
+                        (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#4f58b0";
                     }}
                     onMouseLeave={(e) => {
                       if (isValid && !isJoining)
-                        (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#7298C7";
+                        (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#5e6ad2";
                     }}
                   >
                     {isJoining ? (

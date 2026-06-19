@@ -1,12 +1,48 @@
+import React from "react";
 import { Transport } from "@/types/participant";
 import { Badge } from "@/app/components/ui/Badge";
 
-const TRANSPORT_EMOJI: Record<Transport, string> = {
-  walk: "🚶",
-  transit: "🚇",
-  car: "🚗",
-  bike: "🚲",
+/* ── 이동수단 아이콘 (미니 사이즈) ── */
+const TRANSPORT_ICONS: Record<Transport, React.ReactNode> = {
+  walk: (
+    <svg width="13" height="13" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <circle cx="10" cy="4" r="1.5" fill="currentColor"/>
+      <path d="M7.5 10l1-3 1.5 2 1.5-3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M6.5 15l1-3 2 2 2-3 2.5 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  transit: (
+    <svg width="13" height="13" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <rect x="4" y="4" width="12" height="10" rx="2" stroke="currentColor" strokeWidth="1.4"/>
+      <path d="M4 9h12" stroke="currentColor" strokeWidth="1.4"/>
+      <circle cx="7.5" cy="11.5" r="0.8" fill="currentColor"/>
+      <circle cx="12.5" cy="11.5" r="0.8" fill="currentColor"/>
+    </svg>
+  ),
+  car: (
+    <svg width="13" height="13" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path d="M3 10l2-4h10l2 4v4H3v-4z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
+      <circle cx="6" cy="14" r="1.5" stroke="currentColor" strokeWidth="1.2"/>
+      <circle cx="14" cy="14" r="1.5" stroke="currentColor" strokeWidth="1.2"/>
+    </svg>
+  ),
+  bike: (
+    <svg width="13" height="13" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <circle cx="5.5" cy="13.5" r="2.5" stroke="currentColor" strokeWidth="1.3"/>
+      <circle cx="14.5" cy="13.5" r="2.5" stroke="currentColor" strokeWidth="1.3"/>
+      <path d="M5.5 13.5L9 7h4l1.5 6.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
 };
+
+function IconPin() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M8 1.5A4.5 4.5 0 0112.5 6c0 3-4.5 8.5-4.5 8.5S3.5 9 3.5 6A4.5 4.5 0 018 1.5z" stroke="currentColor" strokeWidth="1.4"/>
+      <circle cx="8" cy="6" r="1.5" fill="currentColor"/>
+    </svg>
+  );
+}
 
 interface ParticipantCardProps {
   readonly nickname: string;
@@ -35,7 +71,7 @@ export function ParticipantCard({
     <div
       className={[
         "flex items-center gap-3 p-4 rounded-xl border transition-all duration-200",
-        isMe ? "bg-accent-light border-accent/30" : "bg-white border-hairline",
+        isMe ? "bg-accent-light border-accent/30" : "bg-surface border-hairline",
       ].join(" ")}
       style={{ animation: `fade-up 0.35s ease-out ${animationDelay} both` }}
     >
@@ -69,14 +105,16 @@ export function ParticipantCard({
         {isReady && abstractLocation ? (
           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
             <span className="text-[12px] text-ink-subtle flex items-center gap-1">
-              <span>📍</span>
+              <span className="text-ink-tertiary"><IconPin /></span>
               <span className="truncate">{abstractLocation}</span>
             </span>
             {transports.length > 0 && (
               <>
                 <span className="text-ink-tertiary">·</span>
-                <span className="text-[12px] text-ink-subtle tracking-wide">
-                  {transports.map((t) => TRANSPORT_EMOJI[t]).join(" ")}
+                <span className="flex items-center gap-0.5 text-ink-subtle">
+                  {transports.map((t) => (
+                    <span key={t}>{TRANSPORT_ICONS[t]}</span>
+                  ))}
                 </span>
               </>
             )}
