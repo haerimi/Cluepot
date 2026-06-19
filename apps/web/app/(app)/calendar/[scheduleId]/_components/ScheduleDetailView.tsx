@@ -604,7 +604,11 @@ export function ScheduleDetailView({ schedule, variant = "page" }: ScheduleDetai
             <p className="text-[10px] font-bold text-ink-tertiary tracking-[3px] uppercase mb-4">
               장소
             </p>
+<<<<<<< HEAD
             <div className="bg-surface rounded-2xl border border-hairline overflow-hidden">
+=======
+            <div className="bg-white rounded-2xl border border-hairline overflow-hidden shadow-sm">
+>>>>>>> main
               <KakaoMap
                 lat={data.lat}
                 lng={data.lng}
@@ -668,7 +672,11 @@ export function ScheduleDetailView({ schedule, variant = "page" }: ScheduleDetai
                     "flex-1 h-11 rounded-xl text-[14px] font-semibold border transition-all",
                     myMember.status === "accepted"
                       ? "bg-success-bg border-success/30 text-success-text"
+<<<<<<< HEAD
                       : "bg-surface border-hairline text-ink-muted hover:border-success/30 hover:bg-success-bg-alt",
+=======
+                      : "bg-white border-hairline text-ink-muted hover:border-success/30 hover:bg-success-bg-alt",
+>>>>>>> main
                   ].join(" ")}
                 >
                   {isPending ? "…" : "✓ 참석할게요"}
@@ -681,7 +689,11 @@ export function ScheduleDetailView({ schedule, variant = "page" }: ScheduleDetai
                     "flex-1 h-11 rounded-xl text-[14px] font-semibold border transition-all",
                     myMember.status === "declined"
                       ? "bg-error-bg border-error/30 text-error"
+<<<<<<< HEAD
                       : "bg-surface border-hairline text-ink-muted hover:border-error/30 hover:bg-error-bg-alt",
+=======
+                      : "bg-white border-hairline text-ink-muted hover:border-error/30 hover:bg-error-bg-alt",
+>>>>>>> main
                   ].join(" ")}
                 >
                   {isPending ? "…" : "✕ 참석 못해요"}
@@ -749,7 +761,11 @@ export function ScheduleDetailView({ schedule, variant = "page" }: ScheduleDetai
         className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage:
+<<<<<<< HEAD
             "radial-gradient(circle at 1.5px 1.5px, rgba(94,106,210,0.15) 1.5px, transparent 0)",
+=======
+            "radial-gradient(circle at 1.5px 1.5px, rgba(114,152,199,0.15) 1.5px, transparent 0)",
+>>>>>>> main
           backgroundSize: "28px 28px",
         }}
       />
@@ -770,7 +786,11 @@ export function ScheduleDetailView({ schedule, variant = "page" }: ScheduleDetai
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full pointer-events-none"
         style={{
           background:
+<<<<<<< HEAD
             "radial-gradient(circle, rgba(94,106,210,0.08) 0%, transparent 65%)",
+=======
+            "radial-gradient(circle, rgba(114,152,199,0.08) 0%, transparent 65%)",
+>>>>>>> main
         }}
       />
 
@@ -784,14 +804,22 @@ export function ScheduleDetailView({ schedule, variant = "page" }: ScheduleDetai
           <div
             className="absolute w-16 h-16 rounded-full"
             style={{
+<<<<<<< HEAD
               background: "rgba(94,106,210,0.12)",
+=======
+              background: "rgba(114,152,199,0.12)",
+>>>>>>> main
               animation: "pin-ring 2s ease-out infinite",
             }}
           />
           <div
             className="absolute w-10 h-10 rounded-full"
             style={{
+<<<<<<< HEAD
               background: "rgba(94,106,210,0.08)",
+=======
+              background: "rgba(114,152,199,0.08)",
+>>>>>>> main
               animation: "pin-ring 2s ease-out 0.5s infinite",
             }}
           />
@@ -799,9 +827,15 @@ export function ScheduleDetailView({ schedule, variant = "page" }: ScheduleDetai
           <div
             className="w-5 h-5 rounded-full border-4 relative z-10"
             style={{
+<<<<<<< HEAD
               background: "#5e6ad2",
               borderColor: "var(--color-canvas)",
               boxShadow: "0 0 20px rgba(94,106,210,0.5)",
+=======
+              background: "#7298C7",
+              borderColor: "var(--color-canvas)",
+              boxShadow: "0 0 20px rgba(114,152,199,0.5)",
+>>>>>>> main
             }}
           />
         </div>
@@ -893,12 +927,20 @@ export function ScheduleDetailView({ schedule, variant = "page" }: ScheduleDetai
         {/* ── 카드 ── */}
         <div
           ref={cardRef}
+<<<<<<< HEAD
           className="w-full max-w-[520px] bg-surface border border-hairline"
+=======
+          className="w-full max-w-[520px] bg-white border border-hairline"
+>>>>>>> main
           style={{
             borderRadius: "16px",
             padding: "clamp(24px, 5vw, 32px)",
             boxShadow:
+<<<<<<< HEAD
               "0 10px 32px -4px rgba(0,0,0,0.55), 0 4px 8px -4px rgba(0,0,0,0.35)",
+=======
+              "0 10px 32px -4px rgba(26,32,51,0.12), 0 4px 8px -4px rgba(26,32,51,0.08)",
+>>>>>>> main
             animation: "cinematic-up 0.75s cubic-bezier(0.16,1,0.3,1) 0.1s both",
             transition: "transform 0.12s ease-out",
           }}
@@ -984,7 +1026,11 @@ export function ScheduleDetailView({ schedule, variant = "page" }: ScheduleDetai
                     key={m.id}
                     role="listitem"
                     title={m.nickname}
+<<<<<<< HEAD
                     className="w-10 h-10 rounded-full border-2 border-canvas overflow-hidden flex items-center justify-center text-[13px] font-bold shrink-0 bg-surface-3 text-ink-muted"
+=======
+                    className="w-10 h-10 rounded-full border-2 border-white overflow-hidden flex items-center justify-center text-[13px] font-bold shrink-0 bg-surface-3 text-ink-muted"
+>>>>>>> main
                   >
                     {m.profileImage ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -996,7 +1042,11 @@ export function ScheduleDetailView({ schedule, variant = "page" }: ScheduleDetai
                 ))}
                 {overflowCount > 0 && (
                   <div
+<<<<<<< HEAD
                     className="w-10 h-10 rounded-full border-2 border-canvas flex items-center justify-center font-bold shrink-0 bg-surface-2 text-ink-subtle"
+=======
+                    className="w-10 h-10 rounded-full border-2 border-white flex items-center justify-center font-bold shrink-0 bg-surface-warm text-ink-subtle"
+>>>>>>> main
                     style={{ fontSize: "11px" }}
                     aria-label={`외 ${overflowCount}명`}
                   >
@@ -1028,7 +1078,11 @@ export function ScheduleDetailView({ schedule, variant = "page" }: ScheduleDetai
                       "flex-1 h-11 rounded-xl text-[14px] font-semibold border transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success",
                       myMember.status === "accepted"
                         ? "bg-success-bg border-success/30 text-success-text"
+<<<<<<< HEAD
                         : "bg-surface border-hairline text-ink-muted hover:border-success/30 hover:bg-success-bg-alt",
+=======
+                        : "bg-white border-hairline text-ink-muted hover:border-success/30 hover:bg-success-bg-alt",
+>>>>>>> main
                     ].join(" ")}
                   >
                     {isPending ? "…" : "✓ 참석할게요"}
@@ -1041,7 +1095,11 @@ export function ScheduleDetailView({ schedule, variant = "page" }: ScheduleDetai
                       "flex-1 h-11 rounded-xl text-[14px] font-semibold border transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error",
                       myMember.status === "declined"
                         ? "bg-error-bg border-error/30 text-error"
+<<<<<<< HEAD
                         : "bg-surface border-hairline text-ink-muted hover:border-error/30 hover:bg-error-bg-alt",
+=======
+                        : "bg-white border-hairline text-ink-muted hover:border-error/30 hover:bg-error-bg-alt",
+>>>>>>> main
                     ].join(" ")}
                   >
                     {isPending ? "…" : "✕ 참석 못해요"}
@@ -1058,7 +1116,11 @@ export function ScheduleDetailView({ schedule, variant = "page" }: ScheduleDetai
               href={kakaoMapUrl}
               target="_blank"
               rel="noopener noreferrer"
+<<<<<<< HEAD
               className="w-full flex items-center justify-center gap-2 h-12 rounded-xl font-semibold text-[14px] text-white transition-all active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 bg-accent hover:bg-accent-hover shadow-[0_2px_8px_rgba(94,106,210,0.3)] hover:shadow-[0_4px_14px_rgba(94,106,210,0.4)] hover:-translate-y-0.5"
+=======
+              className="w-full flex items-center justify-center gap-2 h-12 rounded-xl font-semibold text-[14px] text-white transition-all active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 bg-accent hover:bg-accent-hover shadow-[0_2px_8px_rgba(114,152,199,0.3)] hover:shadow-[0_4px_14px_rgba(114,152,199,0.4)] hover:-translate-y-0.5"
+>>>>>>> main
             >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                 <path d="M8 1.5C5.52 1.5 3.5 3.52 3.5 6c0 4.16 5 8.5 5 8.5S13.5 10.16 13.5 6c0-2.48-2.02-4.5-4.5-4.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
@@ -1072,13 +1134,21 @@ export function ScheduleDetailView({ schedule, variant = "page" }: ScheduleDetai
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowEdit(true)}
+<<<<<<< HEAD
                   className="flex-1 h-12 rounded-xl font-semibold text-[14px] border border-hairline bg-surface text-ink hover:bg-surface-2 hover:border-hairline-strong transition-all active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+=======
+                  className="flex-1 h-12 rounded-xl font-semibold text-[14px] border border-hairline bg-white text-ink hover:bg-surface-warm hover:border-hairline-strong transition-all active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+>>>>>>> main
                 >
                   날짜·시간
                 </button>
                 <button
                   onClick={() => setShowReplace(true)}
+<<<<<<< HEAD
                   className="flex-1 h-12 rounded-xl font-semibold text-[14px] border border-hairline bg-surface text-ink hover:bg-surface-2 hover:border-hairline-strong transition-all active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+=======
+                  className="flex-1 h-12 rounded-xl font-semibold text-[14px] border border-hairline bg-white text-ink hover:bg-surface-warm hover:border-hairline-strong transition-all active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+>>>>>>> main
                 >
                   장소 변경
                 </button>
@@ -1086,7 +1156,11 @@ export function ScheduleDetailView({ schedule, variant = "page" }: ScheduleDetai
             ) : (
               <button
                 onClick={() => setShowLeave(true)}
+<<<<<<< HEAD
                 className="w-full h-12 rounded-xl font-semibold text-[14px] border border-hairline bg-surface text-ink hover:bg-surface-2 hover:border-hairline-strong transition-all active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+=======
+                className="w-full h-12 rounded-xl font-semibold text-[14px] border border-hairline bg-white text-ink hover:bg-surface-warm hover:border-hairline-strong transition-all active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+>>>>>>> main
               >
                 나가기
               </button>

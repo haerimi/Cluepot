@@ -1004,13 +1004,22 @@ export default function RoomPage() {
               {!locationSaved ? (
                 /* 선호 미입력 시 — preferences 페이지로 이동 */
                 <div
+<<<<<<< HEAD
                   className="flex flex-col items-center gap-4 py-6 px-4 bg-surface rounded-2xl border border-hairline mt-0 lg:mt-6"
+=======
+                  className="flex flex-col items-center gap-4 py-6 px-4 bg-white rounded-2xl border border-hairline mt-0 lg:mt-6"
+>>>>>>> main
                   style={{ animation: "fade-up 0.4s ease-out both" }}
                 >
                   <div className="w-12 h-12 rounded-full bg-accent-light flex items-center justify-center shrink-0">
                     <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+<<<<<<< HEAD
                       <path d="M11 2C7.68 2 5 4.68 5 8c0 4.67 6 12 6 12s6-7.33 6-12c0-3.32-2.68-6-6-6Z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
                       <circle cx="11" cy="8" r="2" stroke="currentColor" strokeWidth="1.6"/>
+=======
+                      <path d="M11 2C7.68 2 5 4.68 5 8c0 4.67 6 12 6 12s6-7.33 6-12c0-3.32-2.68-6-6-6Z" stroke="#7298C7" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                      <circle cx="11" cy="8" r="2" stroke="#7298C7" strokeWidth="1.6"/>
+>>>>>>> main
                     </svg>
                   </div>
                   <div className="text-center">
@@ -1063,10 +1072,15 @@ export default function RoomPage() {
                     ? `${names[0]}님`
                     : `${names.slice(0, -1).join("님, ")}님, ${names.at(-1)}님`;
                 return (
+<<<<<<< HEAD
                   <div className="flex mt-4 items-center gap-3 p-4 bg-surface rounded-xl border border-hairline">
                     <span className="text-ink-muted" aria-hidden="true">
                       <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 2h12M4 18h12M6 2v4l4 4-4 4v4M14 2v4l-4 4 4 4v4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     </span>
+=======
+                  <div className="flex mt-4 items-center gap-3 p-4 bg-white rounded-xl border border-hairline">
+                    <span className="text-[20px]" aria-hidden="true">⏳</span>
+>>>>>>> main
                     <div>
                       <p className="text-[13px] font-semibold text-ink-muted">
                         참가자 대기 중

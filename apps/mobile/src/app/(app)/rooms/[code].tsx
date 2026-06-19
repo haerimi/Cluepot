@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TextInput,
+<<<<<<< HEAD
   TouchableOpacity, ActivityIndicator, Alert, Animated, Modal, Platform, AppState,
   StatusBar, Image,
 } from 'react-native';
@@ -8,6 +9,12 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import WebView from 'react-native-webview';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+=======
+  TouchableOpacity, ActivityIndicator, Alert, Animated,
+} from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+>>>>>>> main
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import { supabase } from '@/lib/supabase';
@@ -51,6 +58,7 @@ type AiPlace = {
   }[];
 };
 
+<<<<<<< HEAD
 type KakaoPlace = {
   id: string;
   place_name: string;
@@ -64,6 +72,8 @@ const TRANSPORT_EMOJI: Record<string, string> = {
   walk: '🚶', transit: '🚇', car: '🚗', bike: '🚲',
 };
 
+=======
+>>>>>>> main
 const TRANSPORT_OPTIONS: { value: Transport; label: string; icon: any; iconColor: string }[] = [
   { value: 'walk', label: '도보', icon: 'walk-outline', iconColor: '#bdc2ff' },
   { value: 'transit', label: '대중교통', icon: 'subway-outline', iconColor: '#ffb867' },
@@ -91,6 +101,7 @@ const PINI_STATUSES = [
   '추천 결과 정리 중...',
 ];
 
+<<<<<<< HEAD
 const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL;
 const KAKAO_REST_KEY = process.env.EXPO_PUBLIC_KAKAO_REST_KEY ?? '';
 const KAKAO_MAP_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_KEY ?? '';
@@ -164,11 +175,16 @@ function toISOWithKST(d: Date): string {
 function NavHeader({ initial, onBack }: { initial: string; onBack?: () => void }) {
   const router = useRouter();
   const profileImage = useAuthStore((s) => s.user?.profileImage ?? null);
+=======
+function NavHeader({ initial, onBack }: { initial: string; onBack?: () => void }) {
+  const router = useRouter();
+>>>>>>> main
   return (
     <View style={navHdr.wrap}>
       <TouchableOpacity onPress={onBack ?? (() => router.back())} style={navHdr.backBtn} hitSlop={8}>
         <Ionicons name="chevron-back" size={22} color="#c6c5d5" />
       </TouchableOpacity>
+<<<<<<< HEAD
       <Text allowFontScaling={false} style={navHdr.logo}>Clue<Text allowFontScaling={false} style={navHdr.accent}>Pot</Text></Text>
       <View style={navHdr.avatar}>
         {profileImage
@@ -187,10 +203,28 @@ const navHdr = StyleSheet.create({
   accent: { color: '#bdc2ff' },
   avatar: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#5e6ad2', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#34343a', overflow: 'hidden' },
   avatarImg: { width: 30, height: 30, borderRadius: 15 },
+=======
+      <Text style={navHdr.logo}>Clue<Text style={navHdr.accent}>Pot</Text></Text>
+      <View style={navHdr.avatar}><Text style={navHdr.avatarText}>{initial}</Text></View>
+    </View>
+  );
+}
+const navHdr = StyleSheet.create({
+  wrap: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, height: 56, borderBottomWidth: 1, borderBottomColor: '#23252a', backgroundColor: '#131316' },
+  backBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  logo: { fontSize: 20, fontWeight: '700', color: '#f7f8f8', letterSpacing: -0.3 },
+  accent: { color: '#bdc2ff' },
+  avatar: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#5e6ad2', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#34343a' },
+>>>>>>> main
   avatarText: { fontSize: 12, fontWeight: '700', color: '#fdfaff' },
 });
 
 
+<<<<<<< HEAD
+=======
+const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL;
+
+>>>>>>> main
 export default function RoomScreen() {
   const { code } = useLocalSearchParams<{ code: string }>();
   const roomCode = code?.toUpperCase() ?? '';
@@ -220,6 +254,7 @@ export default function RoomScreen() {
   const [aiResults, setAiResults] = useState(false);
   const [aiPlaces, setAiPlaces] = useState<AiPlace[]>([]);
   const [selectedPlace, setSelectedPlace] = useState<AiPlace | null>(null);
+<<<<<<< HEAD
   const [openDrawerIdx, setOpenDrawerIdx] = useState<number | null>(null);
   const [confirming, setConfirming] = useState(false);
 
@@ -231,17 +266,23 @@ export default function RoomScreen() {
   const [showDateModal, setShowDateModal] = useState(false);
   const [showNativeDatePicker, setShowNativeDatePicker] = useState(false);
   const [showNativeTimePicker, setShowNativeTimePicker] = useState(false);
+=======
+>>>>>>> main
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const shimmerAnim = useRef(new Animated.Value(0.4)).current;
   const piniGlow = useRef(new Animated.Value(0.5)).current;
   const piniPulse = useRef(new Animated.Value(1)).current;
+<<<<<<< HEAD
   const piniProgressAnim = useRef(new Animated.Value(0)).current;
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+=======
+>>>>>>> main
 
   useEffect(() => { init(); }, [roomCode]);
 
   useEffect(() => {
+<<<<<<< HEAD
     const channel = supabase
       .channel(`room-${roomCode}`)
       .on('broadcast', { event: 'room-done' }, ({ payload }: { payload: { scheduleId?: string } }) => {
@@ -278,6 +319,8 @@ export default function RoomScreen() {
   }, [roomCode]);
 
   useEffect(() => {
+=======
+>>>>>>> main
     if (locationSaved && !isHost) {
       Animated.loop(
         Animated.sequence([
@@ -309,6 +352,7 @@ export default function RoomScreen() {
         Animated.timing(piniPulse, { toValue: 0.95, duration: 1800, useNativeDriver: true }),
       ])
     ).start();
+<<<<<<< HEAD
     return () => { clearInterval(interval); };
   }, [piniLoading]);
 
@@ -335,6 +379,14 @@ export default function RoomScreen() {
   }
 
   async function runPini(excludePlaces: string[] = []) {
+=======
+
+    return () => { clearInterval(interval); };
+  }, [piniLoading]);
+
+  async function runPini(excludePlaces: string[] = []) {
+    // 선호도가 저장된 참가자만 필터링
+>>>>>>> main
     const body = {
       participants: participants
         .filter(p => p.abstractLocation)
@@ -349,6 +401,7 @@ export default function RoomScreen() {
         })),
       category: roomCategory,
       excludePlaces,
+<<<<<<< HEAD
     };
     const res = await fetch(`${WEB_URL}/api/pini`, {
       method: 'POST',
@@ -374,11 +427,31 @@ export default function RoomScreen() {
       await new Promise<void>((resolve) => {
         Animated.timing(piniProgressAnim, { toValue: 1, duration: 350, useNativeDriver: false }).start(() => resolve());
       });
+=======
+    }
+    const res = await fetch(`${WEB_URL}/api/pini`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    if (!res.ok) throw new Error((await res.json()).error);
+    return await res.json();
+  };
+
+  async function handleRunPini(excludePlaces: string[] = []) {
+    setPiniLoading(true);
+    try {
+      const places = await runPini(excludePlaces);
+>>>>>>> main
       setAiPlaces(places);
       setSelectedPlace(places[0]);
       setAiResults(true);
     } catch (e) {
+<<<<<<< HEAD
       slowProgress.stop();
+=======
+>>>>>>> main
       const msg = e instanceof Error ? e.message : 'PINI 추천에 실패했어요.';
       Alert.alert('오류', msg);
     } finally {
@@ -386,6 +459,7 @@ export default function RoomScreen() {
     }
   }
 
+<<<<<<< HEAD
   async function handleConfirm() {
     if (!selectedPlace) return;
     setShowDateModal(true);
@@ -419,6 +493,8 @@ export default function RoomScreen() {
     }
   }
 
+=======
+>>>>>>> main
   async function init() {
     setLoading(true);
     setIsHost(false);
@@ -509,12 +585,19 @@ export default function RoomScreen() {
             <Animated.View style={[styles.piniIconBg, { transform: [{ scale: piniPulse }] }]}>
               <Ionicons name="flash" size={36} color="#bdc2ff" />
             </Animated.View>
+<<<<<<< HEAD
             <Text allowFontScaling={false} style={styles.piniTitle}>PINI AI</Text>
             <Text allowFontScaling={false} style={styles.piniSubtitle}>Analyzing Preferences</Text>
             <View style={styles.piniProgressTrack}>
               <Animated.View style={[styles.piniShimmerFill, {
                 width: piniProgressAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }),
               }]} />
+=======
+            <Text style={styles.piniTitle}>PINI AI</Text>
+            <Text style={styles.piniSubtitle}>Analyzing Preferences</Text>
+            <View style={styles.piniProgressTrack}>
+              <Animated.View style={[styles.piniShimmerFill, { opacity: piniGlow }]} />
+>>>>>>> main
             </View>
             <Animated.Text style={[styles.piniStatusText, { opacity: piniGlow }]}>
               {PINI_STATUSES[statusIdx]}
@@ -522,7 +605,11 @@ export default function RoomScreen() {
           </View>
           <View style={styles.piniBadge}>
             <Ionicons name="flash" size={11} color="#bdc2ff" />
+<<<<<<< HEAD
             <Text allowFontScaling={false} style={styles.piniBadgeText}>Powered by PINI</Text>
+=======
+            <Text style={styles.piniBadgeText}>Powered by PINI</Text>
+>>>>>>> main
           </View>
         </View>
       </View>
@@ -531,6 +618,7 @@ export default function RoomScreen() {
 
   /* ── AI 장소추천 결과 화면 ── */
   if (aiResults) {
+<<<<<<< HEAD
     const isTopPick = selectedPlace?.placeName === aiPlaces[0]?.placeName;
     const mapLat = selectedPlace?.lat ?? 37.5665;
     const mapLng = selectedPlace?.lng ?? 126.9780;
@@ -566,11 +654,53 @@ export default function RoomScreen() {
             </View>
           )}
 
+=======
+    const isTopPick = selectedPlace?.placeName === aiPlaces[0]?.placeName
+
+    return (
+      <View style={styles.container}>
+        <NavHeader initial={currentNickname[0].toUpperCase()} />
+
+        {/* 지도 + 정보 섹션 */}
+        <View style={styles.mapSection}>
+          {/* 지도 플레이스홀더 */}
+          <View style={styles.mapBg}>
+            {/* 도로망 격자 */}
+            {[40, 80, 130, 180, 230, 270].map(y => (
+              <View key={y} style={[styles.mapRoadH, { top: y }]} />
+            ))}
+            {[40, 90, 140, 200, 260].map(x => (
+              <View key={x} style={[styles.mapRoadV, { left: x }]} />
+            ))}
+            {/* 주요 도로 */}
+            <View style={[styles.mapMainRoadH, { top: 130 }]} />
+            <View style={[styles.mapMainRoadV, { left: 140 }]} />
+            {/* 블록 */}
+            {[
+              [10, 10, 60, 28], [105, 10, 80, 28], [200, 10, 70, 28],
+              [10, 48, 50, 28], [100, 48, 90, 28], [205, 48, 60, 28],
+              [10, 90, 70, 28], [105, 90, 70, 28], [210, 90, 60, 28],
+              [10, 150, 90, 24], [115, 150, 60, 24], [200, 150, 70, 24],
+              [10, 192, 60, 24], [100, 192, 80, 24], [205, 192, 55, 24],
+            ].map(([l, t, w, h], i) => (
+              <View key={i} style={[styles.mapBlock, { left: l, top: t, width: w, height: h }]} />
+            ))}
+            {/* 선택 위치 핀 */}
+            <View style={styles.mapPinWrap}>
+              <View style={styles.mapPinOuter}>
+                <View style={styles.mapPinInner} />
+              </View>
+              <View style={styles.mapPinStem} />
+            </View>
+          </View>
+
+>>>>>>> main
           {/* 정보 오버레이 */}
           <View style={styles.mapInfoOverlay}>
             {isTopPick && (
               <View style={styles.topPickBadge}>
                 <Ionicons name="star" size={11} color="#ffb867" />
+<<<<<<< HEAD
                 <Text allowFontScaling={false} style={styles.topPickText}>Top Pick</Text>
               </View>
             )}
@@ -588,6 +718,31 @@ export default function RoomScreen() {
           {/* 대안 가로 스크롤 */}
           <Text allowFontScaling={false} style={styles.resultEyebrow}>ALTERNATIVE OPTIONS</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.altScrollContent}>
+=======
+                <Text style={styles.topPickText}>Top Pick</Text>
+              </View>
+            )}
+            <Text style={styles.mapPlaceName}>{selectedPlace?.placeName}</Text>
+            <View style={styles.mapAddressRow}>
+              <Ionicons name="location-outline" size={12} color="#8a8f98" />
+              <Text style={styles.mapAddress}>{selectedPlace?.placeAddress}</Text>
+            </View>
+            <View style={styles.mapMatchRow}>
+              <Text style={styles.mapMatchPct}>{selectedPlace?.atmosphereMatch}</Text>
+              <Text style={styles.mapMatchLabel}> 매칭</Text>
+            </View>
+          </View>
+        </View>
+
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+          {/* 대안 가로 스크롤 — 3개 전체 */}
+          <Text style={styles.resultEyebrow}>ALTERNATIVE OPTIONS</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.altScrollContent}
+          >
+>>>>>>> main
             {aiPlaces.map((alt, i) => {
               const isActive = selectedPlace?.placeName === alt.placeName;
               return (
@@ -595,6 +750,7 @@ export default function RoomScreen() {
                   key={i}
                   style={[styles.altCard, isActive && styles.altCardActive]}
                   onPress={() => setSelectedPlace(alt)}
+<<<<<<< HEAD
                   activeOpacity={0.75}
                   accessibilityLabel={`${alt.placeName} 선택`}
                   accessibilityRole="button"
@@ -605,12 +761,22 @@ export default function RoomScreen() {
                   </View>
                   <Text allowFontScaling={false} style={[styles.altName, isActive && { color: '#f7f8f8' }]} numberOfLines={2}>{alt.placeName}</Text>
                   <Text allowFontScaling={false} style={[styles.altMatch, isActive && { color: '#bdc2ff' }]}>{alt.atmosphereMatch}</Text>
+=======
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.altIconBox}>
+                    <Ionicons name="location-outline" size={18} color={isActive ? '#bdc2ff' : '#8a8f98'} />
+                  </View>
+                  <Text style={[styles.altName, isActive && { color: '#f7f8f8' }]} numberOfLines={2}>{alt.placeName}</Text>
+                  <Text style={[styles.altMatch, isActive && { color: '#bdc2ff' }]}>{alt.atmosphereMatch} fit</Text>
+>>>>>>> main
                 </TouchableOpacity>
               );
             })}
           </ScrollView>
 
           {/* 추천 목록 */}
+<<<<<<< HEAD
           <Text allowFontScaling={false} style={[styles.resultEyebrow, { paddingHorizontal: 16, marginTop: 24 }]}>RECOMMENDATIONS</Text>
           {aiPlaces.map((place, i) => {
             const isSelected = selectedPlace?.placeName === place.placeName;
@@ -707,11 +873,34 @@ export default function RoomScreen() {
                     )}
                   </View>
                 )}
+=======
+          <Text style={[styles.resultEyebrow, { paddingHorizontal: 16, marginTop: 20 }]}>RECOMMENDATIONS</Text>
+          {aiPlaces.map((place, i) => {
+            const isSelected = selectedPlace?.placeName === place.placeName;
+            return (
+              <TouchableOpacity
+                key={i}
+                style={[styles.recCard, isSelected && styles.recCardActive]}
+                onPress={() => setSelectedPlace(place)}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.recRankBox, i === 0 && styles.recRankBoxTop]}>
+                  <Text style={[styles.recRank, i === 0 && styles.recRankTop]}>{i + 1}</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.recName}>{place.placeName}</Text>
+                  <Text style={styles.recAddress}>{place.placeAddress}</Text>
+                </View>
+                <View style={[styles.recMatchChip, i === 0 && styles.recMatchChipTop]}>
+                  <Text style={[styles.recMatchText, i === 0 && styles.recMatchTextTop]}>{place.atmosphereMatch}</Text>
+                </View>
+>>>>>>> main
               </TouchableOpacity>
             );
           })}
         </ScrollView>
 
+<<<<<<< HEAD
         {/* Android 네이티브 날짜/시간 피커 (Modal 외부) */}
         {Platform.OS === 'android' && showNativeDatePicker && (
           <DateTimePicker
@@ -899,10 +1088,22 @@ export default function RoomScreen() {
                   <Text allowFontScaling={false} style={styles.confirmBtnText}>선택 플랜 확정하기</Text>
                 </>
             }
+=======
+        {/* 하단 버튼 */}
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={styles.confirmBtn}
+            onPress={() => router.push(`/(app)/calendar/${roomCode}` as any)}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="checkmark-circle-outline" size={18} color="#fdfaff" />
+            <Text style={styles.confirmBtnText}>선택 플랜 확정하기</Text>
+>>>>>>> main
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.retryBtn}
             onPress={() => handleRunPini(aiPlaces.map(p => p.placeName))}
+<<<<<<< HEAD
             activeOpacity={0.75}
             accessibilityLabel="다시 추천받기"
             accessibilityRole="button"
@@ -912,6 +1113,15 @@ export default function RoomScreen() {
           </TouchableOpacity>
         </View>
       </View>
+=======
+            activeOpacity={0.8}
+          >
+            <Ionicons name="refresh-outline" size={16} color="#8a8f98" />
+            <Text style={styles.retryBtnText}>다시 추천받기</Text>
+          </TouchableOpacity>
+        </View>
+      </View >
+>>>>>>> main
     );
   }
 
@@ -920,6 +1130,7 @@ export default function RoomScreen() {
     return (
       <View style={styles.container}>
         <NavHeader initial={currentNickname[0].toUpperCase()} />
+<<<<<<< HEAD
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.body}
@@ -929,11 +1140,19 @@ export default function RoomScreen() {
           <View style={styles.stepHeader}>
             <Text allowFontScaling={false} style={styles.stepEyebrow}>STEP 2 OF 4</Text>
             <Text allowFontScaling={false} style={styles.stepTitle}>내 정보 알려주기</Text>
+=======
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.body}>
+          {/* 스텝 헤더 */}
+          <View style={styles.stepHeader}>
+            <Text style={styles.stepEyebrow}>STEP 2 OF 4</Text>
+            <Text style={styles.stepTitle}>내 정보 알려주기</Text>
+>>>>>>> main
             <View style={styles.progressTrack}>
               <View style={[styles.progressFill, { width: '50%' }]} />
             </View>
           </View>
 
+<<<<<<< HEAD
           {/* 출발 지역 — 카카오 검색 */}
           <Text allowFontScaling={false} style={styles.fieldLabel}>출발 지역</Text>
           <View style={styles.locationWrap}>
@@ -988,6 +1207,20 @@ export default function RoomScreen() {
 
           {/* 이동 수단 — 2열 그리드 */}
           <Text allowFontScaling={false} style={styles.sectionTitle}>이동 수단</Text>
+=======
+          {/* 출발 지역 */}
+          <Text style={styles.fieldLabel}>출발 지역</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="예: 강남구, 홍대, 잠실"
+            placeholderTextColor="#454652"
+            value={location}
+            onChangeText={(t) => { setLocation(t); setFormError(''); }}
+          />
+
+          {/* 이동 수단 — 2열 그리드 */}
+          <Text style={styles.sectionTitle}>이동 수단</Text>
+>>>>>>> main
           <View style={styles.grid2}>
             {TRANSPORT_OPTIONS.map((opt) => {
               const active = transport === opt.value;
@@ -999,7 +1232,11 @@ export default function RoomScreen() {
                   activeOpacity={0.8}
                 >
                   <Ionicons name={opt.icon} size={22} color={active ? opt.iconColor : '#8a8f98'} />
+<<<<<<< HEAD
                   <Text allowFontScaling={false} style={[styles.gridCardLabel, active && styles.gridCardLabelActive]}>{opt.label}</Text>
+=======
+                  <Text style={[styles.gridCardLabel, active && styles.gridCardLabelActive]}>{opt.label}</Text>
+>>>>>>> main
                   {active && <View style={styles.gridCheck}><Ionicons name="checkmark-circle" size={14} color="#bdc2ff" /></View>}
                 </TouchableOpacity>
               );
@@ -1007,7 +1244,11 @@ export default function RoomScreen() {
           </View>
 
           {/* 이동 거리 — 3열 */}
+<<<<<<< HEAD
           <Text allowFontScaling={false} style={styles.sectionTitle}>이동 거리 선호</Text>
+=======
+          <Text style={styles.sectionTitle}>이동 거리 선호</Text>
+>>>>>>> main
           <View style={styles.grid3}>
             {DISTANCE_OPTIONS.map((opt) => {
               const active = distance === opt.value;
@@ -1019,15 +1260,24 @@ export default function RoomScreen() {
                   activeOpacity={0.8}
                 >
                   <Ionicons name={opt.icon} size={20} color={active ? '#bdc2ff' : '#8a8f98'} />
+<<<<<<< HEAD
                   <Text allowFontScaling={false} style={[styles.gridCardLabel, active && styles.gridCardLabelActive]}>{opt.label}</Text>
                   <Text allowFontScaling={false} style={styles.grid3Desc}>{opt.desc}</Text>
+=======
+                  <Text style={[styles.gridCardLabel, active && styles.gridCardLabelActive]}>{opt.label}</Text>
+                  <Text style={styles.grid3Desc}>{opt.desc}</Text>
+>>>>>>> main
                 </TouchableOpacity>
               );
             })}
           </View>
 
           {/* 선호 분위기 — 2열 그리드 */}
+<<<<<<< HEAD
           <Text allowFontScaling={false} style={styles.sectionTitle}>선호 분위기</Text>
+=======
+          <Text style={styles.sectionTitle}>선호 분위기</Text>
+>>>>>>> main
           <View style={styles.grid2}>
             {ATMOSPHERE_OPTIONS.map((opt) => {
               const active = atmosphere === opt.value;
@@ -1039,7 +1289,11 @@ export default function RoomScreen() {
                   activeOpacity={0.8}
                 >
                   <Ionicons name={opt.icon} size={22} color={active ? opt.iconColor : '#8a8f98'} />
+<<<<<<< HEAD
                   <Text allowFontScaling={false} style={[styles.gridCardLabel, active && styles.gridCardLabelActive]}>{opt.label}</Text>
+=======
+                  <Text style={[styles.gridCardLabel, active && styles.gridCardLabelActive]}>{opt.label}</Text>
+>>>>>>> main
                   {active && <View style={styles.gridCheck}><Ionicons name="checkmark-circle" size={14} color="#bdc2ff" /></View>}
                 </TouchableOpacity>
               );
@@ -1049,7 +1303,11 @@ export default function RoomScreen() {
           {formError ? (
             <View style={styles.errorRow}>
               <Ionicons name="warning-outline" size={14} color="#ffb4ab" />
+<<<<<<< HEAD
               <Text allowFontScaling={false} style={styles.errorText}>{formError}</Text>
+=======
+              <Text style={styles.errorText}>{formError}</Text>
+>>>>>>> main
             </View>
           ) : null}
         </ScrollView>
@@ -1064,13 +1322,21 @@ export default function RoomScreen() {
             {saving
               ? <ActivityIndicator color="#fdfaff" size="small" />
               : <>
+<<<<<<< HEAD
                 <Text allowFontScaling={false} style={styles.primaryBtnText}>선호 저장하기</Text>
+=======
+                <Text style={styles.primaryBtnText}>선호 저장하기</Text>
+>>>>>>> main
                 <Ionicons name="arrow-forward" size={16} color="#fdfaff" />
               </>
             }
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.back()} activeOpacity={0.8} style={styles.ghostBtn}>
+<<<<<<< HEAD
             <Text allowFontScaling={false} style={styles.ghostBtnText}>나중에 저장하기</Text>
+=======
+            <Text style={styles.ghostBtnText}>나중에 저장하기</Text>
+>>>>>>> main
           </TouchableOpacity>
         </View>
       </View>
@@ -1086,8 +1352,13 @@ export default function RoomScreen() {
           {/* 진행 현황 */}
           <View style={styles.progressSection}>
             <View style={styles.progressHeader}>
+<<<<<<< HEAD
               <Text allowFontScaling={false} style={styles.sectionEyebrow}>준비 현황</Text>
               <Text allowFontScaling={false} style={styles.progressCount}>{readyCount}/{participants.length} 준비됨</Text>
+=======
+              <Text style={styles.sectionEyebrow}>준비 현황</Text>
+              <Text style={styles.progressCount}>{readyCount}/{participants.length} 준비됨</Text>
+>>>>>>> main
             </View>
             <View style={styles.progressTrack}>
               <View style={[styles.progressFill, styles.progressGlow, { width: `${progressPct}%` as any }]} />
@@ -1095,13 +1366,18 @@ export default function RoomScreen() {
           </View>
 
           {/* 참가자 목록 */}
+<<<<<<< HEAD
           <Text allowFontScaling={false} style={[styles.sectionEyebrow, { marginBottom: 8 }]}>참가자</Text>
+=======
+          <Text style={[styles.sectionEyebrow, { marginBottom: 8 }]}>참가자</Text>
+>>>>>>> main
           <View style={styles.participantList}>
             {participants.map((p) => {
               const isReady = p.userId === currentUserId ? locationSaved : Boolean(p.abstractLocation);
               return (
                 <View key={p.id} style={[styles.participantCard, { borderLeftColor: isReady ? '#27a644' : '#5e6ad2' }]}>
                   <View style={styles.participantAvatar}>
+<<<<<<< HEAD
                     {p.user.profileImage
                       ? <Image source={{ uri: p.user.profileImage }} style={styles.participantAvatarImg} />
                       : <Text allowFontScaling={false} style={styles.participantAvatarText}>{p.user.nickname[0]?.toUpperCase()}</Text>
@@ -1110,16 +1386,31 @@ export default function RoomScreen() {
                   <View style={styles.participantInfo}>
                     <Text allowFontScaling={false} style={styles.participantName}>{p.user.nickname}</Text>
                     <Text allowFontScaling={false} style={styles.participantRole}>{p.isHost ? '호스트' : '참가자'}</Text>
+=======
+                    <Text style={styles.participantAvatarText}>{p.user.nickname[0]?.toUpperCase()}</Text>
+                  </View>
+                  <View style={styles.participantInfo}>
+                    <Text style={styles.participantName}>{p.user.nickname}</Text>
+                    <Text style={styles.participantRole}>{p.isHost ? '호스트' : '참가자'}</Text>
+>>>>>>> main
                   </View>
                   <View style={styles.participantStatusRow}>
                     {isReady ? (
                       <>
+<<<<<<< HEAD
                         <Text allowFontScaling={false} style={styles.statusReady}>READY</Text>
+=======
+                        <Text style={styles.statusReady}>READY</Text>
+>>>>>>> main
                         <Ionicons name="checkmark-circle-outline" size={18} color="#27a644" />
                       </>
                     ) : (
                       <>
+<<<<<<< HEAD
                         <Text allowFontScaling={false} style={styles.statusWaiting}>WAITING</Text>
+=======
+                        <Text style={styles.statusWaiting}>WAITING</Text>
+>>>>>>> main
                         <Ionicons name="hourglass-outline" size={18} color="#8a8f98" />
                       </>
                     )}
@@ -1131,7 +1422,11 @@ export default function RoomScreen() {
 
           <TouchableOpacity onPress={() => setLocationSaved(false)} style={styles.editLink} activeOpacity={0.8}>
             <Ionicons name="create-outline" size={14} color="#8a8f98" />
+<<<<<<< HEAD
             <Text allowFontScaling={false} style={styles.editLinkText}>내 선호 수정하기</Text>
+=======
+            <Text style={styles.editLinkText}>내 선호 수정하기</Text>
+>>>>>>> main
           </TouchableOpacity>
         </ScrollView>
 
@@ -1143,7 +1438,11 @@ export default function RoomScreen() {
             onPress={() => handleRunPini()}
           >
             <Ionicons name="flash" size={18} color="#fdfaff" />
+<<<<<<< HEAD
             <Text allowFontScaling={false} style={styles.piniBtnText}>
+=======
+            <Text style={styles.piniBtnText}>
+>>>>>>> main
               {allReady ? 'PINI 실행하기' : `대기 중 (${readyCount}/${participants.length})`}
             </Text>
           </TouchableOpacity>
@@ -1162,18 +1461,30 @@ export default function RoomScreen() {
           <View style={styles.successIconBg}>
             <Ionicons name="checkmark-circle" size={40} color="#bdc2ff" />
           </View>
+<<<<<<< HEAD
           <Text allowFontScaling={false} style={styles.successTitle}>선호가 저장됐어요!</Text>
           <Text allowFontScaling={false} style={styles.successSub}>호스트가 일정을 확정하는 동안 잠시 기다려주세요.</Text>
+=======
+          <Text style={styles.successTitle}>선호가 저장됐어요!</Text>
+          <Text style={styles.successSub}>호스트가 일정을 확정하는 동안 잠시 기다려주세요.</Text>
+>>>>>>> main
         </View>
 
         {/* 호스트 상태 카드 */}
         <View style={styles.hostStatusCard}>
           <View style={styles.hostStatusTop}>
             <View>
+<<<<<<< HEAD
               <Text allowFontScaling={false} style={styles.sectionEyebrow}>호스트 현황</Text>
               <View style={styles.hostStatusRow}>
                 <Animated.View style={[styles.pulseDot, { opacity: pulseAnim }]} />
                 <Text allowFontScaling={false} style={styles.hostStatusLabel}>일정 분석 중</Text>
+=======
+              <Text style={styles.sectionEyebrow}>호스트 현황</Text>
+              <View style={styles.hostStatusRow}>
+                <Animated.View style={[styles.pulseDot, { opacity: pulseAnim }]} />
+                <Text style={styles.hostStatusLabel}>일정 분석 중</Text>
+>>>>>>> main
               </View>
             </View>
             <View style={styles.syncBox}>
@@ -1183,13 +1494,22 @@ export default function RoomScreen() {
           <View style={styles.progressTrack}>
             <Animated.View style={[styles.shimmerBar, { opacity: shimmerAnim }]} />
           </View>
+<<<<<<< HEAD
           <Text allowFontScaling={false} style={styles.hostStatusHint}>참가자들의 일정을 분석하고 있어요...</Text>
+=======
+          <Text style={styles.hostStatusHint}>참가자들의 일정을 분석하고 있어요...</Text>
+>>>>>>> main
         </View>
 
         {/* 참가자 준비 현황 */}
         <View style={styles.readinessHeader}>
+<<<<<<< HEAD
           <Text allowFontScaling={false} style={styles.sectionEyebrow}>참가자 ({readyCount}/{participants.length})</Text>
           <Text allowFontScaling={false} style={styles.readinessPct}>{participants.length > 0 ? Math.round(progressPct) : 0}% 준비</Text>
+=======
+          <Text style={styles.sectionEyebrow}>참가자 ({readyCount}/{participants.length})</Text>
+          <Text style={styles.readinessPct}>{participants.length > 0 ? Math.round(progressPct) : 0}% 준비</Text>
+>>>>>>> main
         </View>
         <View style={styles.participantList}>
           {participants.map((p) => {
@@ -1197,6 +1517,7 @@ export default function RoomScreen() {
             return (
               <View key={p.id} style={[styles.participantCard, { borderLeftColor: isReady ? '#27a644' : '#ffb867' }]}>
                 <View style={styles.participantAvatar}>
+<<<<<<< HEAD
                   {p.user.profileImage
                     ? <Image source={{ uri: p.user.profileImage }} style={styles.participantAvatarImg} />
                     : <Text allowFontScaling={false} style={styles.participantAvatarText}>{p.user.nickname[0]?.toUpperCase()}</Text>
@@ -1205,12 +1526,23 @@ export default function RoomScreen() {
                 <View style={styles.participantInfo}>
                   <Text allowFontScaling={false} style={styles.participantName}>{p.user.nickname}</Text>
                   <Text allowFontScaling={false} style={[styles.participantStatus2, { color: isReady ? '#27a644' : '#ffb867' }]}>
+=======
+                  <Text style={styles.participantAvatarText}>{p.user.nickname[0]?.toUpperCase()}</Text>
+                </View>
+                <View style={styles.participantInfo}>
+                  <Text style={styles.participantName}>{p.user.nickname}</Text>
+                  <Text style={[styles.participantStatus2, { color: isReady ? '#27a644' : '#ffb867' }]}>
+>>>>>>> main
                     {isReady ? '준비됨' : '검토 중'}
                   </Text>
                 </View>
                 {p.isHost && (
                   <View style={styles.hostBadge}>
+<<<<<<< HEAD
                     <Text allowFontScaling={false} style={styles.hostBadgeText}>호스트</Text>
+=======
+                    <Text style={styles.hostBadgeText}>호스트</Text>
+>>>>>>> main
                   </View>
                 )}
               </View>
@@ -1222,12 +1554,21 @@ export default function RoomScreen() {
         <View style={styles.sessionCard}>
           <View style={styles.sessionCardRow}>
             <Ionicons name="calendar-outline" size={16} color="#bdc2ff" />
+<<<<<<< HEAD
             <Text allowFontScaling={false} style={styles.sectionEyebrow}>모임 코드</Text>
           </View>
           <Text allowFontScaling={false} style={styles.sessionCode}>{roomCode}</Text>
           <TouchableOpacity onPress={() => setLocationSaved(false)} style={styles.editLink} activeOpacity={0.8}>
             <Ionicons name="create-outline" size={13} color="#8a8f98" />
             <Text allowFontScaling={false} style={styles.editLinkText}>선호 수정하기</Text>
+=======
+            <Text style={styles.sectionEyebrow}>모임 코드</Text>
+          </View>
+          <Text style={styles.sessionCode}>{roomCode}</Text>
+          <TouchableOpacity onPress={() => setLocationSaved(false)} style={styles.editLink} activeOpacity={0.8}>
+            <Ionicons name="create-outline" size={13} color="#8a8f98" />
+            <Text style={styles.editLinkText}>선호 수정하기</Text>
+>>>>>>> main
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -1235,7 +1576,11 @@ export default function RoomScreen() {
       <View style={styles.footer}>
         <View style={styles.waitingBtn}>
           <Ionicons name="hourglass-outline" size={16} color="#8a8f98" />
+<<<<<<< HEAD
           <Text allowFontScaling={false} style={styles.waitingBtnText}>호스트를 기다리는 중...</Text>
+=======
+          <Text style={styles.waitingBtnText}>호스트를 기다리는 중...</Text>
+>>>>>>> main
         </View>
       </View>
     </View>
@@ -1248,7 +1593,11 @@ const styles = StyleSheet.create({
   body: { padding: 16, paddingBottom: 32 },
 
   /* 공통 */
+<<<<<<< HEAD
   footer: { paddingHorizontal: 16, paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#23252a', gap: 6 },
+=======
+  footer: { padding: 16, borderTopWidth: 1, borderTopColor: '#23252a', gap: 10 },
+>>>>>>> main
   primaryBtn: { height: 56, backgroundColor: '#5e6ad2', borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   primaryBtnText: { fontSize: 14, fontWeight: '700', color: '#fdfaff' },
   ghostBtn: { height: 40, alignItems: 'center', justifyContent: 'center' },
@@ -1263,6 +1612,7 @@ const styles = StyleSheet.create({
   stepEyebrow: { fontSize: 11, fontWeight: '600', color: '#8a8f98', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 4 },
   stepTitle: { fontSize: 22, fontWeight: '700', color: '#f7f8f8', letterSpacing: -0.4 },
   fieldLabel: { fontSize: 11, fontWeight: '600', color: '#8a8f98', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 },
+<<<<<<< HEAD
   sectionTitle: { fontSize: 15, fontWeight: '600', color: '#f7f8f8', marginBottom: 10 },
 
   /* 카카오 장소 검색 */
@@ -1289,6 +1639,11 @@ const styles = StyleSheet.create({
   locationConfirmed: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 6, paddingHorizontal: 2 },
   locationConfirmedText: { fontSize: 11, color: '#27a644', fontWeight: '600' },
 
+=======
+  input: { height: 48, backgroundColor: '#0f1011', borderWidth: 1, borderColor: '#23252a', borderRadius: 8, paddingHorizontal: 16, fontSize: 14, color: '#f7f8f8', marginBottom: 24 },
+  sectionTitle: { fontSize: 15, fontWeight: '600', color: '#f7f8f8', marginBottom: 10 },
+
+>>>>>>> main
   /* 2열 그리드 */
   grid2: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 24 },
   gridCard: { width: '48%', backgroundColor: '#0f1011', borderWidth: 1, borderColor: '#23252a', borderRadius: 12, padding: 14, gap: 6, position: 'relative' },
@@ -1309,8 +1664,12 @@ const styles = StyleSheet.create({
   /* 참가자 카드 */
   participantList: { gap: 6, marginBottom: 16 },
   participantCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#0f1011', borderWidth: 1, borderColor: '#23252a', borderRadius: 8, borderLeftWidth: 4, padding: 14, gap: 12 },
+<<<<<<< HEAD
   participantAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#141516', borderWidth: 1, borderColor: '#34343a', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   participantAvatarImg: { width: 40, height: 40, borderRadius: 20 },
+=======
+  participantAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#141516', borderWidth: 1, borderColor: '#34343a', alignItems: 'center', justifyContent: 'center' },
+>>>>>>> main
   participantAvatarText: { fontSize: 16, fontWeight: '700', color: '#bdc2ff' },
   participantInfo: { flex: 1 },
   participantName: { fontSize: 14, fontWeight: '600', color: '#f7f8f8' },
@@ -1360,6 +1719,7 @@ const styles = StyleSheet.create({
   piniScreen: { flex: 1, backgroundColor: '#131316', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 64 },
   piniCenter: { alignItems: 'center', gap: 16 },
   piniGlowRing: {
+<<<<<<< HEAD
     position: 'absolute', width: 160, height: 160, borderRadius: 80,
     backgroundColor: 'rgba(94,106,210,0.15)', borderWidth: 1, borderColor: 'rgba(94,106,210,0.3)', top: -24,
   },
@@ -1367,6 +1727,27 @@ const styles = StyleSheet.create({
     width: 112, height: 112, borderRadius: 56,
     backgroundColor: 'rgba(47,60,169,0.2)', borderWidth: 1, borderColor: '#2f3ca9',
     alignItems: 'center', justifyContent: 'center', marginBottom: 8,
+=======
+    position: 'absolute',
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: 'rgba(94,106,210,0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(94,106,210,0.3)',
+    top: -24,
+  },
+  piniIconBg: {
+    width: 112,
+    height: 112,
+    borderRadius: 56,
+    backgroundColor: 'rgba(47,60,169,0.2)',
+    borderWidth: 1,
+    borderColor: '#2f3ca9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+>>>>>>> main
   },
   piniTitle: { fontSize: 36, fontWeight: '800', color: '#bdc2ff', letterSpacing: -1 },
   piniSubtitle: { fontSize: 14, fontWeight: '500', color: '#8a8f98', letterSpacing: 0.5 },
@@ -1377,12 +1758,29 @@ const styles = StyleSheet.create({
   piniBadgeText: { fontSize: 11, fontWeight: '600', color: '#8a8f98', letterSpacing: 0.5 },
 
   /* ── AI 결과 화면 ── */
+<<<<<<< HEAD
   mapSection: { height: 360, position: 'relative', overflow: 'hidden', borderBottomWidth: 1, borderBottomColor: '#23252a' },
   mapWebView: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#1c1e24' },
   mapWebFallback: { alignItems: 'center', justifyContent: 'center', gap: 8 },
   mapWebFallbackText: { fontSize: 12, color: '#454652' },
 
   mapInfoOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(19,19,22,0.92)', paddingHorizontal: 16, paddingVertical: 12, gap: 4, borderTopWidth: 1, borderTopColor: '#23252a' },
+=======
+  /* 지도 섹션 */
+  mapSection: { height: 310, position: 'relative', overflow: 'hidden', borderBottomWidth: 1, borderBottomColor: '#23252a' },
+  mapBg: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#1c1e24' },
+  mapRoadH: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: '#23252a' },
+  mapRoadV: { position: 'absolute', top: 0, bottom: 0, width: 1, backgroundColor: '#23252a' },
+  mapMainRoadH: { position: 'absolute', left: 0, right: 0, height: 3, backgroundColor: '#2a2d38' },
+  mapMainRoadV: { position: 'absolute', top: 0, bottom: 0, width: 3, backgroundColor: '#2a2d38' },
+  mapBlock: { position: 'absolute', backgroundColor: '#212330', borderRadius: 3 },
+  mapPinWrap: { position: 'absolute', top: '38%', left: '48%', alignItems: 'center' },
+  mapPinOuter: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(94,106,210,0.25)', borderWidth: 2, borderColor: '#5e6ad2', alignItems: 'center', justifyContent: 'center' },
+  mapPinInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#5e6ad2' },
+  mapPinStem: { width: 2, height: 8, backgroundColor: '#5e6ad2', borderRadius: 1 },
+
+  mapInfoOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(19,19,22,0.88)', paddingHorizontal: 16, paddingVertical: 12, gap: 4, borderTopWidth: 1, borderTopColor: '#23252a' },
+>>>>>>> main
   topPickBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start', backgroundColor: 'rgba(255,184,103,0.15)', borderWidth: 1, borderColor: 'rgba(255,184,103,0.35)', borderRadius: 9999, paddingHorizontal: 8, paddingVertical: 3, marginBottom: 2 },
   topPickText: { fontSize: 10, fontWeight: '700', color: '#ffb867', letterSpacing: 0.5 },
   mapPlaceName: { fontSize: 17, fontWeight: '700', color: '#f7f8f8', letterSpacing: -0.2 },
@@ -1394,6 +1792,7 @@ const styles = StyleSheet.create({
 
   resultEyebrow: { fontSize: 11, fontWeight: '600', color: '#454652', letterSpacing: 1.5, marginTop: 20, paddingHorizontal: 16, marginBottom: 10 },
   altScrollContent: { paddingHorizontal: 16, gap: 10 },
+<<<<<<< HEAD
   altCard: { width: 136, backgroundColor: '#0f1011', borderWidth: 1, borderColor: '#23252a', borderRadius: 14, padding: 14, gap: 8 },
   altCardActive: { borderColor: '#5e6ad2', backgroundColor: '#141620' },
   altIconBox: { width: 36, height: 36, backgroundColor: '#141516', borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
@@ -1416,10 +1815,28 @@ const styles = StyleSheet.create({
   recScoreText: { fontSize: 11, fontWeight: '700' },
   recAtmosphere: { fontSize: 11, color: '#8a8f98' },
   recMatchChip: { paddingHorizontal: 9, paddingVertical: 5, backgroundColor: '#141516', borderRadius: 9, borderWidth: 1, borderColor: '#34343a' },
+=======
+  altCard: { width: 130, backgroundColor: '#0f1011', borderWidth: 1, borderColor: '#23252a', borderRadius: 12, padding: 12, gap: 8 },
+  altCardActive: { borderColor: '#5e6ad2', backgroundColor: '#141516' },
+  altIconBox: { width: 36, height: 36, backgroundColor: '#141516', borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  altName: { fontSize: 12, fontWeight: '600', color: '#d0d6e0', lineHeight: 16 },
+  altMatch: { fontSize: 11, color: '#5e6ad2', fontWeight: '700' },
+
+  recCard: { flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: 16, marginBottom: 8, backgroundColor: '#0f1011', borderWidth: 1, borderColor: '#23252a', borderRadius: 12, padding: 14 },
+  recCardActive: { borderColor: '#5e6ad2' },
+  recRankBox: { width: 32, height: 32, borderRadius: 8, backgroundColor: '#141516', borderWidth: 1, borderColor: '#34343a', alignItems: 'center', justifyContent: 'center' },
+  recRankBoxTop: { backgroundColor: 'rgba(94,106,210,0.15)', borderColor: '#5e6ad2' },
+  recRank: { fontSize: 14, fontWeight: '700', color: '#8a8f98' },
+  recRankTop: { color: '#bdc2ff' },
+  recName: { fontSize: 14, fontWeight: '600', color: '#f7f8f8', marginBottom: 2 },
+  recAddress: { fontSize: 11, color: '#8a8f98' },
+  recMatchChip: { paddingHorizontal: 8, paddingVertical: 4, backgroundColor: '#141516', borderRadius: 8, borderWidth: 1, borderColor: '#34343a' },
+>>>>>>> main
   recMatchChipTop: { backgroundColor: 'rgba(94,106,210,0.15)', borderColor: '#5e6ad2' },
   recMatchText: { fontSize: 12, fontWeight: '700', color: '#8a8f98' },
   recMatchTextTop: { color: '#bdc2ff' },
 
+<<<<<<< HEAD
   recReasoning: { fontSize: 12, color: '#8a8f98', marginTop: 12, lineHeight: 19 },
   recDivider: { height: 1, backgroundColor: '#1d1e23', marginVertical: 12 },
 
@@ -1488,4 +1905,10 @@ const styles = StyleSheet.create({
   confirmBtnText: { fontSize: 14, fontWeight: '700', color: '#fdfaff', letterSpacing: -0.2 },
   retryBtn: { height: 32, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5 },
   retryBtnText: { fontSize: 12, fontWeight: '500', color: '#636878' },
+=======
+  confirmBtn: { height: 52, backgroundColor: '#5e6ad2', borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  confirmBtnText: { fontSize: 14, fontWeight: '700', color: '#fdfaff' },
+  retryBtn: { height: 36, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5 },
+  retryBtnText: { fontSize: 12, fontWeight: '600', color: '#8a8f98' },
+>>>>>>> main
 });

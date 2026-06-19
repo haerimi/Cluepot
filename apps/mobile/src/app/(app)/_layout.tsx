@@ -1,5 +1,9 @@
 import { Tabs, useRouter } from 'expo-router';
+<<<<<<< HEAD
 import { Pressable, Text, View, StyleSheet, Image } from 'react-native';
+=======
+import { Pressable, Text, View, StyleSheet } from 'react-native';
+>>>>>>> main
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '@/store/auth';
@@ -15,10 +19,16 @@ function Logo() {
 
 /* 상단 헤더 오른쪽: 아바타만 */
 function HeaderAvatar() {
+<<<<<<< HEAD
   const router       = useRouter();
   const user         = useAuthStore((s) => s.user);
   const initial      = (user?.nickname?.[0] ?? user?.email?.[0] ?? '?').toUpperCase();
   const profileImage = user?.profileImage ?? null;
+=======
+  const router = useRouter();
+  const user   = useAuthStore((s) => s.user);
+  const initial = (user?.nickname?.[0] ?? user?.email?.[0] ?? '?').toUpperCase();
+>>>>>>> main
 
   return (
     <Pressable
@@ -28,6 +38,7 @@ function HeaderAvatar() {
       accessibilityLabel="프로필 화면으로 이동"
       hitSlop={8}
     >
+<<<<<<< HEAD
       {profileImage ? (
         <Image source={{ uri: profileImage }} style={hdr.avatar} />
       ) : (
@@ -35,6 +46,11 @@ function HeaderAvatar() {
           <Text style={hdr.avatarText}>{initial}</Text>
         </View>
       )}
+=======
+      <View style={hdr.avatar}>
+        <Text style={hdr.avatarText}>{initial}</Text>
+      </View>
+>>>>>>> main
     </Pressable>
   );
 }
@@ -57,11 +73,14 @@ export default function AppLayout() {
             borderTopColor: '#23252a',
             borderTopWidth: 1,
           },
+<<<<<<< HEAD
           tabBarItemStyle: {
             alignItems: 'center',
             justifyContent: 'center',
             paddingVertical: 8,
           },
+=======
+>>>>>>> main
           tabBarActiveTintColor:   '#bdc2ff',
           tabBarInactiveTintColor: '#8a8f98',
           tabBarShowLabel: false,
@@ -79,6 +98,7 @@ export default function AppLayout() {
           }}
         />
         <Tabs.Screen
+<<<<<<< HEAD
           name="rooms/index"
           options={{
             title: '모임',
@@ -90,6 +110,8 @@ export default function AppLayout() {
           }}
         />
         <Tabs.Screen
+=======
+>>>>>>> main
           name="calendar"
           options={{
             title: '캘린더',
@@ -111,6 +133,10 @@ export default function AppLayout() {
         />
 
         {/* ── 탭바에 표시하지 않는 화면 ── */}
+<<<<<<< HEAD
+=======
+        <Tabs.Screen name="rooms/index"           options={{ href: null, headerShown: false }} />
+>>>>>>> main
         <Tabs.Screen name="rooms/[code]"          options={{ href: null, headerShown: false }} />
         <Tabs.Screen name="rooms/create"          options={{ href: null, headerShown: false }} />
         <Tabs.Screen name="rooms/join"            options={{ href: null, headerShown: false }} />
@@ -141,6 +167,7 @@ const hdr = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
+<<<<<<< HEAD
     borderWidth: 1,
     borderColor: '#34343a',
   },
@@ -148,6 +175,13 @@ const hdr = StyleSheet.create({
     backgroundColor: '#5e6ad2',
     alignItems: 'center',
     justifyContent: 'center',
+=======
+    backgroundColor: '#5e6ad2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#34343a',
+>>>>>>> main
   },
   avatarText: {
     fontSize: 12,

@@ -1,9 +1,18 @@
+<<<<<<< HEAD
 import { useEffect, useRef, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, Pressable, ScrollView,
   TouchableOpacity, Animated, Alert, Platform, StatusBar, Share, Image,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
+=======
+import { useEffect, useRef, useState } from 'react';
+import {
+  View, Text, StyleSheet, Pressable, ScrollView,
+  TouchableOpacity, Animated, Alert, Platform, StatusBar, Share,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+>>>>>>> main
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
@@ -18,6 +27,7 @@ type RoomRow = {
     name: string;
     category: string;
     status: string;
+<<<<<<< HEAD
     schedule: { id: string; scheduledAt: string; placeName: string } | null;
   };
 };
@@ -33,6 +43,12 @@ function formatScheduledAt(iso: string): string {
   return `${M}월 ${D}일 ${ampm} ${hour}:${m}`;
 }
 
+=======
+    schedule: { id: string } | null;
+  };
+};
+
+>>>>>>> main
 /* ── Config ─────────────────────────────────────────────────────────────── */
 
 const CATEGORY_CONFIG: Record<string, { label: string; icon: keyof typeof Ionicons.glyphMap; bg: string }> = {
@@ -54,7 +70,10 @@ const FILTERS: { key: FilterKey; label: string }[] = [
 /* ── NavHeader ─────────────────────────────────────────────────────────── */
 
 function NavHeader({ initial, onBack }: { initial: string; onBack: () => void }) {
+<<<<<<< HEAD
   const profileImage = useAuthStore((s) => s.user?.profileImage ?? null);
+=======
+>>>>>>> main
   return (
     <View style={navHdr.wrap}>
       <TouchableOpacity onPress={onBack} style={navHdr.backBtn} hitSlop={8}>
@@ -62,15 +81,20 @@ function NavHeader({ initial, onBack }: { initial: string; onBack: () => void })
       </TouchableOpacity>
       <Text style={navHdr.logo}>Clue<Text style={navHdr.accent}>Pot</Text></Text>
       <View style={navHdr.avatar}>
+<<<<<<< HEAD
         {profileImage
           ? <Image source={{ uri: profileImage }} style={navHdr.avatarImg} />
           : <Text style={navHdr.avatarText}>{initial}</Text>
         }
+=======
+        <Text style={navHdr.avatarText}>{initial}</Text>
+>>>>>>> main
       </View>
     </View>
   );
 }
 
+<<<<<<< HEAD
 const SB_H = Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0;
 const navHdr = StyleSheet.create({
   wrap:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: SB_H, height: 56 + SB_H, borderBottomWidth: 1, borderBottomColor: '#23252a', backgroundColor: '#131316' },
@@ -79,6 +103,14 @@ const navHdr = StyleSheet.create({
   accent:     { color: '#bdc2ff' },
   avatar:     { width: 30, height: 30, borderRadius: 15, backgroundColor: '#5e6ad2', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#34343a', overflow: 'hidden' },
   avatarImg:  { width: 30, height: 30, borderRadius: 15 },
+=======
+const navHdr = StyleSheet.create({
+  wrap:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, height: 56, borderBottomWidth: 1, borderBottomColor: '#23252a', backgroundColor: '#131316' },
+  backBtn:    { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  logo:       { fontSize: 20, fontWeight: '700', color: '#f7f8f8', letterSpacing: -0.3 },
+  accent:     { color: '#bdc2ff' },
+  avatar:     { width: 30, height: 30, borderRadius: 15, backgroundColor: '#5e6ad2', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#34343a' },
+>>>>>>> main
   avatarText: { fontSize: 12, fontWeight: '700', color: '#fdfaff' },
 });
 
@@ -131,7 +163,11 @@ function SkeletonCard() {
 
 /* ── RoomDetailCard ─────────────────────────────────────────────────────── */
 
+<<<<<<< HEAD
 function RoomDetailCard({ item, onEnter, onViewSchedule, onLongPress, onCardPress }: { item: RoomRow; onEnter: () => void; onViewSchedule: () => void; onLongPress?: () => void; onCardPress?: () => void }) {
+=======
+function RoomDetailCard({ item, onEnter, onViewSchedule }: { item: RoomRow; onEnter: () => void; onViewSchedule: () => void }) {
+>>>>>>> main
   const [copied, setCopied] = useState(false);
   const scale = useRef(new Animated.Value(1)).current;
 
@@ -176,11 +212,17 @@ function RoomDetailCard({ item, onEnter, onViewSchedule, onLongPress, onCardPres
       <View style={s.cardInner}>
       {/* 카드 상단 — 전체가 탭 영역 */}
       <Pressable
+<<<<<<< HEAD
         onPress={onCardPress ?? (isDone ? onViewSchedule : onEnter)}
         onLongPress={onLongPress}
         onPressIn={onCardPress ? undefined : pressIn}
         onPressOut={onCardPress ? undefined : pressOut}
         delayLongPress={400}
+=======
+        onPress={isDone ? onViewSchedule : onEnter}
+        onPressIn={pressIn}
+        onPressOut={pressOut}
+>>>>>>> main
         style={s.cardTop}
         accessibilityRole="button"
         accessibilityLabel={isDone ? `${item.room.name || cat.label + ' 모임'} 일정 상세보기` : `${item.room.name || cat.label + ' 모임'} 모임 입장`}
@@ -224,6 +266,7 @@ function RoomDetailCard({ item, onEnter, onViewSchedule, onLongPress, onCardPres
       {/* 카드 하단 — room code + CTA */}
       <View style={s.cardBottom}>
         <View style={s.codeBlock}>
+<<<<<<< HEAD
           {isDone && item.room.schedule?.scheduledAt && (
             <View style={s.scheduleInfoRow}>
               <Ionicons name="calendar-outline" size={11} color="#27a644" />
@@ -233,6 +276,11 @@ function RoomDetailCard({ item, onEnter, onViewSchedule, onLongPress, onCardPres
           <Text style={s.codeLabel} allowFontScaling={false}>ROOM CODE</Text>
           <View style={s.codeRow}>
             <Text style={s.codeText} allowFontScaling={false}>{item.room.roomCode}</Text>
+=======
+          <Text style={s.codeLabel}>ROOM CODE</Text>
+          <View style={s.codeRow}>
+            <Text style={s.codeText}>{item.room.roomCode}</Text>
+>>>>>>> main
             <TouchableOpacity
               onPress={handleCopy}
               hitSlop={12}
@@ -242,22 +290,36 @@ function RoomDetailCard({ item, onEnter, onViewSchedule, onLongPress, onCardPres
               accessibilityLabel={copied ? '코드 복사됨' : '코드 복사'}
             >
               <Ionicons name={copied ? 'checkmark' : 'copy-outline'} size={13} color={copied ? '#27a644' : '#bdc2ff'} />
+<<<<<<< HEAD
               <Text style={[s.copyText, copied && s.copyTextDone]} allowFontScaling={false}>{copied ? '복사됨' : 'Copy'}</Text>
+=======
+              <Text style={[s.copyText, copied && s.copyTextDone]}>{copied ? '복사됨' : 'Copy'}</Text>
+>>>>>>> main
             </TouchableOpacity>
           </View>
         </View>
 
         <Pressable
+<<<<<<< HEAD
           onPress={onCardPress ?? (isDone ? onViewSchedule : onEnter)}
           onLongPress={onLongPress}
           onPressIn={onCardPress ? undefined : pressIn}
           onPressOut={onCardPress ? undefined : pressOut}
           delayLongPress={400}
+=======
+          onPress={isDone ? onViewSchedule : onEnter}
+          onPressIn={pressIn}
+          onPressOut={pressOut}
+>>>>>>> main
           style={({ pressed }) => [s.enterBtn, isDone && s.enterBtnDone, pressed && { opacity: 0.82 }]}
           accessibilityRole="button"
           accessibilityLabel={isDone ? '일정 상세보기' : '모임 입장'}
         >
+<<<<<<< HEAD
           <Text style={[s.enterBtnText, isDone && s.enterBtnTextDone]} allowFontScaling={false}>{isDone ? '상세보기' : '입장'}</Text>
+=======
+          <Text style={[s.enterBtnText, isDone && s.enterBtnTextDone]}>{isDone ? '상세보기' : '입장'}</Text>
+>>>>>>> main
           <Ionicons name={isDone ? 'calendar-outline' : 'arrow-forward'} size={13} color={isDone ? '#8a8f98' : '#fdfaff'} />
         </Pressable>
       </View>
@@ -288,6 +350,7 @@ export default function RoomsListScreen() {
   const nickname = useAuthStore((s) => s.user?.nickname ?? s.user?.email ?? '?');
   const initial  = nickname[0].toUpperCase();
 
+<<<<<<< HEAD
   const [rooms,        setRooms]        = useState<RoomRow[]>([]);
   const [loading,      setLoading]      = useState(true);
   const [filter,       setFilter]       = useState<FilterKey>('all');
@@ -364,6 +427,13 @@ export default function RoomsListScreen() {
       },
     ]);
   }
+=======
+  const [rooms,   setRooms]   = useState<RoomRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter,  setFilter]  = useState<FilterKey>('all');
+
+  useEffect(() => { fetchRooms(); }, []);
+>>>>>>> main
 
   async function fetchRooms() {
     setLoading(true);
@@ -391,6 +461,7 @@ export default function RoomsListScreen() {
       <StatusBar barStyle="light-content" backgroundColor="#131316" />
       <NavHeader initial={initial} onBack={() => router.back()} />
 
+<<<<<<< HEAD
       {/* 선택 모드 상단 바 */}
       {selectMode && (
         <View style={s.selectBar}>
@@ -412,6 +483,8 @@ export default function RoomsListScreen() {
         </View>
       )}
 
+=======
+>>>>>>> main
       <ScrollView
         style={s.scroll}
         contentContainerStyle={s.scrollContent}
@@ -477,6 +550,7 @@ export default function RoomsListScreen() {
           ) : filtered.length === 0 ? (
             <EmptyState filter={filter} />
           ) : (
+<<<<<<< HEAD
             filtered.map((item) => {
               const isSelected = selectedIds.has(item.id);
               return (
@@ -498,6 +572,16 @@ export default function RoomsListScreen() {
                 </View>
               );
             })
+=======
+            filtered.map((item) => (
+              <RoomDetailCard
+                key={item.id}
+                item={item}
+                onEnter={() => router.push(`/(app)/rooms/${item.room.roomCode}`)}
+                onViewSchedule={() => router.push(`/(app)/schedules/${item.room.schedule!.id}`)}
+              />
+            ))
+>>>>>>> main
           )}
         </View>
 
@@ -658,6 +742,7 @@ const s = StyleSheet.create({
 
   /* card bottom */
   cardBottom: {
+<<<<<<< HEAD
     flexDirection: 'row', alignItems: 'flex-end',
     justifyContent: 'space-between',
     paddingHorizontal: 14, paddingVertical: 13,
@@ -665,6 +750,13 @@ const s = StyleSheet.create({
   codeBlock: { flex: 1, marginRight: 12 },
   scheduleInfoRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 6 },
   scheduleInfoText: { fontSize: 11, fontWeight: '600', color: '#27a644' },
+=======
+    flexDirection: 'row', alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14, paddingVertical: 13,
+  },
+  codeBlock: { flex: 1 },
+>>>>>>> main
   codeLabel: {
     fontSize: 10, fontWeight: '600', color: '#454652',
     letterSpacing: 1.4, textTransform: 'uppercase', marginBottom: 4,
@@ -693,7 +785,11 @@ const s = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 5,
     paddingHorizontal: 16, paddingVertical: 10,
     backgroundColor: '#5e6ad2', borderRadius: 10,
+<<<<<<< HEAD
     minHeight: 40, flexShrink: 0,
+=======
+    minHeight: 40,
+>>>>>>> main
   },
   enterBtnDone: {
     backgroundColor: 'transparent',
@@ -727,6 +823,7 @@ const s = StyleSheet.create({
 
   /* shared */
   dot: { width: 6, height: 6, borderRadius: 3 },
+<<<<<<< HEAD
 
   /* 선택 모드 */
   selectBar: {
@@ -748,4 +845,6 @@ const s = StyleSheet.create({
   selectCheckActive: {
     backgroundColor: '#5e6ad2', borderColor: '#5e6ad2',
   },
+=======
+>>>>>>> main
 });

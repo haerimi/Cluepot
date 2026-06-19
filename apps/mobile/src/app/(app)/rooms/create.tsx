@@ -2,7 +2,10 @@ import { useState } from 'react';
 import {
   View, Text, StyleSheet, TextInput,
   TouchableOpacity, ScrollView, ActivityIndicator, Alert, Share,
+<<<<<<< HEAD
   Platform, StatusBar, Image,
+=======
+>>>>>>> main
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,13 +13,17 @@ import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 
 function NavHeader({ initial, onClose }: { initial: string; onClose?: () => void }) {
+<<<<<<< HEAD
   const profileImage = useAuthStore((s) => s.user?.profileImage ?? null);
+=======
+>>>>>>> main
   return (
     <View style={navHdr.wrap}>
       {onClose
         ? <TouchableOpacity onPress={onClose} style={navHdr.sideBtn} hitSlop={8}><Ionicons name="close" size={20} color="#8a8f98" /></TouchableOpacity>
         : <View style={navHdr.sideBtn} />
       }
+<<<<<<< HEAD
       <Text allowFontScaling={false} style={navHdr.logo}>Clue<Text allowFontScaling={false} style={navHdr.accent}>Pot</Text></Text>
       <View style={navHdr.avatar}>
         {profileImage
@@ -35,6 +42,19 @@ const navHdr = StyleSheet.create({
   accent:     { color: '#bdc2ff' },
   avatar:     { width: 30, height: 30, borderRadius: 15, backgroundColor: '#5e6ad2', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#34343a', overflow: 'hidden' },
   avatarImg:  { width: 30, height: 30, borderRadius: 15 },
+=======
+      <Text style={navHdr.logo}>Clue<Text style={navHdr.accent}>Pot</Text></Text>
+      <View style={navHdr.avatar}><Text style={navHdr.avatarText}>{initial}</Text></View>
+    </View>
+  );
+}
+const navHdr = StyleSheet.create({
+  wrap:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, height: 56, borderBottomWidth: 1, borderBottomColor: '#23252a', backgroundColor: '#131316' },
+  sideBtn:    { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  logo:       { fontSize: 20, fontWeight: '700', color: '#f7f8f8', letterSpacing: -0.3 },
+  accent:     { color: '#bdc2ff' },
+  avatar:     { width: 30, height: 30, borderRadius: 15, backgroundColor: '#5e6ad2', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#34343a' },
+>>>>>>> main
   avatarText: { fontSize: 12, fontWeight: '700', color: '#fdfaff' },
 });
 
@@ -91,7 +111,11 @@ export default function CreateRoomScreen() {
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.body}>
           {/* 모임 이름 */}
+<<<<<<< HEAD
           <Text allowFontScaling={false} style={styles.fieldLabel}>PLAN NAME</Text>
+=======
+          <Text style={styles.fieldLabel}>PLAN NAME</Text>
+>>>>>>> main
           <TextInput
             style={styles.input}
             placeholder="모임 이름을 입력하세요..."
@@ -102,7 +126,11 @@ export default function CreateRoomScreen() {
           />
 
           {/* 카테고리 선택 */}
+<<<<<<< HEAD
           <Text allowFontScaling={false} style={[styles.fieldLabel, { marginBottom: 12 }]}>SELECT CATEGORY</Text>
+=======
+          <Text style={[styles.fieldLabel, { marginBottom: 12 }]}>SELECT CATEGORY</Text>
+>>>>>>> main
           {CATEGORIES.map((c) => {
             const active = category === c.value;
             return (
@@ -116,8 +144,13 @@ export default function CreateRoomScreen() {
                   <Ionicons name={c.icon} size={24} color={c.iconColor} />
                 </View>
                 <View style={styles.categoryText}>
+<<<<<<< HEAD
                   <Text allowFontScaling={false} style={styles.categoryLabel}>{c.label}</Text>
                   <Text allowFontScaling={false} style={styles.categoryDesc}>{c.desc}</Text>
+=======
+                  <Text style={styles.categoryLabel}>{c.label}</Text>
+                  <Text style={styles.categoryDesc}>{c.desc}</Text>
+>>>>>>> main
                 </View>
                 {active && (
                   <View style={styles.checkCircle}>
@@ -140,7 +173,11 @@ export default function CreateRoomScreen() {
             {loading
               ? <ActivityIndicator color="#fdfaff" />
               : <>
+<<<<<<< HEAD
                   <Text allowFontScaling={false} style={styles.nextBtnText}>다음 단계</Text>
+=======
+                  <Text style={styles.nextBtnText}>다음 단계</Text>
+>>>>>>> main
                   <Ionicons name="arrow-forward" size={16} color="#fdfaff" />
                 </>
             }
@@ -153,6 +190,7 @@ export default function CreateRoomScreen() {
   /* ── Step 3: 코드 생성 완료 ── */
   return (
     <View style={styles.container}>
+<<<<<<< HEAD
       <StatusBar barStyle="light-content" backgroundColor="#131316" />
       <NavHeader initial={nickname[0].toUpperCase()} />
 
@@ -174,6 +212,25 @@ export default function CreateRoomScreen() {
             {codeDigits.map((digit, i) => (
               <View key={i} style={styles.codeBox}>
                 <Text allowFontScaling={false} style={styles.codeDigit}>{digit}</Text>
+=======
+      <NavHeader initial={nickname[0].toUpperCase()} />
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.body, styles.successBody]}>
+        {/* 성공 아이콘 */}
+        <View style={styles.successIconBg}>
+          <Ionicons name="checkmark-circle" size={40} color="#bdc2ff" />
+        </View>
+        <Text style={styles.successTitle}>모임이 만들어졌어요!</Text>
+        <Text style={styles.successSub}>아래 초대 코드를 참가자들에게 공유해주세요.</Text>
+
+        {/* 코드 카드 */}
+        <View style={styles.codeCard}>
+          <Text style={styles.codeEyebrow}>INVITE CODE</Text>
+          <View style={styles.codeBoxRow}>
+            {codeDigits.map((digit, i) => (
+              <View key={i} style={styles.codeBox}>
+                <Text style={styles.codeDigit}>{digit}</Text>
+>>>>>>> main
               </View>
             ))}
           </View>
@@ -182,8 +239,13 @@ export default function CreateRoomScreen() {
             onPress={handleShare}
             activeOpacity={0.8}
           >
+<<<<<<< HEAD
             <Ionicons name={shared ? 'checkmark' : 'copy-outline'} size={15} color="#fdfaff" />
             <Text allowFontScaling={false} style={styles.inviteBtnText}>{shared ? '복사됨!' : '초대 코드 복사'}</Text>
+=======
+            <Ionicons name={shared ? 'checkmark' : 'copy-outline'} size={16} color="#fdfaff" />
+            <Text style={styles.inviteBtnText}>{shared ? '복사됨!' : '친구 초대하기'}</Text>
+>>>>>>> main
           </TouchableOpacity>
         </View>
 
@@ -191,6 +253,7 @@ export default function CreateRoomScreen() {
         <View style={styles.actionRow}>
           <TouchableOpacity
             style={styles.secondaryBtn}
+<<<<<<< HEAD
             onPress={() => router.replace(`/(app)/rooms/${roomCode}` as any)}
             activeOpacity={0.8}
           >
@@ -210,6 +273,32 @@ export default function CreateRoomScreen() {
         <Text allowFontScaling={false} style={styles.successFootnote}>
           이 코드를 공유하면 참가자가 모임에 합류할 수 있어요.
         </Text>
+=======
+            onPress={() => router.replace(`/(app)/rooms/${roomCode}`)}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="enter-outline" size={16} color="#d0d6e0" />
+            <Text style={styles.secondaryBtnText}>모임 입장</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.secondaryBtn}
+            onPress={() => router.replace('/(app)/home')}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="home-outline" size={16} color="#d0d6e0" />
+            <Text style={styles.secondaryBtnText}>홈으로</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* 안내 카드 */}
+        <View style={styles.infoCard}>
+          <Ionicons name="information-circle-outline" size={20} color="#bdc2ff" />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.infoTitle}>참가자 초대 안내</Text>
+            <Text style={styles.infoDesc}>이 코드를 공유하면 참가자가 모임에 합류할 수 있어요. 코드는 24시간 유효합니다.</Text>
+          </View>
+        </View>
+>>>>>>> main
       </ScrollView>
     </View>
   );
@@ -221,7 +310,10 @@ const styles = StyleSheet.create({
   /* 바디 */
   body: { padding: 16, paddingBottom: 32 },
   successBody: { alignItems: 'center' },
+<<<<<<< HEAD
   successScroll: { alignItems: 'center', paddingHorizontal: 20, paddingTop: 32, paddingBottom: 48 },
+=======
+>>>>>>> main
 
   /* 필드 */
   fieldLabel: { fontSize: 11, fontWeight: '600', color: '#8a8f98', textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 8 },
@@ -280,6 +372,7 @@ const styles = StyleSheet.create({
   nextBtnText: { fontSize: 15, fontWeight: '700', color: '#fdfaff' },
 
   /* 성공 화면 */
+<<<<<<< HEAD
   successHero: { alignItems: 'center', marginBottom: 28 },
   successCheckBg: {
     width: 64, height: 64, borderRadius: 32,
@@ -295,6 +388,22 @@ const styles = StyleSheet.create({
   successTitle: { fontSize: 24, fontWeight: '700', color: '#f7f8f8', letterSpacing: -0.5, marginBottom: 8, textAlign: 'center' },
   successSub: { fontSize: 13, color: '#8a8f98', textAlign: 'center', paddingHorizontal: 16 },
   successFootnote: { fontSize: 11, color: '#454652', textAlign: 'center', marginTop: 16 },
+=======
+  successIconBg: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(47,60,169,0.2)',
+    borderWidth: 1,
+    borderColor: '#2f3ca9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 24,
+    marginBottom: 16,
+  },
+  successTitle: { fontSize: 22, fontWeight: '700', color: '#f7f8f8', letterSpacing: -0.4, marginBottom: 8, textAlign: 'center' },
+  successSub: { fontSize: 13, color: '#8a8f98', textAlign: 'center', marginBottom: 24, paddingHorizontal: 32 },
+>>>>>>> main
 
   /* 코드 카드 */
   codeCard: {
@@ -309,7 +418,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   codeEyebrow: { fontSize: 11, fontWeight: '600', color: '#8a8f98', letterSpacing: 2, textTransform: 'uppercase' },
+<<<<<<< HEAD
   codeBoxRow: { flexDirection: 'row', gap: 6, justifyContent: 'center', width: '100%' },
+=======
+  codeBoxRow: { flexDirection: 'row', gap: 6, justifyContent: 'center' },
+>>>>>>> main
   codeBox: {
     width: 44,
     height: 56,

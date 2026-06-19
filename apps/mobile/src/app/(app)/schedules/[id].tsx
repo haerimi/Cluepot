@@ -2,16 +2,24 @@ import { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Pressable, Alert, Modal, ActivityIndicator,
+<<<<<<< HEAD
   StatusBar, Platform, Image,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import WebView from 'react-native-webview';
 import * as Calendar from 'expo-calendar';
+=======
+  StatusBar,
+} from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+>>>>>>> main
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import { formatDateTime, InitialAvatar } from '@/lib/scheduleUtils';
 
+<<<<<<< HEAD
 const KAKAO_MAP_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_KEY ?? '';
 
 function kakaoMapHtml(lat: number, lng: number, _name: string): string {
@@ -49,6 +57,8 @@ kakao.maps.load(function() {
 </html>`;
 }
 
+=======
+>>>>>>> main
 /* ── Types ─────────────────────────────────────────────────────────────── */
 
 type AttendanceStatus = 'accepted' | 'declined' | 'pending';
@@ -57,7 +67,10 @@ type Participant = {
   id: string;
   userId: string;
   nickname: string;
+<<<<<<< HEAD
   profileImage: string | null;
+=======
+>>>>>>> main
   status: AttendanceStatus;
   isMe: boolean;
 };
@@ -68,14 +81,39 @@ type ScheduleDetail = {
   scheduledAt: string;
   placeName: string;
   placeAddress: string;
+<<<<<<< HEAD
   lat: number;
   lng: number;
+=======
+>>>>>>> main
   memo: string | null;
   isCreator: boolean;
   myStatus: AttendanceStatus;
   participants: Participant[];
 };
 
+<<<<<<< HEAD
+=======
+/* ── Mock ─────────────────────────────────────────────────────────────── */
+
+const MOCK: ScheduleDetail = {
+  id: '1',
+  title: '홍대 팀 회식',
+  scheduledAt: new Date(Date.now() + 86400000 * 3).toISOString(),
+  placeName: '스타벅스 홍대점',
+  placeAddress: '서울 마포구 와우산로 12',
+  memo: '지각하면 벌금 3000원 🙏',
+  isCreator: true,
+  myStatus: 'accepted',
+  participants: [
+    { id: 'p1', userId: 'u1', nickname: '나',    status: 'accepted', isMe: true  },
+    { id: 'p2', userId: 'u2', nickname: '김철수', status: 'accepted', isMe: false },
+    { id: 'p3', userId: 'u3', nickname: '이영희', status: 'pending',  isMe: false },
+    { id: 'p4', userId: 'u4', nickname: '박지수', status: 'declined', isMe: false },
+  ],
+};
+
+>>>>>>> main
 /* ── Helpers ─────────────────────────────────────────────────────────── */
 
 const ATTENDANCE: Record<AttendanceStatus, { label: string; color: string; bg: string }> = {
@@ -86,12 +124,17 @@ const ATTENDANCE: Record<AttendanceStatus, { label: string; color: string; bg: s
 
 /* ── NavHeader ─────────────────────────────────────────────────────────── */
 
+<<<<<<< HEAD
 function NavHeader({ initial, profileImage, onBack, onMore }: { initial: string; profileImage?: string | null; onBack: () => void; onMore?: () => void }) {
+=======
+function NavHeader({ initial, onBack, onMore }: { initial: string; onBack: () => void; onMore: () => void }) {
+>>>>>>> main
   return (
     <View style={nav.wrap}>
       <TouchableOpacity onPress={onBack} style={nav.btn} hitSlop={8}>
         <Ionicons name="chevron-back" size={22} color="#c6c5d5" />
       </TouchableOpacity>
+<<<<<<< HEAD
       <Text allowFontScaling={false} style={nav.logo}>Clue<Text allowFontScaling={false} style={nav.accent}>Pot</Text></Text>
       <View style={nav.right}>
         <View style={nav.avatarWrap}>
@@ -105,11 +148,57 @@ function NavHeader({ initial, profileImage, onBack, onMore }: { initial: string;
             <Ionicons name="ellipsis-vertical" size={18} color="#8a8f98" />
           </TouchableOpacity>
         )}
+=======
+      <Text style={nav.logo}>Clue<Text style={nav.accent}>Pot</Text></Text>
+      <TouchableOpacity onPress={onMore} style={nav.btn} hitSlop={8}>
+        <Ionicons name="ellipsis-vertical" size={20} color="#8a8f98" />
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const nav = StyleSheet.create({
+  wrap:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, height: 56, borderBottomWidth: 1, borderBottomColor: '#23252a', backgroundColor: '#131316' },
+  btn:    { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  logo:   { fontSize: 20, fontWeight: '700', color: '#f7f8f8', letterSpacing: -0.3 },
+  accent: { color: '#bdc2ff' },
+});
+
+/* ── MapPlaceholder ─────────────────────────────────────────────────────── */
+
+function MapPlaceholder({ placeName }: { placeName: string }) {
+  return (
+    <View style={mp.wrap}>
+      {/* road grid */}
+      {[30, 70, 110, 150].map((top) => (
+        <View key={`h${top}`} style={[mp.hLine, { top }]} />
+      ))}
+      {[40, 90, 140, 190].map((left) => (
+        <View key={`v${left}`} style={[mp.vLine, { left }]} />
+      ))}
+      {/* blocks */}
+      <View style={[mp.block, { top: 10, left: 10, width: 55, height: 45 }]} />
+      <View style={[mp.block, { top: 10, left: 100, width: 70, height: 45 }]} />
+      <View style={[mp.block, { top: 80, left: 10, width: 45, height: 55 }]} />
+      <View style={[mp.block, { top: 80, left: 110, width: 55, height: 55 }]} />
+      <View style={[mp.block, { top: 155, left: 50, width: 80, height: 40 }]} />
+      {/* pin */}
+      <View style={mp.pinWrap}>
+        <View style={mp.pinCircle}>
+          <Ionicons name="location" size={16} color="#fdfaff" />
+        </View>
+        <View style={mp.pinTail} />
+      </View>
+      {/* label */}
+      <View style={mp.labelWrap}>
+        <Text style={mp.labelText} numberOfLines={1}>{placeName}</Text>
+>>>>>>> main
       </View>
     </View>
   );
 }
 
+<<<<<<< HEAD
 const SB_H = Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0;
 
 const nav = StyleSheet.create({
@@ -123,6 +212,18 @@ const nav = StyleSheet.create({
   avatarFallback: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#5e6ad2', alignItems: 'center', justifyContent: 'center' },
   avatarText:   { fontSize: 12, fontWeight: '700', color: '#fdfaff' },
   moreBtn:      { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
+=======
+const mp = StyleSheet.create({
+  wrap:      { height: 200, backgroundColor: '#0f1011', borderRadius: 14, borderWidth: 1, borderColor: '#23252a', overflow: 'hidden', position: 'relative', alignItems: 'center', justifyContent: 'center' },
+  hLine:     { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: '#1c1b1f' },
+  vLine:     { position: 'absolute', top: 0, bottom: 0, width: 1, backgroundColor: '#1c1b1f' },
+  block:     { position: 'absolute', backgroundColor: '#141516', borderRadius: 4 },
+  pinWrap:   { alignItems: 'center', zIndex: 10 },
+  pinCircle: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#5e6ad2', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#fdfaff' },
+  pinTail:   { width: 2, height: 8, backgroundColor: '#5e6ad2', marginTop: -1 },
+  labelWrap: { position: 'absolute', bottom: 12, left: 16, right: 16, backgroundColor: '#141516', borderRadius: 8, borderWidth: 1, borderColor: '#34343a', paddingHorizontal: 10, paddingVertical: 6 },
+  labelText: { fontSize: 12, fontWeight: '600', color: '#f7f8f8', textAlign: 'center' },
+>>>>>>> main
 });
 
 /* ── ScheduleDetailScreen ──────────────────────────────────────────────── */
@@ -130,9 +231,14 @@ const nav = StyleSheet.create({
 export default function ScheduleDetailScreen() {
   const { id }   = useLocalSearchParams<{ id: string }>();
   const router   = useRouter();
+<<<<<<< HEAD
   const nickname     = useAuthStore((s) => s.user?.nickname ?? '?');
   const profileImage = useAuthStore((s) => s.user?.profileImage ?? null);
   const initial      = nickname[0].toUpperCase();
+=======
+  const nickname = useAuthStore((s) => s.user?.nickname ?? '?');
+  const initial  = nickname[0].toUpperCase();
+>>>>>>> main
 
   const [schedule, setSchedule] = useState<ScheduleDetail | null>(null);
   const [loading,  setLoading]  = useState(true);
@@ -147,7 +253,12 @@ export default function ScheduleDetailScreen() {
       const { data } = await api.get(`/schedules/${id}`);
       setSchedule(data);
     } catch {
+<<<<<<< HEAD
       Alert.alert('오류', '일정을 불러올 수 없어요.', [{ text: '확인', onPress: () => router.back() }]);
+=======
+      // fallback to mock while API is not ready
+      setSchedule(MOCK);
+>>>>>>> main
     } finally {
       setLoading(false);
     }
@@ -158,11 +269,15 @@ export default function ScheduleDetailScreen() {
     setRsvpLoading(true);
     try {
       await api.patch(`/schedules/${id}/rsvp`, { status });
+<<<<<<< HEAD
       setSchedule((prev) => prev ? {
         ...prev,
         myStatus: status,
         participants: prev.participants.map((p) => p.isMe ? { ...p, status } : p),
       } : prev);
+=======
+      setSchedule((prev) => prev ? { ...prev, myStatus: status } : prev);
+>>>>>>> main
     } catch {
       Alert.alert('오류', '응답을 저장하지 못했어요.');
     } finally {
@@ -170,6 +285,7 @@ export default function ScheduleDetailScreen() {
     }
   }
 
+<<<<<<< HEAD
   async function handleAddToCalendar() {
     if (!schedule) return;
     try {
@@ -211,6 +327,8 @@ export default function ScheduleDetailScreen() {
     }
   }
 
+=======
+>>>>>>> main
   async function handleDelete() {
     Alert.alert('일정 삭제', '이 일정을 삭제할까요?', [
       { text: '취소', style: 'cancel' },
@@ -220,7 +338,11 @@ export default function ScheduleDetailScreen() {
         onPress: async () => {
           try {
             await api.delete(`/schedules/${id}`);
+<<<<<<< HEAD
             router.replace('/(app)/rooms/index' as any);
+=======
+            router.back();
+>>>>>>> main
           } catch {
             Alert.alert('오류', '삭제하지 못했어요.');
           }
@@ -233,7 +355,11 @@ export default function ScheduleDetailScreen() {
     return (
       <View style={s.root}>
         <StatusBar barStyle="light-content" backgroundColor="#131316" />
+<<<<<<< HEAD
         <NavHeader initial={initial} profileImage={profileImage} onBack={() => router.back()} />
+=======
+        <NavHeader initial={initial} onBack={() => router.back()} onMore={() => {}} />
+>>>>>>> main
         <View style={s.loadingWrap}>
           <ActivityIndicator color="#bdc2ff" />
         </View>
@@ -250,7 +376,11 @@ export default function ScheduleDetailScreen() {
   return (
     <View style={s.root}>
       <StatusBar barStyle="light-content" backgroundColor="#131316" />
+<<<<<<< HEAD
       <NavHeader initial={initial} profileImage={profileImage} onBack={() => router.back()} onMore={schedule.isCreator ? () => setMoreOpen(true) : undefined} />
+=======
+      <NavHeader initial={initial} onBack={() => router.back()} onMore={() => setMoreOpen(true)} />
+>>>>>>> main
 
       <ScrollView
         style={s.scroll}
@@ -261,10 +391,17 @@ export default function ScheduleDetailScreen() {
         <View style={s.titleSection}>
           <View style={s.confirmedBadge}>
             <View style={[s.dot, { backgroundColor: '#27a644' }]} />
+<<<<<<< HEAD
             <Text allowFontScaling={false} style={s.confirmedBadgeText}>일정 확정됨</Text>
           </View>
           <Text allowFontScaling={false} style={s.title}>{schedule.title}</Text>
           <Text allowFontScaling={false} style={s.participantSummary}>
+=======
+            <Text style={s.confirmedBadgeText}>일정 확정됨</Text>
+          </View>
+          <Text style={s.title}>{schedule.title}</Text>
+          <Text style={s.participantSummary}>
+>>>>>>> main
             {accepted}/{total}명 참석 확정
           </Text>
         </View>
@@ -276,8 +413,13 @@ export default function ScheduleDetailScreen() {
               <Ionicons name="calendar-outline" size={16} color="#bdc2ff" />
             </View>
             <View>
+<<<<<<< HEAD
               <Text allowFontScaling={false} style={s.infoLabel}>날짜</Text>
               <Text allowFontScaling={false} style={s.infoValue}>{date}</Text>
+=======
+              <Text style={s.infoLabel}>날짜</Text>
+              <Text style={s.infoValue}>{date}</Text>
+>>>>>>> main
             </View>
           </View>
 
@@ -288,8 +430,13 @@ export default function ScheduleDetailScreen() {
               <Ionicons name="time-outline" size={16} color="#bdc2ff" />
             </View>
             <View>
+<<<<<<< HEAD
               <Text allowFontScaling={false} style={s.infoLabel}>시간</Text>
               <Text allowFontScaling={false} style={s.infoValue}>{time}</Text>
+=======
+              <Text style={s.infoLabel}>시간</Text>
+              <Text style={s.infoValue}>{time}</Text>
+>>>>>>> main
             </View>
           </View>
 
@@ -300,15 +447,22 @@ export default function ScheduleDetailScreen() {
               <Ionicons name="location-outline" size={16} color="#bdc2ff" />
             </View>
             <View style={{ flex: 1 }}>
+<<<<<<< HEAD
               <Text allowFontScaling={false} style={s.infoLabel}>장소</Text>
               <Text allowFontScaling={false} style={s.infoValue}>{schedule.placeName}</Text>
               <Text allowFontScaling={false} style={s.infoSub}>{schedule.placeAddress}</Text>
+=======
+              <Text style={s.infoLabel}>장소</Text>
+              <Text style={s.infoValue}>{schedule.placeName}</Text>
+              <Text style={s.infoSub}>{schedule.placeAddress}</Text>
+>>>>>>> main
             </View>
           </View>
         </View>
 
         {/* ── 지도 ── */}
         <View style={s.section}>
+<<<<<<< HEAD
           {Platform.OS !== 'web' ? (
             <WebView
               key={`${schedule.lat}-${schedule.lng}`}
@@ -328,28 +482,45 @@ export default function ScheduleDetailScreen() {
               <Text allowFontScaling={false} style={s.mapFallbackText}>지도는 앱에서 확인하세요</Text>
             </View>
           )}
+=======
+          <MapPlaceholder placeName={schedule.placeName} />
+>>>>>>> main
         </View>
 
         {/* ── 참가자 ── */}
         <View style={s.section}>
+<<<<<<< HEAD
           <Text allowFontScaling={false} style={s.sectionTitle}>참가자 {total}명</Text>
+=======
+          <Text style={s.sectionTitle}>참가자 {total}명</Text>
+>>>>>>> main
           <View style={s.participantList}>
             {schedule.participants.map((p, idx) => {
               const att = ATTENDANCE[p.status];
               const isLast = idx === schedule.participants.length - 1;
               return (
                 <View key={p.id} style={[s.participantRow, !isLast && s.participantRowBorder]}>
+<<<<<<< HEAD
                   {p.profileImage
                     ? <Image source={{ uri: p.profileImage }} style={s.participantImg} />
                     : <InitialAvatar name={p.nickname} size={36} />
                   }
                   <View style={s.participantInfo}>
                     <Text allowFontScaling={false} style={s.participantName}>
+=======
+                  <InitialAvatar name={p.nickname} size={36} />
+                  <View style={s.participantInfo}>
+                    <Text style={s.participantName}>
+>>>>>>> main
                       {p.nickname}{p.isMe ? ' (나)' : ''}
                     </Text>
                   </View>
                   <View style={[s.attBadge, { backgroundColor: att.bg }]}>
+<<<<<<< HEAD
                     <Text allowFontScaling={false} style={[s.attBadgeText, { color: att.color }]}>{att.label}</Text>
+=======
+                    <Text style={[s.attBadgeText, { color: att.color }]}>{att.label}</Text>
+>>>>>>> main
                   </View>
                 </View>
               );
@@ -360,14 +531,22 @@ export default function ScheduleDetailScreen() {
         {/* ── 메모 ── */}
         {schedule.memo && (
           <View style={s.section}>
+<<<<<<< HEAD
             <Text allowFontScaling={false} style={s.sectionTitle}>메모</Text>
             <View style={s.memoBox}>
               <Ionicons name="document-text-outline" size={14} color="#8a8f98" style={{ marginTop: 1 }} />
               <Text allowFontScaling={false} style={s.memoText}>{schedule.memo}</Text>
+=======
+            <Text style={s.sectionTitle}>메모</Text>
+            <View style={s.memoBox}>
+              <Ionicons name="document-text-outline" size={14} color="#8a8f98" style={{ marginTop: 1 }} />
+              <Text style={s.memoText}>{schedule.memo}</Text>
+>>>>>>> main
             </View>
           </View>
         )}
 
+<<<<<<< HEAD
         {/* ── 일정 확인하기 ── */}
         <View style={s.section}>
           <TouchableOpacity
@@ -386,6 +565,12 @@ export default function ScheduleDetailScreen() {
         {!schedule.isCreator && (
           <View style={s.section}>
             <Text allowFontScaling={false} style={s.sectionTitle}>내 참석 응답</Text>
+=======
+        {/* ── 내 참석 응답 (비호스트) ── */}
+        {!schedule.isCreator && (
+          <View style={s.section}>
+            <Text style={s.sectionTitle}>내 참석 응답</Text>
+>>>>>>> main
             <View style={s.rsvpRow}>
               <Pressable
                 style={({ pressed }) => [
@@ -401,7 +586,11 @@ export default function ScheduleDetailScreen() {
                   size={16}
                   color={schedule.myStatus === 'accepted' ? '#27a644' : '#8a8f98'}
                 />
+<<<<<<< HEAD
                 <Text allowFontScaling={false} style={[s.rsvpBtnText, schedule.myStatus === 'accepted' && s.rsvpBtnTextAccepted]}>
+=======
+                <Text style={[s.rsvpBtnText, schedule.myStatus === 'accepted' && s.rsvpBtnTextAccepted]}>
+>>>>>>> main
                   참석
                 </Text>
               </Pressable>
@@ -419,7 +608,11 @@ export default function ScheduleDetailScreen() {
                   size={16}
                   color={schedule.myStatus === 'declined' ? '#ffb4ab' : '#8a8f98'}
                 />
+<<<<<<< HEAD
                 <Text allowFontScaling={false} style={[s.rsvpBtnText, schedule.myStatus === 'declined' && s.rsvpBtnTextDeclined]}>
+=======
+                <Text style={[s.rsvpBtnText, schedule.myStatus === 'declined' && s.rsvpBtnTextDeclined]}>
+>>>>>>> main
                   불참
                 </Text>
               </Pressable>
@@ -437,10 +630,17 @@ export default function ScheduleDetailScreen() {
           <View style={s.sheetHandle} />
           <TouchableOpacity
             style={s.sheetItem}
+<<<<<<< HEAD
             onPress={() => { setMoreOpen(false); router.push({ pathname: '/(app)/calendar/[scheduleId]', params: { scheduleId: id } } as any); }}
           >
             <Ionicons name="create-outline" size={20} color="#d0d6e0" />
             <Text allowFontScaling={false} style={s.sheetItemText}>일정 수정</Text>
+=======
+            onPress={() => { setMoreOpen(false); router.push(`/(app)/calendar/${id}`); }}
+          >
+            <Ionicons name="create-outline" size={20} color="#d0d6e0" />
+            <Text style={s.sheetItemText}>일정 수정</Text>
+>>>>>>> main
           </TouchableOpacity>
           <View style={s.sheetDivider} />
           <TouchableOpacity
@@ -448,7 +648,11 @@ export default function ScheduleDetailScreen() {
             onPress={() => { setMoreOpen(false); handleDelete(); }}
           >
             <Ionicons name="trash-outline" size={20} color="#ffb4ab" />
+<<<<<<< HEAD
             <Text allowFontScaling={false} style={[s.sheetItemText, { color: '#ffb4ab' }]}>일정 삭제</Text>
+=======
+            <Text style={[s.sheetItemText, { color: '#ffb4ab' }]}>일정 삭제</Text>
+>>>>>>> main
           </TouchableOpacity>
         </View>
       </Modal>
@@ -561,7 +765,10 @@ const s = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
   },
+<<<<<<< HEAD
   participantImg: { width: 36, height: 36, borderRadius: 18, borderWidth: 1, borderColor: '#34343a' },
+=======
+>>>>>>> main
   participantRowBorder: { borderBottomWidth: 1, borderBottomColor: '#1c1b1f' },
   participantInfo: { flex: 1 },
   participantName: { fontSize: 14, fontWeight: '600', color: '#f7f8f8', letterSpacing: -0.1 },
@@ -620,6 +827,7 @@ const s = StyleSheet.create({
   sheetItemText: { fontSize: 15, fontWeight: '500', color: '#d0d6e0' },
   sheetDivider: { height: 1, backgroundColor: '#1c1b1f' },
 
+<<<<<<< HEAD
   /* calendar */
   calendarBtn: {
     flexDirection: 'row',
@@ -639,6 +847,8 @@ const s = StyleSheet.create({
   mapFallback: { backgroundColor: '#0f1011', borderWidth: 1, borderColor: '#23252a', alignItems: 'center', justifyContent: 'center', gap: 8 },
   mapFallbackText: { fontSize: 13, color: '#454652' },
 
+=======
+>>>>>>> main
   /* shared */
   dot: { width: 6, height: 6, borderRadius: 3 },
 });

@@ -38,12 +38,17 @@ export function InviteCodeWidget() {
 
   return (
     <div
+<<<<<<< HEAD
       className="rounded-2xl border border-hairline bg-surface overflow-hidden"
+=======
+      className="rounded-2xl border border-hairline bg-white shadow-sm overflow-hidden"
+>>>>>>> main
       style={{ animation: "fade-up 0.4s ease-out 0.2s both" }}
     >
       {/* 헤더 */}
       <div className="flex items-center gap-2.5 px-5 pt-5 pb-4 border-b border-hairline">
         <div
+<<<<<<< HEAD
           className="w-8 h-8 rounded-xl bg-accent-light flex items-center justify-center shrink-0 text-accent"
           aria-hidden="true"
         >
@@ -52,6 +57,16 @@ export function InviteCodeWidget() {
             <path d="M1.5 8.5H11.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
             <path d="M4.5 2L3.5 11" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
             <path d="M9.5 2L8.5 11" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+=======
+          className="w-8 h-8 rounded-xl bg-accent-light flex items-center justify-center shrink-0"
+          aria-hidden="true"
+        >
+          <svg width="15" height="15" viewBox="0 0 13 13" fill="none">
+            <path d="M1.5 4.5H11.5" stroke="#7298C7" strokeWidth="1.4" strokeLinecap="round" />
+            <path d="M1.5 8.5H11.5" stroke="#7298C7" strokeWidth="1.4" strokeLinecap="round" />
+            <path d="M4.5 2L3.5 11" stroke="#7298C7" strokeWidth="1.4" strokeLinecap="round" />
+            <path d="M9.5 2L8.5 11" stroke="#7298C7" strokeWidth="1.4" strokeLinecap="round" />
+>>>>>>> main
           </svg>
         </div>
         <div>
@@ -90,7 +105,11 @@ export function InviteCodeWidget() {
               "placeholder:text-ink-subtle/60 placeholder:font-sans placeholder:tracking-normal placeholder:text-[13px]",
               error
                 ? "border-error-border focus:ring-2 focus:ring-error/20 focus:border-error bg-error-bg/30"
+<<<<<<< HEAD
                 : "border-hairline focus:ring-2 focus:ring-accent/25 focus:border-accent focus:bg-surface-2 focus:shadow-[0_0_0_4px_rgba(94,106,210,0.08)]",
+=======
+                : "border-hairline focus:ring-2 focus:ring-accent/25 focus:border-accent focus:bg-white focus:shadow-[0_0_0_4px_rgba(114,152,199,0.08)]",
+>>>>>>> main
             ].join(" ")}
           />
           <button
@@ -98,9 +117,15 @@ export function InviteCodeWidget() {
             disabled={isLoading || !code.trim()}
             aria-label={isLoading ? "참가 중…" : "모임 참가하기"}
             className="h-11 px-5 rounded-xl bg-accent text-white text-[13px] font-semibold shrink-0
+<<<<<<< HEAD
                        shadow-[0_1px_4px_rgba(94,106,210,0.25)]
                        hover:bg-accent-hover hover:-translate-y-0.5
                        hover:shadow-[0_3px_10px_rgba(94,106,210,0.35)]
+=======
+                       shadow-[0_1px_4px_rgba(114,152,199,0.25)]
+                       hover:bg-accent-hover hover:-translate-y-0.5
+                       hover:shadow-[0_3px_10px_rgba(114,152,199,0.35)]
+>>>>>>> main
                        active:translate-y-0 active:scale-95 active:shadow-sm
                        disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0
                        transition-all duration-150
@@ -130,9 +155,15 @@ export function InviteCodeWidget() {
               aria-hidden="true"
               className="shrink-0 mt-0.5"
             >
+<<<<<<< HEAD
               <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.4" />
               <path d="M7 4v3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
               <circle cx="7" cy="10" r="0.7" fill="currentColor" />
+=======
+              <circle cx="7" cy="7" r="6" stroke="#DC2626" strokeWidth="1.4" />
+              <path d="M7 4v3.5" stroke="#DC2626" strokeWidth="1.4" strokeLinecap="round" />
+              <circle cx="7" cy="10" r="0.7" fill="#DC2626" />
+>>>>>>> main
             </svg>
             <p className="text-[12px] font-medium text-error leading-snug">{error}</p>
           </div>

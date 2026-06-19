@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+<<<<<<< HEAD
 import { prisma } from '@/lib/prisma';
 import { getMobileUser } from '@/lib/mobile-auth';
+=======
+import { prisma } from '@/lib/prisma'
+>>>>>>> main
 
 export const dynamic = 'force-dynamic';
 
@@ -20,6 +24,7 @@ export async function GET(req: NextRequest,
   } catch {
     return NextResponse.json({ error: '서버 오류' }, { status: 500 });
   }
+<<<<<<< HEAD
 }
 
 export async function DELETE(
@@ -46,4 +51,6 @@ export async function DELETE(
     console.error('[DELETE /rooms/:code]', e);
     return NextResponse.json({ error: '서버 오류' }, { status: 500 });
   }
+=======
+>>>>>>> main
 }

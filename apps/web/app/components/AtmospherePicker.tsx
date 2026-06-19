@@ -3,6 +3,7 @@
 import { AtmospherePreference } from "@/types/participant";
 import { ChoiceButton } from "@/app/components/ChoiceButton";
 
+<<<<<<< HEAD
 /* ── 분위기별 인라인 SVG 아이콘 ── */
 function IconQuiet() {
   return (
@@ -57,6 +58,19 @@ const ATMOSPHERE_OPTIONS: AtmosphereOption[] = [
   { value: "lively", label: "활기찬" },
   { value: "cozy",   label: "아늑한" },
   { value: "trendy", label: "트렌디한" },
+=======
+interface AtmosphereOption {
+  value: AtmospherePreference;
+  label: string;
+  emoji: string;
+}
+
+const ATMOSPHERE_OPTIONS: AtmosphereOption[] = [
+  { value: "quiet",  label: "조용한",   emoji: "☕" },
+  { value: "lively", label: "활기찬",   emoji: "🎵" },
+  { value: "cozy",   label: "아늑한",   emoji: "🕯" },
+  { value: "trendy", label: "트렌디한", emoji: "✨" },
+>>>>>>> main
 ];
 
 interface AtmospherePickerProps {
@@ -69,7 +83,10 @@ export function AtmospherePicker({ value, onChange }: AtmospherePickerProps) {
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
       {ATMOSPHERE_OPTIONS.map((opt) => {
         const isSelected = value === opt.value;
+<<<<<<< HEAD
         const Icon = ATMOSPHERE_ICONS[opt.value];
+=======
+>>>>>>> main
         return (
           <ChoiceButton
             key={opt.value}
@@ -77,9 +94,13 @@ export function AtmospherePicker({ value, onChange }: AtmospherePickerProps) {
             onClick={() => onChange(opt.value)}
             className="min-h-[76px]"
           >
+<<<<<<< HEAD
             <span className={isSelected ? "text-accent" : "text-ink-subtle"}>
               <Icon />
             </span>
+=======
+            <span className="text-xl leading-none">{opt.emoji}</span>
+>>>>>>> main
             <span
               className={[
                 "text-[11px] font-semibold leading-tight mt-0.5",

@@ -144,8 +144,13 @@ function DrawerContent({
       <div
         className="rounded-xl p-4"
         style={{
+<<<<<<< HEAD
           backgroundColor: isSelected ? "rgba(94,106,210,0.06)" : "#141516",
           border: `1px solid ${isSelected ? "rgba(94,106,210,0.15)" : "#23252a"}`,
+=======
+          backgroundColor: isSelected ? "rgba(114,152,199,0.04)" : "#F7F6F2",
+          border: `1px solid ${isSelected ? "rgba(114,152,199,0.12)" : "#EAE7DF"}`,
+>>>>>>> main
         }}
       >
         <div className="flex items-center justify-between mb-3">
@@ -266,14 +271,23 @@ export function PlaceCard({
                            hover:text-ink transition-colors py-0.5"
                 aria-expanded={open}
               >
+<<<<<<< HEAD
                 <svg
                   width="11" height="11" viewBox="0 0 11 11" fill="none"
+=======
+                <span
+>>>>>>> main
                   className="transition-transform duration-200"
                   style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
                   aria-hidden="true"
                 >
+<<<<<<< HEAD
                   <path d="M2 4L5.5 7.5L9 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
+=======
+                  ↓
+                </span>
+>>>>>>> main
                 {open ? "접기" : "후기 · 상세 보기"}
               </button>
             </div>

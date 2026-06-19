@@ -3,6 +3,7 @@
 import { DistanceTolerance } from "@/types/participant";
 import { ChoiceButton } from "@/app/components/ChoiceButton";
 
+<<<<<<< HEAD
 /* ── 거리별 인라인 SVG 아이콘 ── */
 function IconShort() {
   return (
@@ -39,13 +40,25 @@ const DISTANCE_ICONS: Record<string, React.FC> = {
 interface DistanceOption {
   value: DistanceTolerance;
   label: string;
+=======
+interface DistanceOption {
+  value: DistanceTolerance;
+  label: string;
+  emoji: string;
+>>>>>>> main
   desc: string;
 }
 
 const DISTANCE_OPTIONS: DistanceOption[] = [
+<<<<<<< HEAD
   { value: "short",  label: "짧게",        desc: "15분 이내" },
   { value: "medium", label: "적당히",       desc: "30분 이내" },
   { value: "far",    label: "상관없어요",   desc: "멀어도 OK" },
+=======
+  { value: "short",  label: "짧게",        emoji: "⚡", desc: "15분 이내" },
+  { value: "medium", label: "적당히",       emoji: "🚶", desc: "30분 이내" },
+  { value: "far",    label: "상관없어요",   emoji: "🗺", desc: "멀어도 OK" },
+>>>>>>> main
 ];
 
 interface DistancePickerProps {
@@ -58,7 +71,10 @@ export function DistancePicker({ value, onChange }: DistancePickerProps) {
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
       {DISTANCE_OPTIONS.map((opt) => {
         const isSelected = value === opt.value;
+<<<<<<< HEAD
         const Icon = DISTANCE_ICONS[opt.value];
+=======
+>>>>>>> main
         return (
           <ChoiceButton
             key={opt.value}
@@ -66,9 +82,13 @@ export function DistancePicker({ value, onChange }: DistancePickerProps) {
             onClick={() => onChange(opt.value)}
             className="min-h-[78px]"
           >
+<<<<<<< HEAD
             <span className={isSelected ? "text-accent" : "text-ink-subtle"}>
               <Icon />
             </span>
+=======
+            <span className="text-xl leading-none">{opt.emoji}</span>
+>>>>>>> main
             <span
               className={[
                 "text-[11px] font-semibold leading-tight mt-0.5",

@@ -4,6 +4,7 @@ import { getMobileUser } from '@/lib/mobile-auth';
 
 export const dynamic = 'force-dynamic';
 
+<<<<<<< HEAD
 export async function POST(req: NextRequest) {
   try {
     const user = await getMobileUser(req);
@@ -59,6 +60,8 @@ export async function POST(req: NextRequest) {
   }
 }
 
+=======
+>>>>>>> main
 export async function GET(req: NextRequest) {
   try {
     const user = await getMobileUser(req);
@@ -67,10 +70,14 @@ export async function GET(req: NextRequest) {
     const userId = user.id;
 
     const rows = await prisma.schedule.findMany({
+<<<<<<< HEAD
       where: {
         members: { some: { userId } },
         room: { participants: { some: { userId, leftAt: null } } },
       },
+=======
+      where: { members: { some: { userId } } },
+>>>>>>> main
       include: { members: { select: { userId: true, status: true } } },
       orderBy: { scheduledAt: 'asc' },
     });

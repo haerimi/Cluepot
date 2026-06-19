@@ -2,6 +2,7 @@
 
 import { Transport } from "@/types/participant";
 import { ChoiceButton } from "@/app/components/ChoiceButton";
+<<<<<<< HEAD
 
 /* ── 이동수단별 인라인 SVG 아이콘 ── */
 function IconWalk() {
@@ -52,6 +53,8 @@ const TRANSPORT_ICONS: Record<string, React.FC> = {
   car: IconCar,
   bike: IconBike,
 };
+=======
+>>>>>>> main
 
 interface TransportOption {
   value: Transport;
@@ -82,7 +85,11 @@ export function TransportPicker({ value, onChange }: TransportPickerProps) {
             title={t.label}
             isSelected={isSelected}
             onClick={() => onChange(t.value)}
+<<<<<<< HEAD
             className="relative min-h-[76px]"
+=======
+            className="relative min-h-[76px] bg-white hover:bg-surface"
+>>>>>>> main
           >
             {isSelected && (
               <span className="absolute top-1.5 right-1.5 w-3.5 h-3.5 rounded-full bg-accent flex items-center justify-center">

@@ -2,6 +2,7 @@
 
 import { Category } from "@/types/room";
 
+<<<<<<< HEAD
 /* ── 카테고리별 인라인 SVG 아이콘 ── */
 function IconRestaurant() {
   return (
@@ -52,6 +53,8 @@ const CATEGORY_ICONS: Record<string, React.FC> = {
   dessert: IconDessert,
 };
 
+=======
+>>>>>>> main
 export interface CategoryOption {
   value: Category;
   label: string;
@@ -59,11 +62,19 @@ export interface CategoryOption {
 }
 
 export const CATEGORIES: CategoryOption[] = [
+<<<<<<< HEAD
   { value: "restaurant", label: "맛집",   desc: "식사 모임" },
   { value: "cafe",       label: "카페",   desc: "가볍게 차 한잔" },
   { value: "bar",        label: "술집",   desc: "술 한잔 하는 자리" },
   { value: "brunch",     label: "브런치", desc: "여유로운 낮 모임" },
   { value: "dessert",    label: "디저트", desc: "달콤한 시간" },
+=======
+  { value: "restaurant", label: "맛집",   emoji: "🍽", desc: "식사 모임" },
+  { value: "cafe",       label: "카페",   emoji: "☕", desc: "가볍게 차 한잔" },
+  { value: "bar",        label: "술집",   emoji: "🍺", desc: "술 한잔 하는 자리" },
+  { value: "brunch",     label: "브런치", emoji: "🥂", desc: "여유로운 낮 모임" },
+  { value: "dessert",    label: "디저트", emoji: "🍰", desc: "달콤한 시간" },
+>>>>>>> main
 ];
 
 interface CategoryPickerProps {
@@ -90,8 +101,13 @@ export function CategoryPicker({ value, onChange }: CategoryPickerProps) {
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
               "active:scale-[0.98]",
               isSelected
+<<<<<<< HEAD
                 ? "bg-accent-light border-accent shadow-[0_0_0_1px_#5e6ad2]"
                 : "bg-surface border-hairline hover:border-hairline-strong hover:bg-surface-2",
+=======
+                ? "bg-accent-light border-accent shadow-[0_0_0_1px_#7298C7]"
+                : "bg-white border-hairline hover:border-hairline-strong hover:bg-surface",
+>>>>>>> main
               isAloneInRow ? "col-span-2" : "",
             ]
               .filter(Boolean)

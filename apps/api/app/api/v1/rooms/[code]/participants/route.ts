@@ -31,6 +31,7 @@ export async function GET(
   } catch {
     return NextResponse.json({ error: '서버 오류' }, { status: 500 });
   }
+<<<<<<< HEAD
 }
 
 export async function DELETE(
@@ -75,4 +76,6 @@ export async function DELETE(
     console.error('[DELETE /rooms/:code/participants]', e);
     return NextResponse.json({ error: '서버 오류' }, { status: 500 });
   }
+=======
+>>>>>>> main
 }

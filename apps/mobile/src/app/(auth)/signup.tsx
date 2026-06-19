@@ -14,7 +14,11 @@ import { api } from '@/lib/api';
 function NavHeader() {
   return (
     <View style={nav.wrap}>
+<<<<<<< HEAD
       <Text allowFontScaling={false} style={nav.logo}>Clue<Text allowFontScaling={false} style={nav.accent}>Pot</Text></Text>
+=======
+      <Text style={nav.logo}>Clue<Text style={nav.accent}>Pot</Text></Text>
+>>>>>>> main
       <View style={nav.spacer} />
     </View>
   );
@@ -48,7 +52,11 @@ function InputField({
   const [focused, setFocused] = useState(false);
   return (
     <View style={f.group}>
+<<<<<<< HEAD
       <Text allowFontScaling={false} style={f.label}>{label}</Text>
+=======
+      <Text style={f.label}>{label}</Text>
+>>>>>>> main
       <View style={[f.wrap, focused && f.wrapFocused]}>
         {leftIcon && (
           <Ionicons name={leftIcon} size={17} color={focused ? '#bdc2ff' : '#454652'} style={f.leftIcon} />
@@ -68,7 +76,11 @@ function InputField({
         />
         {rightElement}
       </View>
+<<<<<<< HEAD
       {hint ? <Text allowFontScaling={false} style={f.hint}>{hint}</Text> : null}
+=======
+      {hint ? <Text style={f.hint}>{hint}</Text> : null}
+>>>>>>> main
     </View>
   );
 }
@@ -79,7 +91,11 @@ const f = StyleSheet.create({
   wrap:       { flexDirection: 'row', alignItems: 'center', backgroundColor: '#141516', borderWidth: 1.5, borderColor: '#23252a', borderRadius: 10, paddingHorizontal: 14, height: 52 },
   wrapFocused:{ borderColor: '#5e6ad2', backgroundColor: 'rgba(94,106,210,0.06)' },
   leftIcon:   { marginRight: 10 },
+<<<<<<< HEAD
   input:      { flex: 1, fontSize: 15, color: '#f7f8f8', height: '100%', textAlignVertical: 'center' },
+=======
+  input:      { flex: 1, fontSize: 15, color: '#f7f8f8', height: '100%' },
+>>>>>>> main
   hint:       { fontSize: 11, color: '#454652', marginTop: 5, marginLeft: 2 },
 });
 
@@ -133,9 +149,15 @@ export default function SignupScreen() {
       >
         {/* 헤딩 */}
         <View style={s.headingSection}>
+<<<<<<< HEAD
           <Text allowFontScaling={false} style={s.eyebrow}>CREATE ACCOUNT</Text>
           <Text allowFontScaling={false} style={s.heading}>CluePot에 오신 것을{'\n'}환영해요</Text>
           <Text allowFontScaling={false} style={s.subheading}>이메일과 닉네임으로 시작하세요.</Text>
+=======
+          <Text style={s.eyebrow}>CREATE ACCOUNT</Text>
+          <Text style={s.heading}>CluePot에 오신 것을{'\n'}환영해요</Text>
+          <Text style={s.subheading}>이메일과 닉네임으로 시작하세요.</Text>
+>>>>>>> main
         </View>
 
         {/* 카드 */}
@@ -183,7 +205,11 @@ export default function SignupScreen() {
           {error ? (
             <View style={s.errorRow}>
               <Ionicons name="alert-circle-outline" size={14} color="#ffb4ab" />
+<<<<<<< HEAD
               <Text allowFontScaling={false} style={s.errorText}>{error}</Text>
+=======
+              <Text style={s.errorText}>{error}</Text>
+>>>>>>> main
             </View>
           ) : null}
 
@@ -203,7 +229,11 @@ export default function SignupScreen() {
                 ? <ActivityIndicator color="#fdfaff" size="small" />
                 : (
                   <>
+<<<<<<< HEAD
                     <Text allowFontScaling={false} style={s.btnText}>계정 만들기</Text>
+=======
+                    <Text style={s.btnText}>계정 만들기</Text>
+>>>>>>> main
                     <Ionicons name="arrow-forward" size={16} color="#fdfaff" />
                   </>
                 )
@@ -214,20 +244,34 @@ export default function SignupScreen() {
           {/* 구분선 */}
           <View style={s.dividerRow}>
             <View style={s.dividerLine} />
+<<<<<<< HEAD
             <Text allowFontScaling={false} style={s.dividerText}>또는</Text>
+=======
+            <Text style={s.dividerText}>또는</Text>
+>>>>>>> main
             <View style={s.dividerLine} />
           </View>
 
           {/* 로그인 링크 */}
           <TouchableOpacity
+<<<<<<< HEAD
             onPress={() => router.replace('/(auth)/login')}
+=======
+            onPress={() => router.push('/(auth)/login')}
+>>>>>>> main
             style={s.linkBtn}
             activeOpacity={0.7}
             accessibilityRole="button"
           >
+<<<<<<< HEAD
             <Text allowFontScaling={false} style={s.linkText}>
               이미 계정이 있으신가요?{'  '}
               <Text allowFontScaling={false} style={s.linkAccent}>로그인</Text>
+=======
+            <Text style={s.linkText}>
+              이미 계정이 있으신가요?{'  '}
+              <Text style={s.linkAccent}>로그인</Text>
+>>>>>>> main
             </Text>
           </TouchableOpacity>
         </View>
@@ -236,12 +280,20 @@ export default function SignupScreen() {
         <View style={s.securityRow}>
           <View style={s.securityChip}>
             <Ionicons name="shield-checkmark-outline" size={13} color="#454652" />
+<<<<<<< HEAD
             <Text allowFontScaling={false} style={s.securityText}>암호화 보호</Text>
+=======
+            <Text style={s.securityText}>암호화 보호</Text>
+>>>>>>> main
           </View>
           <View style={s.securityDot} />
           <View style={s.securityChip}>
             <Ionicons name="lock-closed-outline" size={13} color="#454652" />
+<<<<<<< HEAD
             <Text allowFontScaling={false} style={s.securityText}>개인정보 안전</Text>
+=======
+            <Text style={s.securityText}>개인정보 안전</Text>
+>>>>>>> main
           </View>
         </View>
       </ScrollView>

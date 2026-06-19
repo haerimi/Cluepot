@@ -2,6 +2,7 @@
 
 @theme {
   /* ── Canvas / Surfaces ── */
+<<<<<<< HEAD
   --color-canvas: #010102;
   --color-surface: #0f1011;
   --color-surface-2: #141516;
@@ -10,6 +11,14 @@
   --color-surface-warm: #141516;
   --color-surface-subtle: #0f1011;
   --color-dark: #5e6ad2;
+=======
+  --color-canvas: #F4F5F0;
+  --color-surface: #F9FAF6;
+  --color-surface-warm: #F0EDE7;
+  --color-surface-subtle: #FDF6E3;
+  --color-surface-3: #EFF1F5;
+  --color-dark: #1E2535;
+>>>>>>> main
 
   /* ── Accent — Lavender Blue ── */
   --color-accent: #5e6ad2;
@@ -26,11 +35,19 @@
   --color-btn-disabled: #2c2f35;
 
   /* ── Ink / Text ── */
+<<<<<<< HEAD
   --color-ink: #f7f8f8;
   --color-ink-muted: #d0d6e0;
   --color-ink-subtle: #8a8f98;
   --color-ink-tertiary: #62666d;
   --color-ink-inverse: #010102;
+=======
+  --color-ink: #1A2033;
+  --color-ink-muted: #5A6A85;
+  --color-ink-subtle: #9AAABF;
+  --color-ink-tertiary: #B8C4D4;
+  --color-ink-inverse: #FFFFFF;
+>>>>>>> main
 
   /* ── Borders ── */
   --color-hairline: #23252a;
@@ -306,7 +323,11 @@ button {
 }
 
 .progress-shimmer {
+<<<<<<< HEAD
   background: linear-gradient(90deg, #5e6ad2 0%, #7a7fad 50%, #5e6ad2 100%);
+=======
+  background: linear-gradient(90deg, #7298C7 0%, #9AB3D8 50%, #7298C7 100%);
+>>>>>>> main
   background-size: 200% 100%;
   animation: progress-shimmer 2s infinite linear;
 }

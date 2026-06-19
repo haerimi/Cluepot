@@ -115,7 +115,11 @@ export function LocationSearchInput({
             "placeholder:text-ink-tertiary",
             "outline-none transition-all duration-200",
             "focus:ring-2 focus:ring-accent focus:ring-offset-0 focus:border-accent",
+<<<<<<< HEAD
             "hover:border-hairline-strong hover:bg-surface-2",
+=======
+            "hover:border-hairline-strong hover:bg-white",
+>>>>>>> main
             error
               ? "border-error bg-error-bg"
               : "border-hairline bg-canvas focus:bg-surface-2",
@@ -137,7 +141,11 @@ export function LocationSearchInput({
         <ul
           id={listboxId}
           role="listbox"
+<<<<<<< HEAD
           className="absolute z-[80] w-full mt-2 bg-surface-2 border border-hairline rounded-xl overflow-hidden"
+=======
+          className="absolute z-[80] w-full mt-2 bg-white border border-hairline rounded-xl shadow-lg overflow-hidden ring-1 ring-ink/5"
+>>>>>>> main
           style={{ animation: "fade-up 0.16s ease-out both" }}
         >
           {results.map((r, idx) => (
