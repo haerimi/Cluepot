@@ -75,11 +75,7 @@ function MyStatusBadge({ status }: { status: string }) {
     );
   }
   return (
-<<<<<<< HEAD
     <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-surface-2 text-ink-subtle border border-hairline shrink-0">
-=======
-    <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-surface-warm text-ink-subtle border border-hairline shrink-0">
->>>>>>> main
       <span className="w-1.5 h-1.5 rounded-full bg-hairline-strong shrink-0" aria-hidden="true" />
       보류
     </span>
@@ -154,13 +150,8 @@ function ScheduleTabs({
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
               "active:scale-95",
               isActive
-<<<<<<< HEAD
                 ? "bg-accent text-white border-accent"
                 : "bg-surface text-ink-muted border-hairline hover:border-accent/50 hover:text-accent hover:-translate-y-0.5",
-=======
-                ? "bg-accent text-white border-accent shadow-sm"
-                : "bg-white text-ink-muted border-hairline hover:border-accent/50 hover:text-accent hover:-translate-y-0.5",
->>>>>>> main
             ].join(" ")}
           >
             {s.title}
@@ -179,11 +170,7 @@ function ScheduleSummaryCard({ schedule }: { schedule: ScheduleListItem }) {
   const { date, time } = formatDateTime(schedule.scheduledAt);
 
   return (
-<<<<<<< HEAD
     <div className="bg-surface border border-hairline rounded-2xl overflow-hidden">
-=======
-    <div className="bg-white border border-hairline rounded-2xl overflow-hidden shadow-sm">
->>>>>>> main
       {/* 상단 액센트 바 */}
       <div className="h-[3px] bg-gradient-to-r from-accent/40 via-accent to-accent/40" aria-hidden="true" />
 
@@ -252,15 +239,9 @@ function ScheduleSummaryCard({ schedule }: { schedule: ScheduleListItem }) {
                 href={`/calendar/${schedule.id}`}
                 className="group w-full flex items-center justify-center gap-2 h-12 rounded-xl
                            bg-accent text-white text-[14px] font-semibold
-<<<<<<< HEAD
                            shadow-[0_2px_8px_rgba(94,106,210,0.30)]
                            hover:bg-accent-hover hover:-translate-y-0.5
                            hover:shadow-[0_4px_14px_rgba(94,106,210,0.40)]
-=======
-                           shadow-[0_2px_8px_rgba(114,152,199,0.30)]
-                           hover:bg-accent-hover hover:-translate-y-0.5
-                           hover:shadow-[0_4px_14px_rgba(114,152,199,0.40)]
->>>>>>> main
                            active:translate-y-0 active:scale-[0.99] active:shadow-sm
                            transition-all duration-150
                            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
@@ -278,11 +259,7 @@ function ScheduleSummaryCard({ schedule }: { schedule: ScheduleListItem }) {
                 href={`/calendar/${schedule.id}`}
                 className="group w-full flex items-center justify-center gap-2 h-11 rounded-xl
                            bg-surface border border-hairline text-ink text-[13px] font-semibold
-<<<<<<< HEAD
                            hover:bg-surface-2 hover:border-hairline-strong hover:-translate-y-0.5
-=======
-                           hover:bg-surface-warm hover:border-hairline-strong hover:-translate-y-0.5
->>>>>>> main
                            active:translate-y-0 active:scale-[0.99]
                            transition-all duration-150
                            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
@@ -305,11 +282,7 @@ function ScheduleSummaryCard({ schedule }: { schedule: ScheduleListItem }) {
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
               isCreator
                 ? "h-10 border border-hairline text-ink-muted hover:border-accent/40 hover:text-accent hover:bg-accent-light/50 active:scale-[0.99]"
-<<<<<<< HEAD
                 : "h-12 bg-accent text-white shadow-[0_2px_8px_rgba(94,106,210,0.30)] hover:bg-accent-hover hover:-translate-y-0.5 hover:shadow-[0_4px_14px_rgba(94,106,210,0.40)] active:translate-y-0 active:scale-[0.99] active:shadow-sm",
-=======
-                : "h-12 bg-accent text-white shadow-[0_2px_8px_rgba(114,152,199,0.30)] hover:bg-accent-hover hover:-translate-y-0.5 hover:shadow-[0_4px_14px_rgba(114,152,199,0.40)] active:translate-y-0 active:scale-[0.99] active:shadow-sm",
->>>>>>> main
             ].join(" ")}
           >
             모임 상세보기
@@ -323,7 +296,6 @@ function ScheduleSummaryCard({ schedule }: { schedule: ScheduleListItem }) {
               <path d="M8 4l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </Link>
-<<<<<<< HEAD
         </div>
       </div>
     </div>
@@ -361,8 +333,6 @@ function PanelEmptyCard({
             <path d="M9 3v4M17 3v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             <path d="M8 16h4M14 16h4M8 20h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
           </svg>
-=======
->>>>>>> main
         </div>
         {eyebrow && (
           <p className="text-[11px] font-bold text-accent tracking-[2px] uppercase mb-2">{eyebrow}</p>
@@ -377,49 +347,6 @@ function PanelEmptyCard({
   );
 }
 
-<<<<<<< HEAD
-=======
-/* ── 오른쪽 패널 공통 빈 상태 카드 ── */
-/* EmptyDetailCard + MonthEmptyCard를 하나로 통합 */
-
-function PanelEmptyCard({
-  eyebrow,
-  title,
-  description,
-  action,
-}: {
-  eyebrow?: string;
-  title: string;
-  description: string;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div className="bg-white border border-hairline rounded-2xl overflow-hidden shadow-sm">
-      {/* 상단 회색 액센트 바 */}
-      <div className="h-[3px] bg-gradient-to-r from-hairline via-hairline-strong to-hairline" aria-hidden="true" />
-      <div className="flex flex-col items-center px-6 py-10 text-center">
-        <div
-          className="w-14 h-14 rounded-2xl bg-accent-light flex items-center justify-center mb-4 text-[26px]
-                     ring-4 ring-accent/10"
-          style={{ animation: "float-slow 4s ease-in-out infinite" }}
-          aria-hidden="true"
-        >
-          📅
-        </div>
-        {eyebrow && (
-          <p className="text-[11px] font-bold text-accent tracking-[2px] uppercase mb-2">{eyebrow}</p>
-        )}
-        <p className="text-[15px] font-bold text-ink mb-1.5">{title}</p>
-        <p className="text-[13px] text-ink-subtle leading-relaxed max-w-[180px]">
-          {description}
-        </p>
-        {action && <div className="mt-7">{action}</div>}
-      </div>
-    </div>
-  );
-}
-
->>>>>>> main
 /* ── CalendarView ── */
 
 interface CalendarViewProps {
@@ -543,11 +470,7 @@ export function CalendarView({ schedules }: CalendarViewProps) {
         >
 
           {/* ── 왼쪽: 캘린더 (8/12) ── */}
-<<<<<<< HEAD
           <div className="lg:col-span-8 bg-surface border border-hairline rounded-2xl overflow-hidden">
-=======
-          <div className="lg:col-span-8 bg-white border border-hairline rounded-2xl overflow-hidden shadow-sm">
->>>>>>> main
 
             {/* 월 네비게이터 */}
             <div className="flex items-center justify-between px-5 lg:px-6 py-4 lg:py-5 border-b border-hairline">
@@ -559,11 +482,7 @@ export function CalendarView({ schedules }: CalendarViewProps) {
                   onClick={prevMonth}
                   aria-label="이전 달"
                   className="w-9 h-9 flex items-center justify-center rounded-xl border border-hairline text-ink-subtle
-<<<<<<< HEAD
                              hover:text-ink hover:bg-surface-2 hover:border-hairline-strong
-=======
-                             hover:text-ink hover:bg-surface-warm hover:border-hairline-strong
->>>>>>> main
                              hover:-translate-y-0.5 active:translate-y-0 active:scale-95
                              transition-all duration-150
                              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1"
@@ -633,19 +552,11 @@ export function CalendarView({ schedules }: CalendarViewProps) {
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
                       /* 상태별 */
                       isSelected
-<<<<<<< HEAD
                         ? "bg-accent/[0.12] border-accent ring-2 ring-accent/60 ring-offset-1 ring-offset-canvas"
                         : hasSchedule
                         ? "bg-accent/[0.07] border-accent/30 hover:bg-accent/[0.12] hover:border-accent/50 cursor-pointer active:scale-[0.97]"
                         : isCurrMonth
                         ? "border-hairline hover:bg-surface-2 hover:border-hairline-strong cursor-pointer active:scale-[0.97]"
-=======
-                        ? "bg-accent/[0.12] border-accent ring-2 ring-accent/60 ring-offset-1 ring-offset-white"
-                        : hasSchedule
-                        ? "bg-accent/[0.07] border-accent/30 hover:bg-accent/[0.12] hover:border-accent/50 cursor-pointer active:scale-[0.97]"
-                        : isCurrMonth
-                        ? "border-hairline hover:bg-surface-warm hover:border-hairline-strong cursor-pointer active:scale-[0.97]"
->>>>>>> main
                         : "border-transparent cursor-default",
                     ].join(" ")}
                   >
@@ -680,11 +591,7 @@ export function CalendarView({ schedules }: CalendarViewProps) {
                           <div
                             key={s.id}
                             className={[
-<<<<<<< HEAD
                               "w-full text-[8px] sm:text-[10px] text-left px-1 py-px rounded font-semibold truncate leading-tight",
-=======
-                              "w-full text-[8px] sm:text-[10px] px-1 py-px rounded font-semibold truncate leading-tight",
->>>>>>> main
                               isSelected ? "bg-accent text-white" : "bg-accent text-white/95",
                             ].join(" ")}
                             aria-hidden="true"
