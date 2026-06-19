@@ -183,55 +183,56 @@ export function WaitingHostCenter({
         </p>
       </div>
 
-      {/* PINI 실행 CTA */}
-      <div
-        className="rounded-xl overflow-hidden"
-        style={
-          allReady
-            ? { animation: "cta-glow 2.4s ease-in-out infinite" }
-            : undefined
-        }
-      >
-        <Button
-          variant="primary"
-          size="lg"
-          fullWidth
-          disabled={!allReady}
-          onClick={onRunPini}
-          aria-label={
+      {/* PINI 실행 CTA — 데스크탑 전용 (모바일은 page.tsx 하단 고정 버튼 사용) */}
+      <div className="hidden lg:block">
+        <div
+          className="rounded-xl overflow-hidden"
+          style={
             allReady
-              ? "PINI 장소 추천 실행"
-              : `참가자 대기 중 — ${readyCount}/${totalCount}명 준비 완료`
+              ? { animation: "cta-glow 2.4s ease-in-out infinite" }
+              : undefined
           }
         >
-          {allReady ? (
-            <>
-              <IconSparkle />
-              <span>PINI 실행하기</span>
-            </>
-          ) : (
-            /* 비활성: 도트 바운스로 "대기 중" 시각화 */
-            <>
-              <span className="flex gap-[3px] shrink-0" aria-hidden="true">
-                {([0, 0.15, 0.3] as const).map((d) => (
-                  <span
-                    key={d}
-                    className="w-1.5 h-1.5 rounded-full bg-white/50"
-                    style={{ animation: `dot-bounce 1.2s ease-in-out ${d}s infinite` }}
-                  />
-                ))}
-              </span>
-              <span>대기 중 ({readyCount}/{totalCount})</span>
-            </>
-          )}
-        </Button>
-      </div>
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            disabled={!allReady}
+            onClick={onRunPini}
+            aria-label={
+              allReady
+                ? "PINI 장소 추천 실행"
+                : `참가자 대기 중 — ${readyCount}/${totalCount}명 준비 완료`
+            }
+          >
+            {allReady ? (
+              <>
+                <IconSparkle />
+                <span>PINI 실행하기</span>
+              </>
+            ) : (
+              <>
+                <span className="flex gap-[3px] shrink-0" aria-hidden="true">
+                  {([0, 0.15, 0.3] as const).map((d) => (
+                    <span
+                      key={d}
+                      className="w-1.5 h-1.5 rounded-full bg-white/50"
+                      style={{ animation: `dot-bounce 1.2s ease-in-out ${d}s infinite` }}
+                    />
+                  ))}
+                </span>
+                <span>대기 중 ({readyCount}/{totalCount})</span>
+              </>
+            )}
+          </Button>
+        </div>
 
-      {!allReady && (
-        <p className="text-[12px] text-ink-subtle text-center -mt-2">
-          모든 참가자가 선호를 저장하면 버튼이 활성화돼요
-        </p>
-      )}
+        {!allReady && (
+          <p className="text-[12px] text-ink-subtle text-center mt-2">
+            모든 참가자가 선호를 저장하면 버튼이 활성화돼요
+          </p>
+        )}
+      </div>
 
       {/* 정보 카드 — 모바일: 가로 스크롤 스냅 / sm+: 3열 그리드 */}
       <div

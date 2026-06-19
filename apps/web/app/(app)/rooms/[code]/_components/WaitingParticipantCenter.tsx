@@ -72,7 +72,7 @@ export function WaitingParticipantCenter({
         <h1 className="text-[24px] sm:text-[28px] font-black text-ink tracking-tight mb-2">
           선호가 저장됐어요!
         </h1>
-        <p className="text-[13px] text-ink-muted leading-relaxed max-w-[260px] sm:max-w-xs">
+        <p className="text-[13px] text-ink-muted leading-relaxed w-full max-w-[260px] sm:max-w-xs">
           호스트가 PINI를 실행할 때까지 잠시만 기다려주세요.
         </p>
 
