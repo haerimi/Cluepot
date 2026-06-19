@@ -90,7 +90,7 @@ export function DateAvailabilityPicker({
           onClick={handlePrev}
           disabled={!canGoPrev}
           aria-label="이전 달"
-          className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-white hover:shadow-sm active:scale-[0.96] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:shadow-none transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-2 active:scale-[0.96] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path
@@ -112,7 +112,7 @@ export function DateAvailabilityPicker({
           onClick={handleNext}
           disabled={!canGoNext}
           aria-label="다음 달"
-          className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-white hover:shadow-sm active:scale-[0.96] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:shadow-none transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-2 active:scale-[0.96] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path
@@ -168,12 +168,12 @@ export function DateAvailabilityPicker({
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
                   "active:scale-[0.94]",
                   isSelected
-                    ? "bg-accent text-white shadow-[0_0_0_2px_#7298C7]"
+                    ? "bg-accent text-white shadow-[0_0_0_2px_#5e6ad2]"
                     : isToday
-                      ? "border border-accent text-accent hover:bg-accent-light hover:shadow-sm"
+                      ? "border border-accent text-accent hover:bg-accent-light"
                       : isDisabled
                         ? "text-ink-subtle opacity-30 cursor-not-allowed"
-                        : "text-ink hover:bg-white hover:shadow-sm",
+                        : "text-ink hover:bg-surface-2",
                 ]
                   .filter(Boolean)
                   .join(" ")}

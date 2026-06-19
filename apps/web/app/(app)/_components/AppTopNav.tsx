@@ -116,10 +116,10 @@ export function AppTopNav({ user }: Readonly<{ user: HydratedUser | null }>) {
         className="lg:hidden flex items-center justify-between px-5 shrink-0"
         style={{
           height: "52px",
-          background: "rgba(250,249,246,0.96)",
-          borderBottom: "1px solid #E2E6EC",
-          backdropFilter: "blur(8px)",
-          WebkitBackdropFilter: "blur(8px)",
+          background: "rgba(1,1,2,0.92)",
+          borderBottom: "1px solid #23252a",
+          backdropFilter: "blur(14px)",
+          WebkitBackdropFilter: "blur(14px)",
         }}
       >
         {/* Brand */}
@@ -158,7 +158,7 @@ export function AppTopNav({ user }: Readonly<{ user: HydratedUser | null }>) {
             aria-label="메뉴 열기"
             aria-expanded={isMenuOpen}
             className="w-9 h-9 flex flex-col items-center justify-center gap-[5px] rounded-lg
-                       hover:bg-surface-warm active:bg-hairline transition-colors"
+                       hover:bg-surface-2 active:bg-hairline transition-colors"
           >
             {/* 메뉴 아이콘 */}
             <div className="flex flex-col gap-[4px]">
@@ -198,9 +198,11 @@ export function AppTopNav({ user }: Readonly<{ user: HydratedUser | null }>) {
                 onClick={closeMenu}
                 aria-label="닫기"
                 className="w-8 h-8 flex items-center justify-center rounded-lg text-ink-subtle
-                           hover:text-ink hover:bg-surface-warm transition-colors text-[16px]"
+                           hover:text-ink hover:bg-surface-2 transition-colors"
               >
-                ✕
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+                  <path d="M1 1L12 12M12 1L1 12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
               </button>
             </div>
 
@@ -220,7 +222,7 @@ export function AppTopNav({ user }: Readonly<{ user: HydratedUser | null }>) {
                       "flex items-center gap-3 px-3 py-3 rounded-xl text-[14px] font-medium transition-colors",
                       isActive
                         ? "bg-accent-light text-accent font-semibold"
-                        : "text-ink-muted hover:bg-surface-warm hover:text-ink",
+                        : "text-ink-muted hover:bg-surface-2 hover:text-ink",
                     ].join(" ")}
                   >
                     <span
@@ -266,7 +268,7 @@ export function AppTopNav({ user }: Readonly<{ user: HydratedUser | null }>) {
                       type="submit"
                       title="로그아웃"
                       className="w-11 h-11 flex items-center justify-center rounded-lg text-ink-subtle
-                                 hover:text-ink-muted hover:bg-surface-warm transition-colors"
+                                 hover:text-ink-muted hover:bg-surface-2 transition-colors"
                     >
                       <LogoutIcon />
                     </button>

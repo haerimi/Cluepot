@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Badge } from "@/app/components/ui/Badge";
@@ -22,49 +22,134 @@ type RoomCardData = {
   };
 };
 
+/* ── 카테고리별 SVG 아이콘 ── */
+
+function IconRestaurant() {
+  return (
+    <svg width="40" height="40" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+      <path d="M7 2v5c0 1.66 1.34 3 3 3h.5v10h1.5v-10H12c1.66 0 3-1.34 3-3V2h-1.5v4h-1V2H11v4h-1V2H7z" fill="currentColor"/>
+    </svg>
+  );
+}
+function IconCafe() {
+  return (
+    <svg width="40" height="40" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+      <path d="M5 6h10v7a4 4 0 01-4 4H9a4 4 0 01-4-4V6z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+      <path d="M15 8h2a2 2 0 010 4h-2" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+      <path d="M4 20h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  );
+}
+function IconBar() {
+  return (
+    <svg width="40" height="40" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+      <path d="M3 4h16l-6 8v6h2v2H7v-2h2v-6L3 4z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+function IconBrunch() {
+  return (
+    <svg width="40" height="40" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+      <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.5"/>
+      <path d="M8 11h6M11 8v6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  );
+}
+function IconDessert() {
+  return (
+    <svg width="40" height="40" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+      <path d="M11 3c-4.5 0-7 3-7 5h14c0-2-2.5-5-7-5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+      <path d="M4 8v1a7 7 0 0014 0V8" stroke="currentColor" strokeWidth="1.5"/>
+      <path d="M8 18h6M11 9v9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  );
+}
+function IconPin() {
+  return (
+    <svg width="40" height="40" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+      <path d="M11 2A6 6 0 0117 8c0 5-6 12-6 12S5 13 5 8a6 6 0 016-6z" stroke="currentColor" strokeWidth="1.5"/>
+      <circle cx="11" cy="8" r="2" fill="currentColor"/>
+    </svg>
+  );
+}
+function IconCrown() {
+  return (
+    <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M2 12h12M2 12L4 6l4 3 4-5 4 5-2 3" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" strokeLinecap="round"/>
+    </svg>
+  );
+}
+function IconTrash() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 10h8l1-10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+function IconEdit() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M11 2l3 3-9 9H2v-3L11 2z" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+function IconTrashLarge() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M3 6h18M8 6V4h8v2M5 6l1 15h12l1-15M10 10v7M14 10v7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
 /* ── 카테고리별 설정 ─────────────────────────────────────────────────── */
 
 const CATEGORY_CONFIG: Record<
   string,
-  { label: string; emoji: string; from: string; to: string }
+  { label: string; Icon: React.FC; from: string; to: string; iconColor: string }
 > = {
   restaurant: {
     label: "맛집",
-    emoji: "🍽",
-    from: "from-[#FFE4D6]",
-    to: "to-[#FFAB85]",
+    Icon: IconRestaurant,
+    from: "from-[#1f1008]",
+    to: "to-[#0f0a04]",
+    iconColor: "text-[#c87941]",
   },
   cafe: {
     label: "카페",
-    emoji: "☕",
-    from: "from-[#FFF3E0]",
-    to: "to-[#FFCC80]",
+    Icon: IconCafe,
+    from: "from-[#1a1408]",
+    to: "to-[#0f0d04]",
+    iconColor: "text-[#b89a5a]",
   },
   bar: {
     label: "술자리",
-    emoji: "🍻",
-    from: "from-[#EDE7F6]",
-    to: "to-[#B39DDB]",
+    Icon: IconBar,
+    from: "from-[#130a1f]",
+    to: "to-[#0a0712]",
+    iconColor: "text-[#9b7ecc]",
   },
   brunch: {
     label: "브런치",
-    emoji: "🥞",
-    from: "from-[#E8F5E9]",
-    to: "to-[#A5D6A7]",
+    Icon: IconBrunch,
+    from: "from-[#0a1a0e]",
+    to: "to-[#040f07]",
+    iconColor: "text-[#5eab74]",
   },
   dessert: {
     label: "디저트",
-    emoji: "🍰",
-    from: "from-[#FCE4EC]",
-    to: "to-[#F48FB1]",
+    Icon: IconDessert,
+    from: "from-[#1f0814]",
+    to: "to-[#0f040a]",
+    iconColor: "text-[#d47aa0]",
   },
 };
 
 const FALLBACK_CATEGORY = {
   label: "모임",
-  emoji: "📍",
-  from: "from-[#F0EDE7]",
-  to: "to-[#D8D3CB]",
+  Icon: IconPin,
+  from: "from-[#141516]",
+  to: "to-[#0f1011]",
+  iconColor: "text-ink-tertiary",
 };
 
 /* ── 상태별 설정 ─────────────────────────────────────────────────────── */
@@ -88,17 +173,19 @@ const FALLBACK_STATUS = {
 
 function EditRoomModal({
   currentName,
-  catEmoji,
   catFrom,
   catTo,
+  catIcon: CatIcon,
+  catIconColor,
   onCancel,
   onConfirm,
   imageUrl,
 }: Readonly<{
   currentName: string;
-  catEmoji: string;
   catFrom: string;
   catTo: string;
+  catIcon: React.FC;
+  catIconColor: string;
   onCancel: () => void;
   onConfirm: (name: string, file: File | null) => Promise<void>;
   imageUrl: string | null;
@@ -153,7 +240,7 @@ function EditRoomModal({
       <button
         type="button"
         aria-label="취소"
-        className="absolute inset-0 bg-black/40 backdrop-blur-[2px] w-full h-full cursor-default"
+        className="absolute inset-0 bg-black/60 backdrop-blur-[2px] w-full h-full cursor-default"
         onClick={isSaving ? undefined : onCancel}
       />
 
@@ -161,11 +248,11 @@ function EditRoomModal({
       <dialog
         open
         aria-labelledby="edit-room-modal-title"
-        className="relative w-full max-w-90 bg-white rounded-t-[24px] sm:rounded-2xl shadow-xl px-6 pt-6 pb-8 flex flex-col gap-5 m-0 p-0"
+        className="relative w-full max-w-90 bg-surface rounded-t-[24px] sm:rounded-2xl shadow-xl px-6 pt-6 pb-8 flex flex-col gap-5 m-0 p-0 border border-hairline"
         style={{ animation: "cinematic-up 0.3s cubic-bezier(0.16,1,0.3,1) both" }}
       >
         {/* drag handle */}
-        <div className="sm:hidden w-10 h-1 bg-hairline rounded-full mx-auto -mb-1" />
+        <div className="sm:hidden w-10 h-1 bg-hairline-strong rounded-full mx-auto -mb-1" />
 
         {/* 헤더 */}
         <h3 id="edit-room-modal-title" className="text-[18px] font-black text-ink text-center tracking-tight">
@@ -197,7 +284,7 @@ function EditRoomModal({
                       alt="커버 미리보기"
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
                       <span className="opacity-0 group-hover:opacity-100 text-white text-[12px] font-semibold transition-opacity">
                         사진 변경
                       </span>
@@ -209,10 +296,10 @@ function EditRoomModal({
                 <div
                   className={`w-full aspect-video rounded-xl bg-linear-to-br ${catFrom} ${catTo}
                     flex flex-col items-center justify-center gap-2 border border-hairline
-                    group-hover:brightness-95 transition-all`}
+                    group-hover:brightness-110 transition-all`}
                 >
-                  <span className="text-[32px]">{catEmoji}</span>
-                  <span className="text-[12px] font-semibold text-black/40 bg-white/60 rounded-full px-3 py-0.5">
+                  <span className={catIconColor}><CatIcon /></span>
+                  <span className="text-[12px] font-semibold text-ink-subtle bg-surface-2/80 rounded-full px-3 py-0.5">
                     사진 선택
                   </span>
                 </div>
@@ -236,7 +323,7 @@ function EditRoomModal({
             onChange={(e) => setName(e.target.value)}
             maxLength={30}
             placeholder="모임 이름을 입력하세요"
-            className="h-11 rounded-xl border border-hairline px-3.5 text-[14px] text-ink placeholder:text-ink-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition"
+            className="h-11 rounded-xl border border-hairline bg-surface px-3.5 text-[14px] text-ink placeholder:text-ink-tertiary focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition"
           />
         </div>
 
@@ -246,7 +333,7 @@ function EditRoomModal({
             <button
               onClick={isSaving ? undefined : onCancel}
               disabled={isSaving}
-              className="flex-1 h-11 rounded-xl border border-hairline text-[14px] font-semibold text-ink-muted hover:bg-surface-3 transition-colors disabled:opacity-50"
+              className="flex-1 h-11 rounded-xl border border-hairline bg-surface-2 text-[14px] font-semibold text-ink-muted hover:bg-surface-3 transition-colors disabled:opacity-50"
             >
               취소
             </button>
@@ -264,7 +351,7 @@ function EditRoomModal({
             </button>
           </div>
           {saveError && (
-            <p className="text-red-400 text-xs mt-1 text-center">{saveError}</p>
+            <p className="text-error text-xs mt-1 text-center">{saveError}</p>
           )}
         </div>
       </dialog>
@@ -309,7 +396,7 @@ function DeleteModal({
       <button
         type="button"
         aria-label="취소"
-        className="absolute inset-0 bg-black/40 backdrop-blur-[2px] w-full h-full cursor-default"
+        className="absolute inset-0 bg-black/60 backdrop-blur-[2px] w-full h-full cursor-default"
         onClick={isDeleting ? undefined : onCancel}
       />
 
@@ -317,17 +404,17 @@ function DeleteModal({
       <dialog
         open
         aria-labelledby="delete-modal-title"
-        className="relative w-full max-w-90 bg-white rounded-t-[24px] sm:rounded-2xl shadow-xl px-6 pt-6 pb-8 m-0 p-0"
+        className="relative w-full max-w-90 bg-surface rounded-t-[24px] sm:rounded-2xl shadow-xl px-6 pt-6 pb-8 m-0 p-0 border border-hairline"
         style={{
           animation: "cinematic-up 0.3s cubic-bezier(0.16,1,0.3,1) both",
         }}
       >
         {/* mobile drag handle */}
-        <div className="sm:hidden w-10 h-1 bg-hairline rounded-full mx-auto mb-5" />
+        <div className="sm:hidden w-10 h-1 bg-hairline-strong rounded-full mx-auto mb-5" />
 
         {/* icon */}
-        <div className="w-12 h-12 rounded-full bg-error-bg flex items-center justify-center mb-4 mx-auto">
-          <span className="text-[22px] leading-none">🗑️</span>
+        <div className="w-12 h-12 rounded-full bg-error-bg flex items-center justify-center mb-4 mx-auto text-error">
+          <IconTrashLarge />
         </div>
 
         <h3 id="delete-modal-title" className="text-[18px] font-black text-ink text-center mb-2 tracking-tight">
@@ -343,7 +430,7 @@ function DeleteModal({
           <button
             onClick={onCancel}
             disabled={isDeleting}
-            className="flex-1 h-11 rounded-xl border border-hairline text-[14px] font-semibold text-ink-muted hover:bg-surface-3 transition-colors disabled:opacity-60"
+            className="flex-1 h-11 rounded-xl border border-hairline bg-surface-2 text-[14px] font-semibold text-ink-muted hover:bg-surface-3 transition-colors disabled:opacity-60"
           >
             취소
           </button>
@@ -411,7 +498,7 @@ export function RoomCard({ data }: Readonly<{ data: RoomCardData }>) {
         {/* ── 카드 본체 (Link) ── */}
         <Link href={`/rooms/${room.roomCode}`} className="block">
           <div
-            className="rounded-2xl overflow-hidden border border-hairline shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+            className="rounded-2xl overflow-hidden border border-hairline hover:border-hairline-strong transition-all duration-200 hover:-translate-y-0.5"
           >
             {/* 커버 (2:3 비율) */}
             <div
@@ -420,12 +507,13 @@ export function RoomCard({ data }: Readonly<{ data: RoomCardData }>) {
             >
               {!room.imageUrl ? (
                 <>
-                  <span className="text-[44px] drop-shadow-sm">{cat.emoji}</span>
-                  <span className="font-mono text-[11px] font-bold text-black/40 tracking-[3px] uppercase">
+                  <span className={cat.iconColor}><cat.Icon /></span>
+                  <span className="font-mono text-[11px] font-bold text-ink-tertiary tracking-[3px] uppercase">
                     {room.roomCode}
                   </span>
                 </>
               ) : (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img src={room.imageUrl} alt={`${room.name} 커버`} className="w-full h-full object-cover" />
               )}
 
@@ -433,7 +521,7 @@ export function RoomCard({ data }: Readonly<{ data: RoomCardData }>) {
               <div
                 className={[
                   "absolute inset-0 flex items-end justify-center pb-4",
-                  "bg-black/0 group-hover:bg-black/15",
+                  "bg-black/0 group-hover:bg-black/25",
                   "opacity-0 group-hover:opacity-100",
                   "transition-all duration-200",
                 ].join(" ")}
@@ -445,7 +533,7 @@ export function RoomCard({ data }: Readonly<{ data: RoomCardData }>) {
             </div>
 
             {/* 정보 영역 */}
-            <div className="bg-white px-3 pt-2.5 pb-3 flex flex-col gap-1.5">
+            <div className="bg-surface px-3 pt-2.5 pb-3 flex flex-col gap-1.5">
               <p className="text-[13px] font-bold text-ink truncate">
                 {room.name || `${cat.label} 모임`}
               </p>
@@ -458,25 +546,26 @@ export function RoomCard({ data }: Readonly<{ data: RoomCardData }>) {
 
         {/* ── 호스트 뱃지 — Link 밖, 절대 위치 ── */}
         {isHost && (
-          <span className="absolute top-2.5 left-2.5 z-10 text-[10px] font-bold bg-white/80 backdrop-blur-sm text-accent px-2 py-0.5 rounded-full shadow-sm pointer-events-none">
-            👑 호스트
+          <span className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1 text-[10px] font-bold bg-[rgba(15,16,17,0.85)] backdrop-blur-sm text-accent px-2 py-0.5 rounded-full border border-hairline pointer-events-none">
+            <IconCrown />
+            호스트
           </span>
         )}
 
         {/* ── 삭제 버튼 — 44px touch target ── */}
         <button
           onClick={() => setConfirming(true)}
-          className="absolute top-2.5 right-2.5 z-10 px-2 py-0.5 flex items-center justify-center rounded-full bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white transition-colors text-[10px] touch-manipulation"
+          className="absolute top-2.5 right-2.5 z-10 w-7 h-7 flex items-center justify-center rounded-full bg-[rgba(15,16,17,0.85)] backdrop-blur-sm border border-hairline hover:border-hairline-strong text-ink-subtle hover:text-ink transition-colors touch-manipulation"
           aria-label="모임 삭제"
         >
-          🗑️
+          <IconTrash />
         </button>
         <button
           onClick={() => setEditModalOpen(true)}
-          className="absolute top-2.5 right-12 z-10 px-2 py-0.5 flex items-center justify-center rounded-full bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white transition-colors text-[10px] touch-manipulation"
+          className="absolute top-2.5 right-11 z-10 w-7 h-7 flex items-center justify-center rounded-full bg-[rgba(15,16,17,0.85)] backdrop-blur-sm border border-hairline hover:border-hairline-strong text-ink-subtle hover:text-ink transition-colors touch-manipulation"
           aria-label="모임 수정"
         >
-          ✏️
+          <IconEdit />
         </button>
       </div>
 
@@ -494,7 +583,8 @@ export function RoomCard({ data }: Readonly<{ data: RoomCardData }>) {
       {editModalOpen && (
         <EditRoomModal
           currentName={room.name}
-          catEmoji={cat.emoji}
+          catIcon={cat.Icon}
+          catIconColor={cat.iconColor}
           catFrom={cat.from}
           catTo={cat.to}
           onCancel={() => setEditModalOpen(false)}

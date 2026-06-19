@@ -18,7 +18,7 @@
  * Whitespace increased throughout; chip density reduced.
  */
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Category } from "@/types/room";
 import { BalanceTag, PerParticipantTime, ReviewIntelligence } from "@/types/recommendation";
 import { Transport } from "@/types/participant";
@@ -33,19 +33,21 @@ const CATEGORY_LABEL: Record<Category, string> = {
   dessert:    "디저트",
 };
 
-const CATEGORY_EMOJI: Record<Category, string> = {
-  restaurant: "🍽",
-  cafe:       "☕",
-  bar:        "🍺",
-  brunch:     "🥂",
-  dessert:    "🍰",
+/* ── 카테고리 SVG 아이콘 (미니) ── */
+const CATEGORY_SVG: Record<Category, React.ReactNode> = {
+  restaurant: <svg width="13" height="13" viewBox="0 0 22 22" fill="none" aria-hidden="true"><path d="M7 2v5c0 1.66 1.34 3 3 3h.5v10h1.5v-10H12c1.66 0 3-1.34 3-3V2h-1.5v4h-1V2H11v4h-1V2H7z" fill="currentColor"/></svg>,
+  cafe:       <svg width="13" height="13" viewBox="0 0 22 22" fill="none" aria-hidden="true"><path d="M5 6h10v7a4 4 0 01-4 4H9a4 4 0 01-4-4V6z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/><path d="M15 8h2a2 2 0 010 4h-2" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/></svg>,
+  bar:        <svg width="13" height="13" viewBox="0 0 22 22" fill="none" aria-hidden="true"><path d="M3 4h16l-6 8v6h2v2H7v-2h2v-6L3 4z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/></svg>,
+  brunch:     <svg width="13" height="13" viewBox="0 0 22 22" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.5"/><path d="M8 11h6M11 8v6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+  dessert:    <svg width="13" height="13" viewBox="0 0 22 22" fill="none" aria-hidden="true"><path d="M11 3c-4.5 0-7 3-7 5h14c0-2-2.5-5-7-5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/><path d="M4 8v1a7 7 0 0014 0V8" stroke="currentColor" strokeWidth="1.5"/></svg>,
 };
 
-const TRANSPORT_EMOJI: Record<Transport, string> = {
-  walk:    "🚶",
-  transit: "🚇",
-  car:     "🚗",
-  bike:    "🚲",
+/* ── 이동수단 SVG 아이콘 (미니) ── */
+const TRANSPORT_SVG: Record<Transport, React.ReactNode> = {
+  walk:    <svg width="13" height="13" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="4" r="1.5" fill="currentColor"/><path d="M7.5 10l1-3 1.5 2 1.5-3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+  transit: <svg width="13" height="13" viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="4" y="4" width="12" height="10" rx="2" stroke="currentColor" strokeWidth="1.4"/><path d="M4 9h12" stroke="currentColor" strokeWidth="1.4"/><circle cx="7.5" cy="11.5" r="0.8" fill="currentColor"/><circle cx="12.5" cy="11.5" r="0.8" fill="currentColor"/></svg>,
+  car:     <svg width="13" height="13" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 10l2-4h10l2 4v4H3v-4z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><circle cx="6" cy="14" r="1.5" stroke="currentColor" strokeWidth="1.2"/><circle cx="14" cy="14" r="1.5" stroke="currentColor" strokeWidth="1.2"/></svg>,
+  bike:    <svg width="13" height="13" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="5.5" cy="13.5" r="2.5" stroke="currentColor" strokeWidth="1.3"/><circle cx="14.5" cy="13.5" r="2.5" stroke="currentColor" strokeWidth="1.3"/><path d="M5.5 13.5L9 7h4l1.5 6.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>,
 };
 
 const BALANCE_TAG_LABEL: Record<BalanceTag, string> = {
@@ -100,8 +102,8 @@ function TravelRows({ times }: Readonly<TravelRowsProps>) {
       <div className="space-y-2 mb-3">
         {times.map((p) => (
           <div key={p.nickname} className="flex items-center gap-2">
-            <span className="text-[13px] w-5 text-center" aria-hidden="true">
-              {TRANSPORT_EMOJI[p.transport]}
+            <span className="w-5 flex items-center justify-center text-ink-subtle shrink-0" aria-hidden="true">
+              {TRANSPORT_SVG[p.transport]}
             </span>
             <span className="text-[13px] font-medium text-ink-muted flex-1">
               {p.nickname}
@@ -142,8 +144,8 @@ function DrawerContent({
       <div
         className="rounded-xl p-4"
         style={{
-          backgroundColor: isSelected ? "rgba(114,152,199,0.04)" : "#F7F6F2",
-          border: `1px solid ${isSelected ? "rgba(114,152,199,0.12)" : "#EAE7DF"}`,
+          backgroundColor: isSelected ? "rgba(94,106,210,0.06)" : "#141516",
+          border: `1px solid ${isSelected ? "rgba(94,106,210,0.15)" : "#23252a"}`,
         }}
       >
         <div className="flex items-center justify-between mb-3">
@@ -225,8 +227,8 @@ export function PlaceCard({
         "rounded-2xl border transition-all duration-200 overflow-hidden",
         "flex flex-col h-full justify-between",
         isSelected
-          ? "bg-accent-light border-accent shadow-[0_0_0_1px_#7298C7,0_4px_16px_rgba(114,152,199,0.12)]"
-          : "bg-white border-hairline shadow-[0_1px_4px_rgba(26,32,51,0.06)] hover:border-hairline-strong hover:shadow-[0_4px_16px_rgba(26,32,51,0.08)]",
+          ? "bg-accent-light border-accent shadow-[0_0_0_1px_#5e6ad2]"
+          : "bg-surface border-hairline hover:border-hairline-strong",
       ].join(" ")}
       style={{ animationDelay }}
     >
@@ -235,8 +237,9 @@ export function PlaceCard({
         {/* ── 1. Place identity ── */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[11px] text-ink-subtle">
-              {CATEGORY_EMOJI[category]} {CATEGORY_LABEL[category]}
+            <span className="flex items-center gap-1 text-[11px] text-ink-subtle">
+              <span className="text-ink-tertiary">{CATEGORY_SVG[category]}</span>
+              {CATEGORY_LABEL[category]}
             </span>
             {rating !== undefined && (
               <span className="flex items-center gap-1 text-[12px] font-medium text-ink-muted">
@@ -263,13 +266,14 @@ export function PlaceCard({
                            hover:text-ink transition-colors py-0.5"
                 aria-expanded={open}
               >
-                <span
+                <svg
+                  width="11" height="11" viewBox="0 0 11 11" fill="none"
                   className="transition-transform duration-200"
                   style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
                   aria-hidden="true"
                 >
-                  ↓
-                </span>
+                  <path d="M2 4L5.5 7.5L9 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
                 {open ? "접기" : "후기 · 상세 보기"}
               </button>
             </div>
@@ -290,7 +294,7 @@ export function PlaceCard({
         {/* ── 2. PINI voice — primary section ── */}
         <div>
           <p className="flex items-center gap-1.5 text-[10px] font-bold text-accent tracking-[1.5px] uppercase mb-2.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-butter shrink-0" />{"피니가 선택한 이유"}
+            <span className="w-1.5 h-1.5 rounded-full bg-accent-muted shrink-0" />{"피니가 선택한 이유"}
           </p>
           <p
             className="text-[14px] text-ink-muted leading-[1.8]"
@@ -315,10 +319,17 @@ export function PlaceCard({
           "flex items-center justify-center gap-2",
           isSelected
             ? "bg-accent text-white"
-            : "bg-canvas text-ink-muted hover:bg-surface-warm",
+            : "bg-canvas text-ink-muted hover:bg-surface-2",
         ].join(" ")}
       >
-        {isSelected ? "✓ 선택됨" : "이 장소 선택하기"}
+        {isSelected ? (
+          <>
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+              <path d="M1.5 6.5L5 10L11.5 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            선택됨
+          </>
+        ) : "이 장소 선택하기"}
       </button>
     </div>
   );

@@ -11,19 +11,58 @@ interface WaitingHostCenterProps {
   readonly onResetPreference: () => void;
 }
 
+function IconLock() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <rect x="4" y="9" width="12" height="9" rx="2" stroke="currentColor" strokeWidth="1.4"/>
+      <path d="M7 9V7a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+      <circle cx="10" cy="13.5" r="1" fill="currentColor"/>
+    </svg>
+  );
+}
+function IconBolt() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path d="M11.5 2L5 11h6l-2.5 7 8-10h-6l3-6z" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+function IconPin() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path d="M10 2A5 5 0 0115 7c0 4-5 11-5 11S5 11 5 7a5 5 0 015-5z" stroke="currentColor" strokeWidth="1.4"/>
+      <circle cx="10" cy="7" r="1.8" fill="currentColor"/>
+    </svg>
+  );
+}
+function IconSparkle() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <path d="M9 1l1.5 5.5L16 8l-5.5 1.5L9 15l-1.5-5.5L2 8l5.5-1.5L9 1z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+function IconCheck() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <path d="M3 9l4.5 4.5L15 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
 const INFO_CARDS = [
   {
-    icon: "🔐",
+    Icon: IconLock,
     title: "선호 보호",
     desc: "각자의 출발지는 서로에게 공개되지 않아요",
   },
   {
-    icon: "⚡",
+    Icon: IconBolt,
     title: "실시간 동기화",
     desc: "참가자 준비 상태를 실시간으로 확인해요",
   },
   {
-    icon: "📍",
+    Icon: IconPin,
     title: "중간지점 계산",
     desc: "이동 시간이 공평한 장소를 찾아드려요",
   },
@@ -71,7 +110,7 @@ export function WaitingHostCenter({
         className="flex items-center gap-3 px-4 py-3 bg-success-bg rounded-xl border border-success/20"
         style={{ animation: "fade-up 0.35s ease-out 0.05s both" }}
       >
-        <span className="text-[18px] shrink-0" aria-hidden="true">✅</span>
+        <span className="shrink-0 w-7 h-7 rounded-full bg-success/20 flex items-center justify-center text-success-text"><IconCheck /></span>
         <div className="flex-1 min-w-0">
           <p className="text-[13px] font-semibold text-success-text leading-tight">
             선호가 저장됐어요
@@ -92,7 +131,7 @@ export function WaitingHostCenter({
       {/* 참여 현황 카드 — allReady 시 테두리·그림자 전환 */}
       <div
         className={[
-          "bg-white rounded-2xl p-5 sm:p-6 transition-all duration-500",
+          "bg-surface rounded-2xl p-5 sm:p-6 transition-all duration-500",
           allReady
             ? "border border-success/30 shadow-[0_0_0_4px_rgba(39,166,68,0.07)]"
             : "border border-hairline shadow-xs",
@@ -139,7 +178,7 @@ export function WaitingHostCenter({
 
         <p className="text-[12px] text-ink-subtle mt-2.5 leading-relaxed">
           {allReady
-            ? "모두 준비됐어요! PINI를 실행해주세요 🎉"
+            ? "모두 준비됐어요! PINI를 실행해주세요"
             : `${totalCount - readyCount}명이 아직 선호를 입력하지 않았어요`}
         </p>
       </div>
@@ -167,7 +206,7 @@ export function WaitingHostCenter({
         >
           {allReady ? (
             <>
-              <span aria-hidden="true">✨</span>
+              <IconSparkle />
               <span>PINI 실행하기</span>
             </>
           ) : (
@@ -205,13 +244,13 @@ export function WaitingHostCenter({
             <div
               key={card.title}
               className={[
-                "w-[158px] sm:w-auto p-4 bg-white border border-hairline rounded-xl text-left shrink-0 snap-start",
+                "w-[158px] sm:w-auto p-4 bg-surface border border-hairline rounded-xl text-left shrink-0 snap-start",
                 "hover:border-hairline-strong hover:shadow-sm hover:-translate-y-0.5 transition-all duration-200 cursor-default",
               ].join(" ")}
               style={{ animation: `fade-up 0.4s ease-out ${0.15 + i * 0.07}s both` }}
             >
-              <span className="text-[20px] mb-2.5 block" aria-hidden="true">
-                {card.icon}
+              <span className="mb-2.5 block text-ink-subtle" aria-hidden="true">
+                <card.Icon />
               </span>
               <h4 className="text-[12px] font-bold text-ink mb-1">{card.title}</h4>
               <p className="text-[11px] text-ink-subtle leading-relaxed">{card.desc}</p>

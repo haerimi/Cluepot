@@ -115,19 +115,19 @@ export function LocationSearchInput({
             "placeholder:text-ink-tertiary",
             "outline-none transition-all duration-200",
             "focus:ring-2 focus:ring-accent focus:ring-offset-0 focus:border-accent",
-            "hover:border-hairline-strong hover:bg-white",
+            "hover:border-hairline-strong hover:bg-surface-2",
             error
               ? "border-error bg-error-bg"
-              : "border-hairline bg-canvas focus:bg-white",
+              : "border-hairline bg-canvas focus:bg-surface-2",
           ].join(" ")}
         />
         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
           {isLoading ? (
             <span className="inline-block w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
           ) : (
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <circle cx="7" cy="7" r="4.5" stroke="#9AAABF" strokeWidth="1.5" />
-              <path d="M10.5 10.5L13 13" stroke="#9AAABF" strokeWidth="1.5" strokeLinecap="round" />
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-ink-subtle">
+              <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M10.5 10.5L13 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           )}
         </div>
@@ -137,7 +137,7 @@ export function LocationSearchInput({
         <ul
           id={listboxId}
           role="listbox"
-          className="absolute z-[80] w-full mt-2 bg-white border border-hairline rounded-xl shadow-lg overflow-hidden ring-1 ring-ink/5"
+          className="absolute z-[80] w-full mt-2 bg-surface-2 border border-hairline rounded-xl overflow-hidden"
           style={{ animation: "fade-up 0.16s ease-out both" }}
         >
           {results.map((r, idx) => (
