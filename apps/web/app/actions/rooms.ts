@@ -129,7 +129,6 @@ export async function updateRoom(roomCode: string, name: string, imageUrl: strin
 
   if (!participant) throw new Error("이 방의 참가자가 아닙니다.");
 
-  if (!participant.isHost) throw new Error("방장만 수정할 수 있습니다.");
 
   await prisma.room.update({
     where: { roomCode },
