@@ -255,10 +255,22 @@ async function fetchNaverBlogReviews(placeName: string): Promise<string[]> {
     );
 }
 
+const CORS_HEADERS = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+};
+
+export async function OPTIONS() {
+    return new Response(null, { status: 204, headers: CORS_HEADERS });
+}
+
 // ── POST handler ──────────────────────────────────────────────────────────
 export async function POST(req: Request) {
     try {
-        return await runPini(req);
+        const res = await runPini(req);
+        const body = await res.json();
+        return Response.json(body, { headers: CORS_HEADERS });
     } catch (err) {
         console.error("[PINI] 오류:", err);
         const msg = err instanceof Error ? err.message : "AI 추천 중 오류가 발생했어요.";
@@ -268,7 +280,7 @@ export async function POST(req: Request) {
             msg.toLowerCase().includes("high demand");
         return Response.json(
             { error: isOverload ? "AI 서버가 일시적으로 혼잡해요. 잠시 후 다시 시도해 주세요." : msg },
-            { status: isOverload ? 503 : 500 }
+            { status: isOverload ? 503 : 500, headers: CORS_HEADERS }
         );
     }
 }
@@ -367,6 +379,22 @@ ${participantDesc}
         throw new Error("이 근처에서 새로운 장소를 더 이상 찾지 못했어요. 처음부터 다시 시도해주세요.");
     }
 
+    // ── Step 3-a: 카테고리 불일치 장소 코드 레벨 필터링 ─────────────────────
+    const CATEGORY_FILTER: Record<string, string[]> = {
+        cafe:       ["카페"],
+        restaurant: ["음식점", "한식", "중식", "일식", "양식", "분식", "패스트푸드"],
+        bar:        ["술집", "bar", "주점"],
+        brunch:     ["카페", "음식점"],
+        dessert:    ["카페", "디저트"],
+    };
+    const allowedKeywords = CATEGORY_FILTER[category];
+    if (allowedKeywords) {
+        const filtered = candidates.filter((p) =>
+            allowedKeywords.some((kw) => p.category_name.includes(kw))
+        );
+        if (filtered.length >= 2) candidates = filtered;
+    }
+
     // ── Step 3: 상위 5개 후보로 슬라이스 후 네이버 블로그 리뷰 수집 ─────────
     // Gemini에 넘기는 후보를 미리 5개로 제한해 불필요한 외부 호출을 줄임
     const topCandidates = candidates.slice(0, 5);
@@ -413,7 +441,24 @@ ${participantDesc}
     const aiRes = await generateWithRetry({
         model: "gemini-3.1-flash-lite",
         contents: `
-분류 카테고리: ${category}
+선택된 카테고리는 "${categoryKo}"입니다.
+
+[카테고리 규칙]
+- 추천 장소는 반드시 해당 카테고리에만 속해야 한다.
+- 다른 카테고리는 어떤 경우에도 포함하지 않는다.
+
+[분류 기준]
+- 카페: 커피/디저트 중심 매장
+- 음식점: 식사 중심 매장
+- 술집: 주류 중심 매장
+- 브런치: 브런치/샌드위치 중심 매장
+- 디저트: 케이크/빙수/아이스크림 중심 매장
+
+[처리 과정]
+1. 후기 데이터에서 후보 추출
+2. 카테고리 기준으로 불일치 장소 제거
+3. 남은 것만 추천
+
 참가자 선호 정보:
 ${participantDesc}
 ${excludeText}
@@ -424,8 +469,33 @@ ${meetingContext}
 [카카오맵에서 확인된 실존 장소 및 네이버 블로그 실방문 후기 데이터]
 ${reviewText}
 
-위의 실제 장소 목록과 방문자 후기 데이터를 정밀하게 분석하여, 참가자들의 분위기 선호와 후기 신뢰도를 기준으로 최적인 장소 3~5곳을 선정해 주세요.
-반드시 위 목록에 있는 장소명을 그대로 사용하세요. 목록에 없는 장소는 절대 추가하지 마세요.
+위 실제 장소 목록과 방문자 후기 데이터를 정밀하게 분석하여,
+참가자들의 분위기 선호와 후기 신뢰도를 기준으로 최적인 장소 3~5곳을 선정해 주세요.
+
+반드시 위 목록에 존재하는 장소만 사용하세요.
+목록에 없는 장소는 절대 추가하지 마세요.
+
+[절대 규칙]
+1. 전국 단위 프랜차이즈 및 체인 브랜드는 추천하지 마세요.
+
+2. 아래는 금지 대상입니다. 단, 후기 데이터에 해당 매장만 존재하는 경우 제한적으로 허용합니다:
+   - 대형 카페 프랜차이즈
+   - 전국 단위 외식 체인
+   - 브랜드 중심 매장
+   (예: 스타벅스, 맥도날드, 이디야, 메가커피, 투썸플레이스, 할리스, 컴포즈커피, 빽다방, 공차 등)
+
+3. 프랜차이즈 여부 판단 기준:
+   - 동일 브랜드가 전국적으로 다수 존재하면 프랜차이즈로 간주
+   - 브랜드명이 아닌 개별 매장/로컬 운영 기준으로 판단
+
+4. 로컬 매장(개인 운영 / 지역 기반 / 독립 브랜드)을 최우선으로 추천하세요.
+
+[출력 규칙]
+- reasoning, pros, cons 등 모든 텍스트는 반드시 자연스러운 한국어로 작성
+- 영어 사용 금지
+- placeName 중복 금지
+- perParticipantTime 계산 금지
+- 반드시 JSON 배열만 출력 (설명, 마크다운 금지)
         `,
         config: {
             thinkingConfig: { thinkingLevel: ThinkingLevel.MEDIUM },
@@ -433,12 +503,19 @@ ${reviewText}
 당신은 서울 지역의 모임 장소를 추천하고 데이터를 정밀하게 분석하는 전문 AI 피니(PINI)입니다.
 사용자가 제공한 정보와 실제 방문자 후기 데이터를 바탕으로, 반드시 아래 규칙과 지정된 JSON 스키마 형식에 맞춰 모든 텍스트 필드를 **100% 한국어(Korean)**로 작성해야 합니다.
 
+추천 장소는 반드시 요청된 카테고리에 정확히 부합해야 합니다. 카테고리가 다른 장소는 후기 데이터에 있더라도 절대 포함하지 마세요.
+
+전국 단위 프랜차이즈 및 체인 카페/음식점은 추천하지 마세요.
+(예: 스타벅스, 맥도날드, 이디야, 메가커피, 투썸플레이스, 할리스, 컴포즈커피, 빽다방, 공차 등)
+프랜차이즈 여부가 애매한 경우, 브랜드명이 아닌 운영 형태(로컬/개인/지역 기반)를 기준으로 판단하세요.
+
 [기본 규칙]
 1. 반드시 전달받은 실방문 후기 데이터에 존재하는 매장만 분석하여 결과에 포함하세요.
 2. 같은 장소를 두 번 포함하지 마세요. placeName이 중복되면 안 됩니다.
 3. 이동 시간(perParticipantTime)은 별도로 계산되므로 당신은 포함하지 않아도 됩니다.
 4. 'reasoning', 'pros', 'cons' 등 모든 텍스트 영역은 반드시 명확하고 자연스러운 한국어 문장이나 단어로 기술되어야 합니다. 영어를 섞어 쓰지 마세요.
 5. 응답은 다른 부가적인 설명 마크다운 블록(예: \`\`\`json) 없이 순수한 JSON 배열 포맷으로만 출력되어야 합니다.
+6. 전국 단위 프랜차이즈·체인점은 절대 추천하지 마세요. 반드시 개인 운영 또는 로컬 브랜드 매장을 우선 추천하세요. 단, 후기 데이터에 프랜차이즈만 존재하는 경우에만 예외적으로 포함할 수 있습니다.
 
 [데이터 분석 및 출력 가이드라인]
 - placeName: 추천된 매장의 이름 (제공된 데이터의 이름 기준, 절대 변형하지 말 것)

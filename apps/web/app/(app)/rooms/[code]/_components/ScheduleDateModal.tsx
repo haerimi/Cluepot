@@ -87,7 +87,7 @@ export function ScheduleDateModal({
 
   const selectClass =
     "h-11 px-2 rounded-xl border border-hairline bg-canvas text-[14px] text-ink text-center " +
-    "outline-none transition-all focus:ring-2 focus:ring-accent focus:border-accent focus:bg-white";
+    "outline-none transition-all focus:ring-2 focus:ring-accent focus:border-accent focus:bg-surface-2";
 
   return (
     <div
@@ -105,7 +105,7 @@ export function ScheduleDateModal({
       <dialog
         open
         aria-labelledby="schedule-date-modal-title"
-        className="relative w-full sm:max-w-[440px] bg-white rounded-t-[24px] sm:rounded-2xl shadow-xl px-6 pt-6 pb-8 sm:pb-7 m-0 p-0"
+        className="relative w-full sm:max-w-[440px] bg-surface border border-hairline rounded-t-[24px] sm:rounded-2xl px-6 pt-6 pb-8 sm:pb-7 m-0 p-0"
         style={{ animation: "cinematic-up 0.3s cubic-bezier(0.16,1,0.3,1) both" }}
       >
         <div className="sm:hidden w-10 h-1 bg-hairline rounded-full mx-auto mb-5" />
@@ -141,7 +141,7 @@ export function ScheduleDateModal({
                           ? "bg-accent text-white border-accent"
                           : allAvailable
                             ? "bg-success-bg text-success-text border-success/20 hover:bg-success/10"
-                            : "bg-surface text-ink-muted border-hairline hover:bg-surface-warm",
+                            : "bg-surface text-ink-muted border-hairline hover:bg-surface-2",
                       ].join(" ")}
                     >
                       {r.date.slice(5).replace("-", "/")}
@@ -170,7 +170,7 @@ export function ScheduleDateModal({
               value={title}
               onChange={(e) => { setTitle(e.target.value); setError(null); }}
               className="w-full h-11 px-4 rounded-xl border border-hairline bg-canvas text-[16px] text-ink
-                         outline-none transition-all focus:ring-2 focus:ring-accent focus:border-accent focus:bg-white"
+                         outline-none transition-all focus:ring-2 focus:ring-accent focus:border-accent focus:bg-surface-2"
             />
           </div>
 
@@ -191,7 +191,7 @@ export function ScheduleDateModal({
                 min={today}
                 onChange={(e) => { setDate(e.target.value); setError(null); }}
                 className="w-full h-11 px-3 rounded-xl border border-hairline bg-canvas text-[16px] text-ink
-                           outline-none transition-all focus:ring-2 focus:ring-accent focus:border-accent focus:bg-white"
+                           outline-none transition-all focus:ring-2 focus:ring-accent focus:border-accent focus:bg-surface-2"
               />
             </div>
 
@@ -260,18 +260,18 @@ export function ScheduleDateModal({
               placeholder="모임에 대한 메모를 남겨요"
               className="w-full px-4 py-3 rounded-xl border border-hairline bg-canvas text-[14px] text-ink
                          placeholder:text-ink-tertiary resize-none text-[16px]
-                         outline-none transition-all focus:ring-2 focus:ring-accent focus:border-accent focus:bg-white"
+                         outline-none transition-all focus:ring-2 focus:ring-accent focus:border-accent focus:bg-surface-2"
             />
           </div>
 
           {error && (
             <p className="text-[12px] text-error flex items-center gap-1.5" role="alert">
-              <span aria-hidden="true">⚠️</span>{error}
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1L15 14H1L8 1z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M8 6v4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/><circle cx="8" cy="11.5" r="0.8" fill="currentColor"/></svg>{error}
             </p>
           )}
           {submitError && (
             <p className="text-[12px] text-error flex items-center gap-1.5" role="alert">
-              <span aria-hidden="true">⚠️</span>{submitError}
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1L15 14H1L8 1z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M8 6v4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/><circle cx="8" cy="11.5" r="0.8" fill="currentColor"/></svg>{submitError}
             </p>
           )}
         </div>

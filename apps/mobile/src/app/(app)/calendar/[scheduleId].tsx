@@ -1,29 +1,35 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, Modal, TextInput, Animated,
+  ActivityIndicator, Modal, TextInput, Animated, Alert, Image, Platform, StatusBar,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '@/store/auth';
+import { api } from '@/lib/api';
+import { formatDateTime, InitialAvatar } from '@/lib/scheduleUtils';
 
 // ─── NavHeader ────────────────────────────────────────────────────────────────
 
-function NavHeader({ initial, onBack }: { initial: string; onBack: () => void }) {
+function NavHeader({ initial, profileImage, onBack }: { initial: string; profileImage?: string | null; onBack: () => void }) {
   return (
     <View style={navHdr.wrap}>
       <TouchableOpacity onPress={onBack} style={navHdr.backBtn} hitSlop={8}>
         <Ionicons name="chevron-back" size={22} color="#c6c5d5" />
       </TouchableOpacity>
-      <Text style={navHdr.logo}>Clue<Text style={navHdr.accent}>Pot</Text></Text>
+      <Text allowFontScaling={false} style={navHdr.logo}>Clue<Text allowFontScaling={false} style={navHdr.accent}>Pot</Text></Text>
       <View style={navHdr.avatar}>
-        <Text style={navHdr.avatarText}>{initial}</Text>
+        {profileImage
+          ? <Image source={{ uri: profileImage }} style={{ width: 30, height: 30, borderRadius: 15 }} />
+          : <Text allowFontScaling={false} style={navHdr.avatarText}>{initial}</Text>}
       </View>
     </View>
   );
 }
+const SB_H = Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0;
+
 const navHdr = StyleSheet.create({
-  wrap:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, height: 56, borderBottomWidth: 1, borderBottomColor: '#23252a', backgroundColor: '#131316' },
+  wrap:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: SB_H, height: 56 + SB_H, borderBottomWidth: 1, borderBottomColor: '#23252a', backgroundColor: '#131316' },
   backBtn:    { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   logo:       { fontSize: 20, fontWeight: '700', color: '#f7f8f8', letterSpacing: -0.3 },
   accent:     { color: '#bdc2ff' },
@@ -50,52 +56,15 @@ type ScheduleDetail = {
   scheduledAt: string;
   placeName: string;
   placeAddress: string;
-  placeLatitude: number;
-  placeLongitude: number;
+  lat: number;
+  lng: number;
   memo: string | null;
   isCreator: boolean;
   myStatus: AttendanceStatus;
   participants: Participant[];
 };
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
-
-const MOCK: ScheduleDetail = {
-  id: '1',
-  title: '홍대 팀 회식',
-  scheduledAt: new Date(Date.now() + 86400000 * 3).toISOString(),
-  placeName: '홍대 고기집 A',
-  placeAddress: '서울 마포구 와우산로 12',
-  placeLatitude: 37.5519,
-  placeLongitude: 126.9245,
-  memo: '지각하면 벌금 3000원',
-  isCreator: true,
-  myStatus: 'accepted',
-  participants: [
-    { id: 'p1', userId: 'u1', nickname: '나',    profileImage: null, status: 'accepted', isMe: true  },
-    { id: 'p2', userId: 'u2', nickname: '김철수', profileImage: null, status: 'accepted', isMe: false },
-    { id: 'p3', userId: 'u3', nickname: '이영희', profileImage: null, status: 'pending',  isMe: false },
-    { id: 'p4', userId: 'u4', nickname: '박지수', profileImage: null, status: 'declined', isMe: false },
-  ],
-};
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatDateTime(iso: string) {
-  const d = new Date(iso);
-  const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
-  const month   = d.getMonth() + 1;
-  const day     = d.getDate();
-  const weekday = weekdays[d.getDay()];
-  const h = d.getHours();
-  const m = d.getMinutes();
-  const period = h < 12 ? '오전' : '오후';
-  const hour   = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  return {
-    date: `${month}월 ${day}일 (${weekday})`,
-    time: `${period} ${hour}:${String(m).padStart(2, '0')}`,
-  };
-}
 
 function formatDateDisplay(dateStr: string) {
   const [y, m, d] = dateStr.split('-').map(Number);
@@ -119,21 +88,13 @@ const STATUS_CONFIG: Record<AttendanceStatus, { label: string; bg: string; color
   pending:  { label: '보류', bg: '#23252a', color: '#8a8f98' },
 };
 
-// ─── InitialAvatar ────────────────────────────────────────────────────────────
-
-function InitialAvatar({ name, size = 36 }: { name: string; size?: number }) {
-  return (
-    <View style={[av.wrap, { width: size, height: size, borderRadius: size / 2 }]}>
-      <Text style={[av.text, { fontSize: size * 0.4 }]}>
-        {name.charAt(0).toUpperCase()}
-      </Text>
-    </View>
-  );
+function nowKST() {
+  const now = new Date();
+  const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  const date = kst.toISOString().slice(0, 10);
+  const time = kst.toISOString().slice(11, 16);
+  return { date, time };
 }
-const av = StyleSheet.create({
-  wrap: { backgroundColor: '#5e6ad2', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#34343a' },
-  text: { color: '#fdfaff', fontWeight: '700' },
-});
 
 // ─── MapBackground ────────────────────────────────────────────────────────────
 
@@ -170,11 +131,11 @@ function MapBackground() {
   );
 }
 const mapS = StyleSheet.create({
-  grid:        { ...StyleSheet.absoluteFillObject, opacity: 0.3 },
+  grid:        { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, opacity: 0.3 },
   hLine:       { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: '#34343a' },
   vLine:       { position: 'absolute', top: 0, bottom: 0, width: 1, backgroundColor: '#34343a' },
   block:       { position: 'absolute', backgroundColor: '#18191a', borderWidth: 1, borderColor: '#23252a', borderRadius: 2 },
-  fadeOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(19,19,22,0.55)' },
+  fadeOverlay: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: 'rgba(19,19,22,0.55)' },
 });
 
 // ─── PulsePin ─────────────────────────────────────────────────────────────────
@@ -230,25 +191,25 @@ function DatePickerModal({ visible, initial, onConfirm, onClose }: {
       <View style={s.modalOverlay}>
         <View style={s.modalSheet}>
           <View style={s.modalHandle} />
-          <Text style={s.modalTitle}>날짜 선택</Text>
+          <Text allowFontScaling={false} style={s.modalTitle}>날짜 선택</Text>
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <View style={{ flex: 2 }}>
-              <Text style={s.modalFieldLabel}>연도</Text>
+              <Text allowFontScaling={false} style={s.modalFieldLabel}>연도</Text>
               <TextInput style={s.modalInput} value={year} onChangeText={setYear} keyboardType="number-pad" maxLength={4} placeholder="2025" placeholderTextColor="#454652" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={s.modalFieldLabel}>월</Text>
+              <Text allowFontScaling={false} style={s.modalFieldLabel}>월</Text>
               <TextInput style={s.modalInput} value={month} onChangeText={v => setMonth(v.replace(/\D/g, ''))} keyboardType="number-pad" maxLength={2} placeholder="06" placeholderTextColor="#454652" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={s.modalFieldLabel}>일</Text>
+              <Text allowFontScaling={false} style={s.modalFieldLabel}>일</Text>
               <TextInput style={s.modalInput} value={day} onChangeText={v => setDay(v.replace(/\D/g, ''))} keyboardType="number-pad" maxLength={2} placeholder="15" placeholderTextColor="#454652" />
             </View>
           </View>
           <View style={s.modalActions}>
-            <TouchableOpacity style={s.modalCancelBtn} onPress={onClose}><Text style={s.modalCancelText}>취소</Text></TouchableOpacity>
+            <TouchableOpacity style={s.modalCancelBtn} onPress={onClose}><Text allowFontScaling={false} style={s.modalCancelText}>취소</Text></TouchableOpacity>
             <TouchableOpacity style={s.modalSaveBtn} onPress={() => { onConfirm(`${year}-${month.padStart(2,'0')}-${day.padStart(2,'0')}`); onClose(); }}>
-              <Text style={s.modalSaveText}>확인</Text>
+              <Text allowFontScaling={false} style={s.modalSaveText}>확인</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -282,25 +243,25 @@ function TimePickerModal({ visible, initial, onConfirm, onClose }: {
       <View style={s.modalOverlay}>
         <View style={s.modalSheet}>
           <View style={s.modalHandle} />
-          <Text style={s.modalTitle}>시간 선택</Text>
+          <Text allowFontScaling={false} style={s.modalTitle}>시간 선택</Text>
           <View style={{ flexDirection: 'row', gap: 10, alignItems: 'flex-end' }}>
             <View style={{ gap: 6 }}>
-              <Text style={s.modalFieldLabel}>오전/오후</Text>
+              <Text allowFontScaling={false} style={s.modalFieldLabel}>오전/오후</Text>
               <View style={{ flexDirection: 'row', gap: 6 }}>
                 {(['AM', 'PM'] as const).map(v => (
                   <TouchableOpacity key={v} onPress={() => setAmpm(v)} style={[s.ampmBtn, ampm === v && s.ampmBtnActive]}>
-                    <Text style={[s.ampmBtnText, ampm === v && s.ampmBtnTextActive]}>{v === 'AM' ? '오전' : '오후'}</Text>
+                    <Text allowFontScaling={false} style={[s.ampmBtnText, ampm === v && s.ampmBtnTextActive]}>{v === 'AM' ? '오전' : '오후'}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={s.modalFieldLabel}>시</Text>
+              <Text allowFontScaling={false} style={s.modalFieldLabel}>시</Text>
               <TextInput style={s.modalInput} value={hour} onChangeText={v => setHour(v.replace(/\D/g,''))} keyboardType="number-pad" maxLength={2} placeholder="12" placeholderTextColor="#454652" />
             </View>
-            <Text style={{ fontSize: 22, fontWeight: '700', color: '#8a8f98', paddingBottom: 14 }}>:</Text>
+            <Text allowFontScaling={false} style={{ fontSize: 22, fontWeight: '700', color: '#8a8f98', paddingBottom: 14 }}>:</Text>
             <View style={{ flex: 1 }}>
-              <Text style={s.modalFieldLabel}>분</Text>
+              <Text allowFontScaling={false} style={s.modalFieldLabel}>분</Text>
               <TextInput style={s.modalInput} value={minute} onChangeText={v => setMinute(v.replace(/\D/g,''))} keyboardType="number-pad" maxLength={2} placeholder="00" placeholderTextColor="#454652" />
             </View>
           </View>
@@ -312,13 +273,13 @@ function TimePickerModal({ visible, initial, onConfirm, onClose }: {
                 setHour(String(h === 0 ? 12 : h > 12 ? h - 12 : h));
                 setMinute(String(m).padStart(2, '0'));
               }}>
-                <Text style={s.quickChipText}>{t}</Text>
+                <Text allowFontScaling={false} style={s.quickChipText}>{t}</Text>
               </TouchableOpacity>
             ))}
           </View>
           <View style={s.modalActions}>
-            <TouchableOpacity style={s.modalCancelBtn} onPress={onClose}><Text style={s.modalCancelText}>취소</Text></TouchableOpacity>
-            <TouchableOpacity style={s.modalSaveBtn} onPress={handleConfirm}><Text style={s.modalSaveText}>확인</Text></TouchableOpacity>
+            <TouchableOpacity style={s.modalCancelBtn} onPress={onClose}><Text allowFontScaling={false} style={s.modalCancelText}>취소</Text></TouchableOpacity>
+            <TouchableOpacity style={s.modalSaveBtn} onPress={handleConfirm}><Text allowFontScaling={false} style={s.modalSaveText}>확인</Text></TouchableOpacity>
           </View>
         </View>
       </View>
@@ -350,93 +311,86 @@ function ConfirmedScreen({ schedule, editTitle, editDate, editTime }: {
         contentContainerStyle={cs.scroll}
         showsVerticalScrollIndicator={false}
       >
-        {/* Success header */}
         <View style={cs.heroSection}>
           <View style={cs.checkBg}>
             <Ionicons name="checkmark-circle" size={32} color="#27a644" />
           </View>
-          <Text style={cs.heroTitle}>플랜이 확정됐어요!</Text>
-          <Text style={cs.heroSub}>모든 참가자에게 알림이 발송됩니다.</Text>
+          <Text allowFontScaling={false} style={cs.heroTitle}>플랜이 확정됐어요!</Text>
+          <Text allowFontScaling={false} style={cs.heroSub}>모든 참가자에게 알림이 발송됩니다.</Text>
         </View>
 
-        {/* Glass card */}
         <View style={cs.card}>
-          {/* Meeting name */}
           <View style={cs.section}>
-            <Text style={cs.label}>MEETING NAME</Text>
-            <Text style={cs.meetingName}>{editTitle || schedule.title}</Text>
+            <Text allowFontScaling={false} style={cs.label}>MEETING NAME</Text>
+            <Text allowFontScaling={false} style={cs.meetingName}>{editTitle || schedule.title}</Text>
           </View>
 
-          {/* Date/Time + Location */}
           <View style={[cs.section, cs.row, cs.borderTop]}>
             <View style={{ flex: 1 }}>
-              <Text style={cs.label}>날짜 · 시간</Text>
+              <Text allowFontScaling={false} style={cs.label}>날짜 · 시간</Text>
               <View style={cs.infoRow}>
                 <Ionicons name="calendar-outline" size={13} color="#bdc2ff" />
-                <Text style={cs.infoVal}>{displayDate}</Text>
+                <Text allowFontScaling={false} style={cs.infoVal}>{displayDate}</Text>
               </View>
               <View style={cs.infoRow}>
                 <Ionicons name="time-outline" size={13} color="#8a8f98" />
-                <Text style={[cs.infoVal, { color: '#d0d6e0' }]}>{displayTime}</Text>
+                <Text allowFontScaling={false} style={[cs.infoVal, { color: '#d0d6e0' }]}>{displayTime}</Text>
               </View>
             </View>
             <View style={cs.dividerV} />
             <View style={{ flex: 1 }}>
-              <Text style={cs.label}>장소</Text>
+              <Text allowFontScaling={false} style={cs.label}>장소</Text>
               <View style={cs.infoRow}>
                 <Ionicons name="location-outline" size={13} color="#8a8f98" />
-                <Text style={cs.infoVal} numberOfLines={1}>{schedule.placeName}</Text>
+                <Text allowFontScaling={false} style={cs.infoVal} numberOfLines={1}>{schedule.placeName}</Text>
               </View>
-              <Text style={cs.infoSub}>{schedule.placeAddress}</Text>
+              <Text allowFontScaling={false} style={cs.infoSub}>{schedule.placeAddress}</Text>
             </View>
           </View>
 
-          {/* Participants */}
           <View style={[cs.section, cs.borderTop]}>
-            <Text style={cs.label}>참가자</Text>
+            <Text allowFontScaling={false} style={cs.label}>참가자</Text>
             <View style={cs.participantsRow}>
               <View style={{ flexDirection: 'row' }}>
                 {shown.map((p, i) => (
-                  <View key={p.id} style={{ marginLeft: i === 0 ? 0 : -10, zIndex: 10 - i }}>
-                    <InitialAvatar name={p.nickname} size={34} />
+                  <View key={p.id} style={{ marginLeft: i === 0 ? 0 : -10, zIndex: 10 - i, width: 34, height: 34, borderRadius: 17, overflow: 'hidden', borderWidth: 1.5, borderColor: '#131316' }}>
+                    {p.profileImage
+                      ? <Image source={{ uri: p.profileImage }} style={{ width: 34, height: 34, borderRadius: 17 }} />
+                      : <InitialAvatar name={p.nickname} size={34} />
+                    }
                   </View>
                 ))}
                 {extra > 0 && (
                   <View style={[cs.extraBadge, { marginLeft: -10 }]}>
-                    <Text style={cs.extraText}>+{extra}</Text>
+                    <Text allowFontScaling={false} style={cs.extraText}>+{extra}</Text>
                   </View>
                 )}
               </View>
-              <Text style={cs.participantsLabel} numberOfLines={1}>{names}</Text>
+              <Text allowFontScaling={false} style={cs.participantsLabel} numberOfLines={1}>{names}</Text>
             </View>
           </View>
 
-          {/* Actions */}
           <View style={[cs.section, cs.borderTop, { gap: 10 }]}>
-            <TouchableOpacity style={cs.primaryBtn} activeOpacity={0.8}>
-              <Ionicons name="calendar-outline" size={17} color="#fdfaff" />
-              <Text style={cs.primaryBtnText}>캘린더에 추가</Text>
-            </TouchableOpacity>
             <View style={{ flexDirection: 'row', gap: 10 }}>
               <TouchableOpacity
                 style={cs.secondaryBtn}
                 activeOpacity={0.8}
-                onPress={() => router.push(`/(app)/schedules/${schedule.id}` as any)}
+                onPress={() => router.replace(`/(app)/schedules/${schedule.id}` as any)}
               >
-                <Text style={cs.secondaryBtnText}>상세 보기</Text>
+                <Text allowFontScaling={false} style={cs.secondaryBtnText}>상세 보기</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={cs.secondaryBtn}
                 activeOpacity={0.8}
                 onPress={() => router.replace('/(app)/home' as any)}
               >
-                <Text style={cs.secondaryBtnText}>완료</Text>
+                <Text allowFontScaling={false} style={cs.secondaryBtnText}>완료</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
 
-        <Text style={cs.footnote}>확정 알림이 모든 참가자에게 발송됩니다.</Text>
+        <Text allowFontScaling={false} style={cs.footnote}>확정 알림이 모든 참가자에게 발송됩니다.</Text>
       </ScrollView>
     </View>
   );
@@ -444,7 +398,7 @@ function ConfirmedScreen({ schedule, editTitle, editDate, editTime }: {
 
 const cs = StyleSheet.create({
   container:       { flex: 1, backgroundColor: '#131316' },
-  scroll:          { paddingHorizontal: 20, paddingTop: 72, paddingBottom: 48 },
+  scroll:          { paddingHorizontal: 20, paddingTop: 72 + SB_H, paddingBottom: 48 },
 
   heroSection:     { alignItems: 'center', marginBottom: 28 },
   checkBg:         { width: 58, height: 58, borderRadius: 29, backgroundColor: 'rgba(39,166,68,0.12)', borderWidth: 1, borderColor: 'rgba(39,166,68,0.28)', alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
@@ -469,30 +423,33 @@ const cs = StyleSheet.create({
   extraText:       { fontSize: 10, fontWeight: '700', color: '#8a8f98' },
   participantsLabel:{ fontSize: 12, color: '#8a8f98', flex: 1 },
 
-  primaryBtn:      { height: 50, backgroundColor: '#5e6ad2', borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: 1, borderColor: 'rgba(189,194,255,0.2)' },
-  primaryBtnText:  { fontSize: 14, fontWeight: '700', color: '#fdfaff' },
   secondaryBtn:    { flex: 1, height: 44, backgroundColor: '#18191a', borderWidth: 1, borderColor: '#23252a', borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   secondaryBtnText:{ fontSize: 13, fontWeight: '600', color: '#d0d6e0' },
 
   footnote:        { textAlign: 'center', fontSize: 11, color: '#454652', marginTop: 20 },
 });
 
-// ─── Main Screen (Step 3 of 3) ────────────────────────────────────────────────
+// ─── Main Screen ──────────────────────────────────────────────────────────────
 
 export default function FinalizeScheduleScreen() {
   const { scheduleId } = useLocalSearchParams<{ scheduleId: string }>();
   const router  = useRouter();
-  const user    = useAuthStore((s) => s.user);
-  const initial = (user?.nickname?.[0] ?? user?.email?.[0] ?? '?').toUpperCase();
+  const user         = useAuthStore((s) => s.user);
+  const initial      = (user?.nickname?.[0] ?? user?.email?.[0] ?? '?').toUpperCase();
+  const profileImage = user?.profileImage ?? null;
 
-  const [schedule]  = useState<ScheduleDetail>(MOCK);
+  const [schedule,  setSchedule]  = useState<ScheduleDetail | null>(null);
+  const [loading,   setLoading]   = useState(true);
   const [confirmed, setConfirmed] = useState(false);
 
-  const [editTitle, setEditTitle] = useState(MOCK.title);
-  const [editDate,  setEditDate]  = useState('');
-  const [editTime,  setEditTime]  = useState('');
-  const [editMemo,  setEditMemo]  = useState(MOCK.memo ?? '');
+  const [editTitle, setEditTitle] = useState('');
+  const [editDate,  setEditDate]  = useState(() => nowKST().date);
+  const [editTime,  setEditTime]  = useState(() => nowKST().time);
+  const [editMemo,  setEditMemo]  = useState('');
   const [locking,   setLocking]   = useState(false);
+
+  const userChangedDate = useRef(false);
+  const userChangedTime = useRef(false);
 
   const [showEdit,      setShowEdit]      = useState(false);
   const [showDelete,    setShowDelete]    = useState(false);
@@ -500,7 +457,95 @@ export default function FinalizeScheduleScreen() {
   const [showTimePick,  setShowTimePick]  = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
-  const { date, time } = formatDateTime(schedule.scheduledAt);
+  useEffect(() => {
+    api.get(`/schedules/${scheduleId}`)
+      .then(({ data }) => {
+        setSchedule(data);
+        setEditTitle(data.title);
+        setEditMemo(data.memo ?? '');
+      })
+      .catch(() => {
+        Alert.alert('오류', '일정을 불러올 수 없어요.', [
+          { text: '확인', onPress: () => router.back() },
+        ]);
+      })
+      .finally(() => setLoading(false));
+  }, [scheduleId]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const { date, time } = nowKST();
+      if (!userChangedDate.current) setEditDate(date);
+      if (!userChangedTime.current) setEditTime(time);
+    }, 60_000);
+    return () => clearInterval(timer);
+  }, []);
+
+  async function handleLockIn() {
+    if (!editTitle.trim() || !schedule) return;
+    setLocking(true);
+    try {
+      const scheduledAt = new Date(`${editDate}T${editTime}:00+09:00`).toISOString();
+      await api.patch(`/schedules/${scheduleId}`, {
+        title: editTitle.trim(),
+        memo: editMemo.trim() || null,
+        scheduledAt,
+      });
+      setConfirmed(true);
+    } catch {
+      Alert.alert('오류', '일정 저장에 실패했어요.');
+    } finally {
+      setLocking(false);
+    }
+  }
+
+  async function handleDelete() {
+    setActionLoading(true);
+    try {
+      await api.delete(`/schedules/${scheduleId}`);
+      setShowDelete(false);
+      router.back();
+    } catch {
+      Alert.alert('오류', '삭제에 실패했어요.');
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function handleCancel() {
+    if (!schedule) { router.back(); return; }
+    Alert.alert(
+      '일정을 취소할까요?',
+      '생성된 일정이 삭제됩니다.',
+      [
+        { text: '계속 진행', style: 'cancel' },
+        {
+          text: '삭제하고 나가기',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await api.delete(`/schedules/${scheduleId}`);
+            } finally {
+              router.back();
+            }
+          },
+        },
+      ],
+    );
+  }
+
+  if (loading) {
+    return (
+      <View style={s.container}>
+        <NavHeader initial={initial} profileImage={profileImage} onBack={() => router.back()} />
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator color="#bdc2ff" size="large" />
+        </View>
+      </View>
+    );
+  }
+
+  if (!schedule) return null;
 
   if (confirmed) {
     return (
@@ -513,29 +558,18 @@ export default function FinalizeScheduleScreen() {
     );
   }
 
-  function handleLockIn() {
-    if (!editTitle.trim()) return;
-    setLocking(true);
-    // TODO: api.post('/schedules', { title: editTitle, date: editDate, time: editTime, memo: editMemo })
-    setTimeout(() => { setLocking(false); setConfirmed(true); }, 1000);
-  }
-
-  function handleDelete() {
-    setActionLoading(true);
-    // TODO: api.delete(`/rooms/${scheduleId}`)
-    setTimeout(() => { setActionLoading(false); setShowDelete(false); router.back(); }, 800);
-  }
+  const { date, time } = formatDateTime(schedule.scheduledAt);
 
   return (
     <View style={s.container}>
-      <NavHeader initial={initial} onBack={() => router.back()} />
+      <NavHeader initial={initial} onBack={handleCancel} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.body}>
-        <Text style={s.pageTitle}>일정을 확정해요</Text>
-        <Text style={s.pageSubtitle}>AI가 추천한 장소로 최종 일정을 작성해주세요.</Text>
+        <Text allowFontScaling={false} style={s.pageTitle}>일정을 확정해요</Text>
+        <Text allowFontScaling={false} style={s.pageSubtitle}>AI가 추천한 장소로 최종 일정을 작성해주세요.</Text>
 
         {/* PLAN NAME */}
-        <Text style={s.fieldLabel}>PLAN NAME</Text>
+        <Text allowFontScaling={false} style={s.fieldLabel}>PLAN NAME</Text>
         <TextInput
           style={s.input}
           value={editTitle}
@@ -548,7 +582,7 @@ export default function FinalizeScheduleScreen() {
         {/* DATE / TIME */}
         <View style={s.rowGrid}>
           <View style={{ flex: 1 }}>
-            <Text style={s.fieldLabel}>DATE</Text>
+            <Text allowFontScaling={false} style={s.fieldLabel}>DATE</Text>
             <TouchableOpacity
               style={[s.infoCell, s.infoCellEditable, !!editDate && s.infoCellFilled]}
               onPress={() => setShowDatePick(true)}
@@ -557,14 +591,14 @@ export default function FinalizeScheduleScreen() {
               accessibilityLabel="날짜 선택"
             >
               <Ionicons name="calendar-outline" size={15} color={editDate ? '#bdc2ff' : '#8a8f98'} />
-              <Text style={[s.infoCellText, !!editDate && { color: '#f7f8f8' }]} numberOfLines={1}>
+              <Text allowFontScaling={false} style={[s.infoCellText, !!editDate && { color: '#f7f8f8' }]} numberOfLines={1}>
                 {editDate ? formatDateDisplay(editDate) : date}
               </Text>
               <Ionicons name="chevron-down" size={13} color={editDate ? '#bdc2ff' : '#454652'} />
             </TouchableOpacity>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={s.fieldLabel}>TIME</Text>
+            <Text allowFontScaling={false} style={s.fieldLabel}>TIME</Text>
             <TouchableOpacity
               style={[s.infoCell, s.infoCellEditable, !!editTime && s.infoCellFilled]}
               onPress={() => setShowTimePick(true)}
@@ -573,7 +607,7 @@ export default function FinalizeScheduleScreen() {
               accessibilityLabel="시간 선택"
             >
               <Ionicons name="time-outline" size={15} color={editTime ? '#bdc2ff' : '#8a8f98'} />
-              <Text style={[s.infoCellText, !!editTime && { color: '#f7f8f8' }]}>
+              <Text allowFontScaling={false} style={[s.infoCellText, !!editTime && { color: '#f7f8f8' }]}>
                 {editTime ? formatTimeDisplay(editTime) : time}
               </Text>
               <Ionicons name="chevron-down" size={13} color={editTime ? '#bdc2ff' : '#454652'} />
@@ -582,30 +616,33 @@ export default function FinalizeScheduleScreen() {
         </View>
 
         {/* LOCATION */}
-        <Text style={s.fieldLabel}>LOCATION</Text>
+        <Text allowFontScaling={false} style={s.fieldLabel}>LOCATION</Text>
         <View style={[s.infoCell, { marginBottom: 20, opacity: 0.65 }]}>
           <Ionicons name="location-outline" size={15} color="#8a8f98" />
-          <Text style={s.infoCellText}>{schedule.placeName}</Text>
+          <Text allowFontScaling={false} style={s.infoCellText}>{schedule.placeName}</Text>
         </View>
 
         {/* PARTICIPANTS */}
-        <Text style={s.fieldLabel}>PARTICIPANTS</Text>
+        <Text allowFontScaling={false} style={s.fieldLabel}>PARTICIPANTS</Text>
         <View style={s.participantsCard}>
           <View style={s.avatarRow}>
             {schedule.participants.slice(0, 5).map((p, i) => (
               <View key={p.id} style={[s.miniAvatar, { marginLeft: i === 0 ? 0 : -8 }]}>
-                <Text style={s.miniAvatarText}>{p.nickname[0].toUpperCase()}</Text>
+                {p.profileImage
+                  ? <Image source={{ uri: p.profileImage }} style={{ width: 26, height: 26, borderRadius: 13 }} />
+                  : <Text allowFontScaling={false} style={s.miniAvatarText}>{p.nickname[0].toUpperCase()}</Text>
+                }
               </View>
             ))}
           </View>
-          <Text style={s.participantCount}>{schedule.participants.length}명</Text>
+          <Text allowFontScaling={false} style={s.participantCount}>{schedule.participants.length}명</Text>
           <View style={s.participantStatusRow}>
             {Object.entries(STATUS_CONFIG).map(([key, cfg]) => {
               const cnt = schedule.participants.filter(p => p.status === key).length;
               if (cnt === 0) return null;
               return (
                 <View key={key} style={[s.statusDot, { backgroundColor: cfg.bg }]}>
-                  <Text style={[s.statusDotText, { color: cfg.color }]}>{cfg.label} {cnt}</Text>
+                  <Text allowFontScaling={false} style={[s.statusDotText, { color: cfg.color }]}>{cfg.label} {cnt}</Text>
                 </View>
               );
             })}
@@ -613,7 +650,7 @@ export default function FinalizeScheduleScreen() {
         </View>
 
         {/* NOTES */}
-        <Text style={s.fieldLabel}>NOTES</Text>
+        <Text allowFontScaling={false} style={s.fieldLabel}>NOTES</Text>
         <TextInput
           style={[s.input, s.textarea]}
           value={editMemo}
@@ -630,8 +667,8 @@ export default function FinalizeScheduleScreen() {
           <View style={s.aiLeft}>
             <Ionicons name="flash" size={15} color="#bdc2ff" />
             <View>
-              <Text style={s.aiTitle}>PINI AI 최적화 완료</Text>
-              <Text style={s.aiDesc}>모든 참가자의 선호도가 반영됐어요.</Text>
+              <Text allowFontScaling={false} style={s.aiTitle}>PINI AI 최적화 완료</Text>
+              <Text allowFontScaling={false} style={s.aiDesc}>모든 참가자의 선호도가 반영됐어요.</Text>
             </View>
           </View>
           <Ionicons name="checkmark-circle" size={19} color="#27a644" />
@@ -642,11 +679,11 @@ export default function FinalizeScheduleScreen() {
           <View style={s.creatorRow}>
             <TouchableOpacity style={s.creatorBtn} onPress={() => setShowEdit(true)} activeOpacity={0.8}>
               <Ionicons name="create-outline" size={14} color="#d0d6e0" />
-              <Text style={s.creatorBtnText}>일정 수정</Text>
+              <Text allowFontScaling={false} style={s.creatorBtnText}>일정 수정</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[s.creatorBtn, s.creatorDanger]} onPress={() => setShowDelete(true)} activeOpacity={0.8}>
               <Ionicons name="trash-outline" size={14} color="#ffb4ab" />
-              <Text style={[s.creatorBtnText, { color: '#ffb4ab' }]}>삭제</Text>
+              <Text allowFontScaling={false} style={[s.creatorBtnText, { color: '#ffb4ab' }]}>삭제</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -656,10 +693,10 @@ export default function FinalizeScheduleScreen() {
       <View style={s.footer}>
         <View style={s.footerMeta}>
           <Ionicons name="people-outline" size={12} color="#8a8f98" />
-          <Text style={s.footerMetaText}>{schedule.participants.length}명 참가</Text>
+          <Text allowFontScaling={false} style={s.footerMetaText}>{schedule.participants.length}명 참가</Text>
           <View style={s.metaDot} />
           <Ionicons name="location-outline" size={12} color="#8a8f98" />
-          <Text style={s.footerMetaText}>{schedule.placeName}</Text>
+          <Text allowFontScaling={false} style={s.footerMetaText}>{schedule.placeName}</Text>
         </View>
         <TouchableOpacity
           style={[s.lockBtn, (!editTitle.trim() || locking) && { opacity: 0.38 }]}
@@ -672,30 +709,29 @@ export default function FinalizeScheduleScreen() {
             : (
               <>
                 <Ionicons name="checkmark-circle" size={18} color="#fdfaff" />
-                <Text style={s.lockBtnText}>Lock It In</Text>
+                <Text allowFontScaling={false} style={s.lockBtnText}>Lock It In</Text>
               </>
             )
           }
         </TouchableOpacity>
       </View>
 
-      {/* Modals */}
-      <DatePickerModal visible={showDatePick} initial={editDate} onConfirm={setEditDate} onClose={() => setShowDatePick(false)} />
-      <TimePickerModal visible={showTimePick} initial={editTime} onConfirm={setEditTime} onClose={() => setShowTimePick(false)} />
+      <DatePickerModal visible={showDatePick} initial={editDate} onConfirm={(v) => { userChangedDate.current = true; setEditDate(v); }} onClose={() => setShowDatePick(false)} />
+      <TimePickerModal visible={showTimePick} initial={editTime} onConfirm={(v) => { userChangedTime.current = true; setEditTime(v); }} onClose={() => setShowTimePick(false)} />
 
       {/* Edit modal */}
       <Modal visible={showEdit} animationType="slide" transparent>
         <View style={s.modalOverlay}>
           <View style={s.modalSheet}>
             <View style={s.modalHandle} />
-            <Text style={s.modalTitle}>일정 수정</Text>
-            <Text style={s.modalFieldLabel}>제목</Text>
+            <Text allowFontScaling={false} style={s.modalTitle}>일정 수정</Text>
+            <Text allowFontScaling={false} style={s.modalFieldLabel}>제목</Text>
             <TextInput style={s.modalInput} value={editTitle} onChangeText={setEditTitle} placeholder="일정 제목" placeholderTextColor="#454652" maxLength={50} />
-            <Text style={s.modalFieldLabel}>메모</Text>
+            <Text allowFontScaling={false} style={s.modalFieldLabel}>메모</Text>
             <TextInput style={[s.modalInput, { height: 80, textAlignVertical: 'top' }]} value={editMemo} onChangeText={setEditMemo} placeholder="메모" placeholderTextColor="#454652" multiline />
             <View style={s.modalActions}>
-              <TouchableOpacity style={s.modalCancelBtn} onPress={() => setShowEdit(false)}><Text style={s.modalCancelText}>취소</Text></TouchableOpacity>
-              <TouchableOpacity style={s.modalSaveBtn} onPress={() => setShowEdit(false)}><Text style={s.modalSaveText}>저장</Text></TouchableOpacity>
+              <TouchableOpacity style={s.modalCancelBtn} onPress={() => setShowEdit(false)}><Text allowFontScaling={false} style={s.modalCancelText}>취소</Text></TouchableOpacity>
+              <TouchableOpacity style={s.modalSaveBtn} onPress={() => setShowEdit(false)}><Text allowFontScaling={false} style={s.modalSaveText}>저장</Text></TouchableOpacity>
             </View>
           </View>
         </View>
@@ -705,14 +741,14 @@ export default function FinalizeScheduleScreen() {
       <Modal visible={showDelete} animationType="fade" transparent>
         <View style={[s.modalOverlay, { justifyContent: 'center', padding: 24 }]}>
           <View style={[s.modalSheet, { borderRadius: 16 }]}>
-            <Text style={[s.modalTitle, { textAlign: 'center' }]}>일정을 삭제할까요?</Text>
-            <Text style={{ fontSize: 13, color: '#8a8f98', textAlign: 'center', lineHeight: 20, marginBottom: 20 }}>
+            <Text allowFontScaling={false} style={[s.modalTitle, { textAlign: 'center' }]}>일정을 삭제할까요?</Text>
+            <Text allowFontScaling={false} style={{ fontSize: 13, color: '#8a8f98', textAlign: 'center', lineHeight: 20, marginBottom: 20 }}>
               삭제된 일정은 복구할 수 없으며,{'\n'}모든 참가자에게서 제거돼요.
             </Text>
             <View style={s.modalActions}>
-              <TouchableOpacity style={s.modalCancelBtn} onPress={() => setShowDelete(false)}><Text style={s.modalCancelText}>취소</Text></TouchableOpacity>
+              <TouchableOpacity style={s.modalCancelBtn} onPress={() => setShowDelete(false)}><Text allowFontScaling={false} style={s.modalCancelText}>취소</Text></TouchableOpacity>
               <TouchableOpacity style={[s.modalSaveBtn, { backgroundColor: '#7f1d1d' }]} onPress={handleDelete} disabled={actionLoading}>
-                {actionLoading ? <ActivityIndicator color="#fdfaff" size="small" /> : <Text style={s.modalSaveText}>삭제</Text>}
+                {actionLoading ? <ActivityIndicator color="#fdfaff" size="small" /> : <Text allowFontScaling={false} style={s.modalSaveText}>삭제</Text>}
               </TouchableOpacity>
             </View>
           </View>
@@ -727,7 +763,6 @@ export default function FinalizeScheduleScreen() {
 const s = StyleSheet.create({
   container:  { flex: 1, backgroundColor: '#131316' },
 
-  // Body
   body:       { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 120 },
   pageTitle:  { fontSize: 28, fontWeight: '700', color: '#f7f8f8', letterSpacing: -0.6, marginBottom: 6 },
   pageSubtitle:{ fontSize: 14, color: '#8a8f98', marginBottom: 28, lineHeight: 20 },
@@ -761,7 +796,6 @@ const s = StyleSheet.create({
   creatorBtnText:{ fontSize: 12, fontWeight: '600', color: '#d0d6e0' },
   creatorDanger: { borderColor: 'rgba(255,180,171,0.25)', backgroundColor: 'rgba(255,180,171,0.04)' },
 
-  // Footer
   footer:       { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#131316', borderTopWidth: 1, borderTopColor: '#23252a', paddingHorizontal: 20, paddingTop: 14, paddingBottom: 28 },
   footerMeta:   { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 12 },
   footerMetaText:{ fontSize: 11, color: '#8a8f98' },
@@ -769,7 +803,6 @@ const s = StyleSheet.create({
   lockBtn:      { height: 48, backgroundColor: '#5e6ad2', borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, borderWidth: 1, borderColor: 'rgba(189,194,255,0.2)' },
   lockBtnText:  { fontSize: 14, fontWeight: '700', color: '#fdfaff', letterSpacing: 0.1 },
 
-  // Modals (shared)
   modalOverlay:    { flex: 1, backgroundColor: 'rgba(0,0,0,0.72)', justifyContent: 'flex-end' },
   modalSheet:      { backgroundColor: '#141516', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40, borderTopWidth: 1, borderColor: '#23252a' },
   modalHandle:     { width: 36, height: 4, borderRadius: 2, backgroundColor: '#34343a', alignSelf: 'center', marginBottom: 20 },

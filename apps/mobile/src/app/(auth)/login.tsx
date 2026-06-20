@@ -15,7 +15,7 @@ import { useAuthStore } from '@/store/auth';
 function NavHeader() {
   return (
     <View style={nav.wrap}>
-      <Text style={nav.logo}>Clue<Text style={nav.accent}>Pot</Text></Text>
+      <Text allowFontScaling={false} style={nav.logo}>Clue<Text allowFontScaling={false} style={nav.accent}>Pot</Text></Text>
       <View style={nav.spacer} />
     </View>
   );
@@ -48,7 +48,7 @@ function InputField({
   const [focused, setFocused] = useState(false);
   return (
     <View style={f.group}>
-      <Text style={f.label}>{label}</Text>
+      <Text allowFontScaling={false} style={f.label}>{label}</Text>
       <View style={[f.wrap, focused && f.wrapFocused]}>
         {leftIcon && (
           <Ionicons name={leftIcon} size={17} color={focused ? '#bdc2ff' : '#454652'} style={f.leftIcon} />
@@ -78,7 +78,7 @@ const f = StyleSheet.create({
   wrap:       { flexDirection: 'row', alignItems: 'center', backgroundColor: '#141516', borderWidth: 1.5, borderColor: '#23252a', borderRadius: 10, paddingHorizontal: 14, height: 52 },
   wrapFocused:{ borderColor: '#5e6ad2', backgroundColor: 'rgba(94,106,210,0.06)' },
   leftIcon:   { marginRight: 10 },
-  input:      { flex: 1, fontSize: 15, color: '#f7f8f8', height: '100%' },
+  input:      { flex: 1, fontSize: 15, color: '#f7f8f8', height: '100%', textAlignVertical: 'center' },
 });
 
 // ── LoginScreen ───────────────────────────────────────────────────────────────
@@ -126,9 +126,9 @@ export default function LoginScreen() {
       >
         {/* 헤딩 */}
         <View style={s.headingSection}>
-          <Text style={s.eyebrow}>SIGN IN</Text>
-          <Text style={s.heading}>다시 오셨군요</Text>
-          <Text style={s.subheading}>계정에 로그인해 모임을 이어가세요.</Text>
+          <Text allowFontScaling={false} style={s.eyebrow}>SIGN IN</Text>
+          <Text allowFontScaling={false} style={s.heading}>다시 오셨군요</Text>
+          <Text allowFontScaling={false} style={s.subheading}>계정에 로그인해 모임을 이어가세요.</Text>
         </View>
 
         {/* 카드 */}
@@ -166,7 +166,7 @@ export default function LoginScreen() {
           {error ? (
             <View style={s.errorRow}>
               <Ionicons name="alert-circle-outline" size={14} color="#ffb4ab" />
-              <Text style={s.errorText}>{error}</Text>
+              <Text allowFontScaling={false} style={s.errorText}>{error}</Text>
             </View>
           ) : null}
 
@@ -186,7 +186,7 @@ export default function LoginScreen() {
                 ? <ActivityIndicator color="#fdfaff" size="small" />
                 : (
                   <>
-                    <Text style={s.btnText}>로그인하기</Text>
+                    <Text allowFontScaling={false} style={s.btnText}>로그인하기</Text>
                     <Ionicons name="arrow-forward" size={16} color="#fdfaff" />
                   </>
                 )
@@ -197,7 +197,7 @@ export default function LoginScreen() {
           {/* 구분선 */}
           <View style={s.dividerRow}>
             <View style={s.dividerLine} />
-            <Text style={s.dividerText}>또는</Text>
+            <Text allowFontScaling={false} style={s.dividerText}>또는</Text>
             <View style={s.dividerLine} />
           </View>
 
@@ -208,9 +208,9 @@ export default function LoginScreen() {
             activeOpacity={0.7}
             accessibilityRole="button"
           >
-            <Text style={s.linkText}>
+            <Text allowFontScaling={false} style={s.linkText}>
               처음이세요?{'  '}
-              <Text style={s.linkAccent}>계정 만들기</Text>
+              <Text allowFontScaling={false} style={s.linkAccent}>계정 만들기</Text>
             </Text>
           </TouchableOpacity>
         </View>

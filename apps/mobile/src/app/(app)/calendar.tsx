@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  ScrollView, ActivityIndicator,
+  ScrollView, ActivityIndicator, Alert,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '@/lib/api';
 
@@ -57,9 +57,15 @@ export default function CalendarScreen() {
   const [selectedKey, setSelectedKey] = useState<string>(() => toDateKey(new Date()));
   const todayKey = toDateKey(new Date());
 
-  useEffect(() => {
-    api.get('/schedules').then(({ data }) => setSchedules(data)).catch(() => {}).finally(() => setLoading(false));
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      setLoading(true);
+      api.get('/schedules')
+        .then(({ data }) => setSchedules(data))
+        .catch(() => Alert.alert('오류', '일정을 불러올 수 없어요.'))
+        .finally(() => setLoading(false));
+    }, [])
+  );
 
   const byDate = useMemo(() => {
     const map = new Map<string, Schedule[]>();
@@ -105,8 +111,8 @@ export default function CalendarScreen() {
               <Ionicons name="chevron-back" size={20} color="#8a8f98" />
             </TouchableOpacity>
             <View style={styles.monthCenter}>
-              <Text style={styles.yearText}>{year}</Text>
-              <Text style={styles.monthText}>{MONTH_LABELS[month]}</Text>
+              <Text allowFontScaling={false} style={styles.yearText}>{year}</Text>
+              <Text allowFontScaling={false} style={styles.monthText}>{MONTH_LABELS[month]}</Text>
             </View>
             <TouchableOpacity onPress={nextMonth} style={styles.navBtn} accessibilityLabel="다음 달" hitSlop={8}>
               <Ionicons name="chevron-forward" size={20} color="#8a8f98" />
@@ -116,7 +122,7 @@ export default function CalendarScreen() {
           {/* 요일 헤더 */}
           <View style={styles.dayHeaders}>
             {DAY_LABELS.map((d) => (
-              <Text key={d} style={styles.dayLabel}>{d}</Text>
+              <Text allowFontScaling={false} key={d} style={styles.dayLabel}>{d}</Text>
             ))}
           </View>
 
@@ -141,7 +147,7 @@ export default function CalendarScreen() {
                   disabled={!isCurrMonth}
                   activeOpacity={0.7}
                 >
-                  <Text style={[
+                  <Text allowFontScaling={false} style={[
                     styles.cellText,
                     !isCurrMonth && styles.cellTextDim,
                     isSelected && styles.cellTextSelected,
@@ -160,13 +166,13 @@ export default function CalendarScreen() {
 
         {/* 선택 날짜 일정 */}
         <View style={styles.scheduleSection}>
-          <Text style={styles.sectionEyebrow}>SCHEDULE</Text>
-          <Text style={styles.selectedDateLabel}>{selectedDateLabel}</Text>
+          <Text allowFontScaling={false} style={styles.sectionEyebrow}>SCHEDULE</Text>
+          <Text allowFontScaling={false} style={styles.selectedDateLabel}>{selectedDateLabel}</Text>
 
           {selectedSchedules.length === 0 ? (
             <View style={styles.emptyCard}>
               <Ionicons name="calendar-outline" size={32} color="#454652" />
-              <Text style={styles.emptyText}>이 날은 예정된 일정이 없어요</Text>
+              <Text allowFontScaling={false} style={styles.emptyText}>이 날은 예정된 일정이 없어요</Text>
             </View>
           ) : (
             selectedSchedules.map((s) => {
@@ -180,26 +186,26 @@ export default function CalendarScreen() {
                 >
                   <View style={styles.scheduleCardInner}>
                     <View style={styles.scheduleTop}>
-                      <Text style={styles.scheduleTitle} numberOfLines={1}>{s.title}</Text>
+                      <Text allowFontScaling={false} style={styles.scheduleTitle} numberOfLines={1}>{s.title}</Text>
                       <View style={[styles.statusChip, { backgroundColor: status.bg }]}>
-                        <Text style={[styles.statusChipText, { color: status.color }]}>{status.label}</Text>
+                        <Text allowFontScaling={false} style={[styles.statusChipText, { color: status.color }]}>{status.label}</Text>
                       </View>
                     </View>
 
                     <View style={styles.scheduleMeta}>
                       <View style={styles.metaRow}>
                         <Ionicons name="time-outline" size={13} color="#8a8f98" />
-                        <Text style={styles.metaText}>{formatTime(s.scheduledAt)}</Text>
+                        <Text allowFontScaling={false} style={styles.metaText}>{formatTime(s.scheduledAt)}</Text>
                       </View>
                       {s.placeName ? (
                         <View style={styles.metaRow}>
                           <Ionicons name="location-outline" size={13} color="#8a8f98" />
-                          <Text style={styles.metaText} numberOfLines={1}>{s.placeName}</Text>
+                          <Text allowFontScaling={false} style={styles.metaText} numberOfLines={1}>{s.placeName}</Text>
                         </View>
                       ) : null}
                       <View style={styles.metaRow}>
                         <Ionicons name="people-outline" size={13} color="#8a8f98" />
-                        <Text style={styles.metaText}>{s.memberCount}명</Text>
+                        <Text allowFontScaling={false} style={styles.metaText}>{s.memberCount}명</Text>
                       </View>
                     </View>
                   </View>

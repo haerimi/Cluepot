@@ -35,7 +35,7 @@ function SectionCard({ icon, title, children, animationDelay, className }: Secti
   return (
     <section
       className={[
-        "relative bg-white border border-hairline rounded-2xl p-5 sm:p-6 lg:p-7 shadow-xs transition-all duration-200 hover:border-hairline-strong hover:shadow-md focus-within:border-accent/60 focus-within:shadow-md",
+        "relative bg-surface border border-hairline rounded-2xl p-5 sm:p-6 lg:p-7 transition-all duration-200 hover:border-hairline-strong focus-within:border-accent/60",
         className,
       ].filter(Boolean).join(" ")}
       style={{ animation: `fade-up 0.4s ease-out ${animationDelay ?? "0s"} both` }}
@@ -132,7 +132,7 @@ function PreferenceSubmitButton({
       disabled={!canSubmit || isSaving}
       className={[
         "rounded-xl bg-accent text-white font-bold flex items-center justify-center gap-2 transition-all duration-200",
-        "shadow-[0_2px_8px_rgba(114,152,199,0.35)] enabled:hover:-translate-y-0.5 enabled:hover:bg-accent-hover enabled:hover:shadow-lg",
+        "shadow-[0_2px_8px_rgba(94,106,210,0.35)] enabled:hover:-translate-y-0.5 enabled:hover:bg-accent-hover enabled:hover:shadow-lg",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
         "disabled:opacity-45 disabled:cursor-not-allowed active:translate-y-0 active:scale-[0.98]",
         className,
@@ -278,6 +278,7 @@ export default function PreferencesPage() {
   }
 
   return (
+    <>
     <div
       className="flex-1 overflow-y-auto pb-36 lg:pb-14"
       style={{ animation: "cinematic-up 0.5s ease-out both" }}
@@ -289,7 +290,7 @@ export default function PreferencesPage() {
           <button
             type="button"
             onClick={() => router.push(`/rooms/${roomCode}`)}
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2 -ml-2 text-[13px] font-medium text-ink-subtle hover:text-ink hover:bg-white/70 transition-all mb-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2 -ml-2 text-[13px] font-medium text-ink-subtle hover:text-ink hover:bg-surface-2 transition-all mb-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
@@ -397,7 +398,7 @@ export default function PreferencesPage() {
           <button
             type="button"
             onClick={() => router.push(`/rooms/${roomCode}`)}
-            className="h-12 px-5 rounded-xl border border-hairline bg-white text-[14px] font-semibold text-ink-muted hover:-translate-y-0.5 hover:border-hairline-strong hover:text-ink hover:bg-surface hover:shadow-sm active:translate-y-0 active:scale-[0.98] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="h-12 px-5 rounded-xl border border-hairline bg-surface text-[14px] font-semibold text-ink-muted hover:-translate-y-0.5 hover:border-hairline-strong hover:text-ink hover:bg-surface-2 active:translate-y-0 active:scale-[0.98] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             취소
           </button>
@@ -408,18 +409,18 @@ export default function PreferencesPage() {
             disabled={!canSubmit || isSaving}
             className="h-12 px-9 rounded-xl text-[14px] font-bold flex items-center gap-2 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:opacity-45 disabled:cursor-not-allowed enabled:hover:-translate-y-0.5 enabled:hover:shadow-lg active:translate-y-0 active:scale-[0.98]"
             style={{
-              backgroundColor: "#7298C7",
+              backgroundColor: "#5e6ad2",
               color: "#fff",
-              boxShadow: "0 1px 3px rgba(114,152,199,0.3)",
+              boxShadow: "0 1px 3px rgba(94,106,210,0.3)",
               animation: canSubmit && !isSaving ? "cta-glow 2.8s ease-in-out infinite" : undefined,
             }}
             onMouseEnter={(e) => {
               if (canSubmit && !isSaving)
-                (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#5C7FB5";
+                (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#4f58b0";
             }}
             onMouseLeave={(e) => {
               if (canSubmit && !isSaving)
-                (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#7298C7";
+                (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#5e6ad2";
             }}
           >
             {isSaving ? (
@@ -438,7 +439,9 @@ export default function PreferencesPage() {
 
       </div>
 
-      {/* ── Mobile sticky CTA ── */}
+    </div>
+
+    {/* ── Mobile sticky CTA ── */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-4 bg-gradient-to-t from-canvas from-75% to-transparent pointer-events-none">
         <button
           type="button"
@@ -446,18 +449,18 @@ export default function PreferencesPage() {
           disabled={!canSubmit || isSaving}
           className="w-full h-[56px] rounded-2xl text-[15px] font-bold flex items-center justify-center gap-2 transition-all duration-200 pointer-events-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:opacity-45 disabled:cursor-not-allowed enabled:hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
           style={{
-            backgroundColor: "#7298C7",
+            backgroundColor: "#5e6ad2",
             color: "#fff",
-            boxShadow: "0 2px 8px rgba(114,152,199,0.35)",
+            boxShadow: "0 2px 8px rgba(94,106,210,0.35)",
             animation: canSubmit && !isSaving ? "cta-glow 2.8s ease-in-out infinite" : undefined,
           }}
           onMouseEnter={(e) => {
             if (canSubmit && !isSaving)
-              (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#5C7FB5";
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#4f58b0";
           }}
           onMouseLeave={(e) => {
             if (canSubmit && !isSaving)
-              (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#7298C7";
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#5e6ad2";
           }}
         >
           {isSaving ? (
@@ -473,7 +476,6 @@ export default function PreferencesPage() {
           )}
         </button>
       </div>
-
-    </div>
+    </>
   );
 }

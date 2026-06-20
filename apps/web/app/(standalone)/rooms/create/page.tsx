@@ -12,19 +12,46 @@ import { createClient } from "@/util/supabase/client";
 
 type Step = 1 | 2 | 3;
 
+function IconBalance() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 4v16M5 4h14M3 12l4-5 4 5M13 12l4-5 4 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M3 17h8M13 17h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  );
+}
+function IconMasks() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="9" cy="12" r="5" stroke="currentColor" strokeWidth="1.5"/>
+      <circle cx="15" cy="12" r="5" stroke="currentColor" strokeWidth="1.5"/>
+      <path d="M7 10.5c.5-.5 1-.5 2 0M11.5 10.5c.5-.5 1-.5 2 0M7.5 13.5c1 1 2 1 3 0M12.5 13.5c1 1 2 1 3 0" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+    </svg>
+  );
+}
+function IconSearch() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.5"/>
+      <path d="M16 16l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M8.5 11.5h5M11 9v5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
 const PINI_FEATURES = [
   {
-    emoji: "⚖️",
+    Icon: IconBalance,
     title: "이동 부담을 균등하게",
     desc: "한 명에게만 불리한 장소는 추천하지 않아요",
   },
   {
-    emoji: "🎭",
+    Icon: IconMasks,
     title: "분위기 선호도 조율",
     desc: "각자의 취향을 반영해 모두가 좋아할 곳을 찾아요",
   },
   {
-    emoji: "🔍",
+    Icon: IconSearch,
     title: "이유를 설명해드려요",
     desc: "왜 이 장소인지 피니가 직접 설명해줘요",
   },
@@ -97,7 +124,7 @@ function StepIndicator({ currentStep }: { currentStep: Step }) {
           {i > 0 && (
             <div
               className="w-6 sm:w-12 lg:w-20 h-px mx-1 sm:mx-3 transition-colors duration-500"
-              style={{ backgroundColor: s <= currentStep ? "#7298C7" : "#E2E6EC" }}
+              style={{ backgroundColor: s <= currentStep ? "#5e6ad2" : "#23252a" }}
             />
           )}
           <div className="flex items-center gap-2">
@@ -106,20 +133,20 @@ function StepIndicator({ currentStep }: { currentStep: Step }) {
               aria-current={s === currentStep ? "step" : undefined}
               style={{
                 backgroundColor:
-                  s < currentStep ? "#7298C7"
-                  : s === currentStep ? "#1A2033"
-                  : "#E2E6EC",
+                  s < currentStep ? "#5e6ad2"
+                  : s === currentStep ? "#5e6ad2"
+                  : "#23252a",
                 color:
                   s < currentStep ? "#fff"
                   : s === currentStep ? "#fff"
-                  : "#9AAABF",
+                  : "#4a4d5a",
               }}
             >
               {s < currentStep ? "✓" : s}
             </div>
             <span
               className="text-[12px] font-medium transition-colors duration-200 hidden sm:block"
-              style={{ color: s === currentStep ? "#1A2033" : "#9AAABF" }}
+              style={{ color: s === currentStep ? "#f7f8f8" : "#4a4d5a" }}
             >
               {STEP_LABELS[s]}
             </span>
@@ -155,20 +182,20 @@ function CtaButton({ onClick, disabled, loading, pulse, success, "aria-label": a
         "disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98]",
       ].join(" ")}
       style={{
-        backgroundColor: success ? "rgba(39,166,68,0.1)" : "#7298C7",
+        backgroundColor: success ? "rgba(39,166,68,0.1)" : "#5e6ad2",
         border: success ? "1px solid rgba(39,166,68,0.3)" : "none",
         color: success ? "#1A7A35" : "#fff",
-        boxShadow: success ? "none" : (pulse && !disabled && !loading ? undefined : "0 1px 3px rgba(114,152,199,0.3)"),
+        boxShadow: success ? "none" : (pulse && !disabled && !loading ? undefined : "0 1px 3px rgba(94,106,210,0.3)"),
         animation: !success && pulse && !disabled && !loading ? "cta-glow 2.8s ease-in-out infinite" : undefined,
       }}
       onMouseEnter={(e) => {
         if (!disabled && !loading && !success) {
-          (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#5C7FB5";
+          (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#4f58b0";
         }
       }}
       onMouseLeave={(e) => {
         if (!disabled && !loading && !success) {
-          (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#7298C7";
+          (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#5e6ad2";
         }
       }}
     >
@@ -189,7 +216,7 @@ function SecondaryButton({ onClick, children }: { onClick?: () => void; children
     <button
       type="button"
       onClick={onClick}
-      className="w-full h-11 rounded-xl text-[14px] font-medium flex items-center justify-center gap-2 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 active:scale-[0.98] bg-white border border-hairline text-ink hover:border-hairline-strong hover:bg-surface"
+      className="w-full h-11 rounded-xl text-[14px] font-medium flex items-center justify-center gap-2 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 active:scale-[0.98] bg-surface border border-hairline text-ink hover:border-hairline-strong hover:bg-surface-2"
     >
       {children}
     </button>
@@ -205,9 +232,9 @@ function CodeLetterBox({ char, index }: { char: string; index: number }) {
       style={{
         width: "clamp(44px, 13vw, 64px)",
         height: "clamp(56px, 16vw, 80px)",
-        backgroundColor: "#EEF3FA",
-        border: "1px solid #C8D0DC",
-        color: "#7298C7",
+        backgroundColor: "#141516",
+        border: "1px solid #23252a",
+        color: "#5e6ad2",
         animation: `fade-up 0.4s ease-out ${0.25 + index * 0.06}s both`,
       }}
     >
@@ -279,10 +306,10 @@ export default function CreateRoomPage() {
       <header
         className="fixed top-0 w-full z-50"
         style={{
-          background: "rgba(244,245,240,0.92)",
+          background: "rgba(1,1,2,0.92)",
           backdropFilter: "blur(14px)",
           WebkitBackdropFilter: "blur(14px)",
-          borderBottom: "1px solid #E2E6EC",
+          borderBottom: "1px solid #23252a",
         }}
       >
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
@@ -292,7 +319,7 @@ export default function CreateRoomPage() {
             {step < 3 && (
               <button
                 onClick={() => step === 1 ? router.back() : setStep((s) => (s - 1) as Step)}
-                className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-hairline text-ink-subtle hover:border-hairline-strong hover:text-ink-muted transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-surface border border-hairline text-ink-subtle hover:border-hairline-strong hover:text-ink-muted transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 aria-label="뒤로 가기"
               >
                 <IconBack />
@@ -325,7 +352,7 @@ export default function CreateRoomPage() {
             </span>
             <Link
               href="/rooms/join"
-              className="h-9 px-4 text-[13px] font-medium rounded-lg border border-hairline text-ink-muted hover:text-ink hover:border-hairline-strong hover:bg-surface flex items-center transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="h-9 px-4 text-[13px] font-medium rounded-lg border border-hairline text-ink-muted hover:text-ink hover:border-hairline-strong hover:bg-surface-2 flex items-center transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               코드로 참가
             </Link>
@@ -385,7 +412,7 @@ export default function CreateRoomPage() {
                 </label>
 
                 <div
-                  className="flex items-center rounded-xl border border-hairline bg-[#F9FAF6] transition-all duration-200 min-w-0 focus-within:bg-white focus-within:border-accent focus-within:shadow-[0_0_0_3px_rgba(114,152,199,0.15)]"
+                  className="flex items-center rounded-xl border border-hairline bg-surface transition-all duration-200 min-w-0 focus-within:bg-surface-2 focus-within:border-accent focus-within:shadow-[0_0_0_3px_rgba(94,106,210,0.15)]"
                 >
                   <input
                     id="room-name"
@@ -402,7 +429,7 @@ export default function CreateRoomPage() {
                   />
                   <span
                     className="pr-4 text-[12px] shrink-0 transition-colors duration-150"
-                    style={{ color: name.length > 0 ? "#9AAABF" : "#C8D0DC" }}
+                    style={{ color: name.length > 0 ? "#4a4d5a" : "#2d2f36" }}
                   >
                     {name.length}/30
                   </span>
@@ -467,12 +494,12 @@ export default function CreateRoomPage() {
                 {PINI_FEATURES.map((f, i) => (
                   <div
                     key={f.title}
-                    className="flex items-start gap-4 sm:gap-5 p-4 sm:p-5 bg-white rounded-2xl border border-hairline hover:border-hairline-strong transition-colors min-w-0 overflow-hidden"
+                    className="flex items-start gap-4 sm:gap-5 p-4 sm:p-5 bg-surface rounded-2xl border border-hairline hover:border-hairline-strong transition-colors min-w-0 overflow-hidden"
                     style={{
                       animation: `fade-up 0.4s ease-out ${0.06 + i * 0.09}s both`,
                     }}
                   >
-                    <span className="text-[24px] leading-none mt-0.5 shrink-0">{f.emoji}</span>
+                    <span className="text-accent leading-none mt-0.5 shrink-0"><f.Icon /></span>
 
                     <div className="min-w-0 flex-1">
                       <p className="text-[14px] font-bold text-ink mb-1 break-keep">
@@ -490,7 +517,9 @@ export default function CreateRoomPage() {
                 className="flex items-center gap-3 px-4 sm:px-5 py-4 bg-accent-light rounded-xl border border-accent/20 mb-10 min-w-0"
                 style={{ animation: "fade-up 0.4s ease-out 0.35s both" }}
               >
-                <span className="text-[16px] shrink-0">🤝</span>
+                <span className="text-accent shrink-0" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 9l3-3 2.5 2.5 3.5-5L14 7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </span>
                 <p className="text-[13px] text-accent font-medium leading-[1.6] break-keep min-w-0">
                   다수결이 아닙니다. 모두의 상황을 고려해요.
                 </p>
@@ -527,13 +556,13 @@ export default function CreateRoomPage() {
             >
               {/* 성공 카드 */}
               <div
-                className="w-full max-w-[480px] flex flex-col items-center rounded-2xl p-6 sm:p-10 relative overflow-hidden bg-white border border-hairline shadow-md"
+                className="w-full max-w-[480px] flex flex-col items-center rounded-2xl p-6 sm:p-10 relative overflow-hidden bg-surface border border-hairline"
               >
                 {/* 상단 accent 라인 */}
                 <div
                   className="absolute top-0 left-8 right-8 h-px"
                   aria-hidden="true"
-                  style={{ background: "linear-gradient(90deg, transparent, rgba(114,152,199,0.6), transparent)" }}
+                  style={{ background: "linear-gradient(90deg, transparent, rgba(94,106,210,0.6), transparent)" }}
                 />
 
                 {/* 성공 아이콘 */}
@@ -544,7 +573,7 @@ export default function CreateRoomPage() {
                   }}
                 >
                   <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-                    <path d="M5 14L11 20L23 8" stroke="#7298C7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M5 14L11 20L23 8" stroke="#5e6ad2" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
 
@@ -591,14 +620,14 @@ export default function CreateRoomPage() {
                   {(() => {
                     const cat = CATEGORIES.find((c) => c.value === category);
                     return cat ? (
-                      <span className="text-[13px] text-ink-muted">{cat.emoji} {cat.label}</span>
+                      <span className="text-[13px] text-ink-muted">{cat.label}</span>
                     ) : null;
                   })()}
 
                   <div className="w-px h-3 bg-hairline-strong" />
 
                   <span className="text-[13px] font-semibold text-accent">
-                    🔍 PINI 협력 조율
+                    PINI 협력 조율
                   </span>
                 </div>
 

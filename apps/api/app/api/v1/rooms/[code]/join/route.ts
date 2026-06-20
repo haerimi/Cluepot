@@ -21,7 +21,11 @@ export async function POST(
         where: { roomCode_userId: { roomCode, userId } },
         update: { leftAt: null },
         create: { roomCode, userId, isHost: count === 0, abstractLocation: '', lat: 0, lng: 0 },
-        include: { room: { select: { linkExpiresAt: true, category: true, status: true } } },
+        include: {
+          room: {
+            select: { linkExpiresAt: true, category: true, status: true, schedule: { select: { id: true } } },
+          },
+        },
       });
     });
 
@@ -32,6 +36,7 @@ export async function POST(
       linkExpiresAt: participant.room.linkExpiresAt.toISOString(),
       category: participant.room.category,
       roomStatus: participant.room.status,
+      scheduleId: participant.room.schedule?.id ?? null,
       savedPreference: hasSaved ? {
         abstractLocation: participant.abstractLocation,
         transports: participant.transports,

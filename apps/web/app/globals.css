@@ -2,62 +2,70 @@
 
 @theme {
   /* ── Canvas / Surfaces ── */
-  --color-canvas: #F4F5F0;
-  --color-surface: #F9FAF6;
-  --color-surface-warm: #F0EDE7;
-  --color-surface-subtle: #FDF6E3;
-  --color-surface-3: #EFF1F5;
-  --color-dark: #1E2535;
+  --color-canvas: #010102;
+  --color-surface: #0f1011;
+  --color-surface-2: #141516;
+  --color-surface-3: #18191a;
+  --color-surface-4: #191a1b;
+  --color-surface-warm: #141516;
+  --color-surface-subtle: #0f1011;
+  --color-dark: #5e6ad2;
 
-  /* ── Accent — Blue Grey (primary) + Morning Butter (secondary) ── */
-  --color-accent: #7298C7;
-  --color-accent-hover: #5C7FB5;
-  --color-accent-active: #4A6CA8;
-  --color-accent-muted: #9AB3D8;
-  --color-accent-light: #EEF3FA;
-  --color-butter: #F3D98F;
+  /* ── Accent — Lavender Blue ── */
+  --color-accent: #5e6ad2;
+  --color-accent-hover: #828fff;
+  --color-accent-active: #5e69d1;
+  --color-accent-muted: #7a7fad;
+  --color-accent-light: rgba(94, 106, 210, 0.12);
+
+  /* ── Secondary / Butter → lavender tint ── */
+  --color-butter: rgba(94, 106, 210, 0.15);
 
   /* ── Buttons ── */
   --color-btn-danger: #E07A7A;
-  --color-btn-disabled: #D0D8E4;
+  --color-btn-disabled: #2c2f35;
 
   /* ── Ink / Text ── */
-  --color-ink: #1A2033;
-  --color-ink-muted: #5A6A85;
-  --color-ink-subtle: #9AAABF;
-  --color-ink-tertiary: #B8C4D4;
-  --color-ink-inverse: #FFFFFF;
+  --color-ink: #f7f8f8;
+  --color-ink-muted: #d0d6e0;
+  --color-ink-subtle: #8a8f98;
+  --color-ink-tertiary: #62666d;
+  --color-ink-inverse: #010102;
 
   /* ── Borders ── */
-  --color-hairline: #E2E6EC;
-  --color-hairline-strong: #C8D0DC;
+  --color-hairline: #23252a;
+  --color-hairline-strong: #34343a;
+  --color-hairline-tertiary: #3e3e44;
 
   /* ── Semantic ── */
   --color-success: #27A644;
-  --color-success-bg: #E8F5EC;
-  --color-success-text: #1A7A35;
+  --color-success-bg: rgba(39, 166, 68, 0.12);
+  --color-success-text: #4ade80;
+  --color-success-bg-alt: rgba(39, 166, 68, 0.08);
+
   --color-warning: #D97706;
-  --color-warning-bg: #FEF3C7;
-  --color-warning-text: #92400E;
+  --color-warning-bg: rgba(217, 119, 6, 0.12);
+  --color-warning-text: #f59e0b;
+  --color-warning-bg-alt: rgba(217, 119, 6, 0.08);
+  --color-warning-fill: rgba(217, 119, 6, 0.06);
+  --color-warning-orange: #fb923c;
+  --color-warning-amber: #fbbf24;
+  --color-warning-border: rgba(217, 119, 6, 0.25);
+
   --color-error: #DC2626;
-  --color-error-hover: #B91C1C;
-  --color-error-bg: #FEF2F2;
-  --color-error-bg-alt: #FFF5F5;
-  --color-error-border: #FCA5A5;
-  --color-warning-bg-alt: #FFF7ED;
-  --color-warning-fill: #FFF8E1;
-  --color-warning-orange: #E65100;
-  --color-warning-amber: #B45309;
-  --color-warning-border: #FED7AA;
-  --color-success-bg-alt: #F0FAF2;
+  --color-error-hover: #ef4444;
+  --color-error-bg: rgba(220, 38, 38, 0.12);
+  --color-error-bg-alt: rgba(220, 38, 38, 0.08);
+  --color-error-border: rgba(220, 38, 38, 0.30);
+
   --color-star: #F59E0B;
 
-  /* ── Shadows ── */
-  --shadow-xs: 0px 1px 2px 0px rgba(26, 32, 51, 0.06);
-  --shadow-sm: 0px 1px 3px 0px rgba(26, 32, 51, 0.08), 0px 1px 2px -1px rgba(26, 32, 51, 0.05);
-  --shadow-md: 0px 4px 12px -2px rgba(26, 32, 51, 0.10), 0px 2px 4px -2px rgba(26, 32, 51, 0.06);
-  --shadow-lg: 0px 10px 32px -4px rgba(26, 32, 51, 0.12), 0px 4px 8px -4px rgba(26, 32, 51, 0.08);
-  --shadow-xl: 0px 20px 48px -8px rgba(26, 32, 51, 0.15), 0px 8px 16px -6px rgba(26, 32, 51, 0.10);
+  /* ── Shadows — dark-optimised ── */
+  --shadow-xs: 0px 1px 2px 0px rgba(0, 0, 0, 0.35);
+  --shadow-sm: 0px 1px 3px 0px rgba(0, 0, 0, 0.40), 0px 1px 2px -1px rgba(0, 0, 0, 0.30);
+  --shadow-md: 0px 4px 12px -2px rgba(0, 0, 0, 0.45), 0px 2px 4px -2px rgba(0, 0, 0, 0.30);
+  --shadow-lg: 0px 10px 32px -4px rgba(0, 0, 0, 0.50), 0px 4px 8px -4px rgba(0, 0, 0, 0.35);
+  --shadow-xl: 0px 20px 48px -8px rgba(0, 0, 0, 0.55), 0px 8px 16px -6px rgba(0, 0, 0, 0.40);
 
   /* ── Border Radius ── */
   --radius-xs: 4px;
@@ -81,8 +89,8 @@
 }
 
 :root {
-  --background: #F4F5F0;
-  --foreground: #1A2033;
+  --background: #010102;
+  --foreground: #f7f8f8;
   --nav-height: 56px;
 }
 
@@ -115,14 +123,14 @@ body {
 /* ── Scrollbar ── */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #9AB3D8 transparent;
+  scrollbar-color: #34343a transparent;
 }
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #9AB3D8;
+  background: #34343a;
   border-radius: 9999px;
 }
 
@@ -201,7 +209,7 @@ button {
 /* Cardinal-point node dots on the radar */
 @keyframes node-pulse {
   0%, 40%, 100% { opacity: 0.25; box-shadow: none; }
-  70%           { opacity: 1;    box-shadow: 0 0 8px rgba(114, 152, 199, 0.5); }
+  70%           { opacity: 1;    box-shadow: 0 0 8px rgba(94, 106, 210, 0.5); }
 }
 
 /* Thinking-dot bounce for "분석 중" chips */
@@ -248,8 +256,8 @@ button {
 
 /* CTA glow when PINI is ready to fire */
 @keyframes cta-glow {
-  0%, 100% { box-shadow: 0 1px 3px rgba(114, 152, 199, 0.3); }
-  50%      { box-shadow: 0 0 0 6px rgba(114, 152, 199, 0.12), 0 4px 16px rgba(114, 152, 199, 0.4); }
+  0%, 100% { box-shadow: 0 1px 3px rgba(94, 106, 210, 0.3); }
+  50%      { box-shadow: 0 0 0 6px rgba(94, 106, 210, 0.12), 0 4px 16px rgba(94, 106, 210, 0.4); }
 }
 
 /* Smooth text shimmer for loading labels */
@@ -298,7 +306,7 @@ button {
 }
 
 .progress-shimmer {
-  background: linear-gradient(90deg, #7298C7 0%, #9AB3D8 50%, #7298C7 100%);
+  background: linear-gradient(90deg, #5e6ad2 0%, #7a7fad 50%, #5e6ad2 100%);
   background-size: 200% 100%;
   animation: progress-shimmer 2s infinite linear;
 }

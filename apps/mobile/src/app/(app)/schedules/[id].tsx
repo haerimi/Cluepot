@@ -2,13 +2,52 @@ import { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Pressable, Alert, Modal, ActivityIndicator,
-  StatusBar,
+  StatusBar, Platform, Image,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import WebView from 'react-native-webview';
+import * as Calendar from 'expo-calendar';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import { formatDateTime, InitialAvatar } from '@/lib/scheduleUtils';
+
+const KAKAO_MAP_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_KEY ?? '';
+
+function kakaoMapHtml(lat: number, lng: number, _name: string): string {
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #1c1e24; }
+  #map { width: 100vw; height: 100vh; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<script type="text/javascript"
+  src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_MAP_KEY}&autoload=false">
+</script>
+<script>
+window.onerror = function(msg, src, line) {
+  window.ReactNativeWebView && window.ReactNativeWebView.postMessage('ERR:' + msg + ' ' + src + ':' + line);
+};
+kakao.maps.load(function() {
+  var container = document.getElementById('map');
+  var options = { center: new kakao.maps.LatLng(${lat}, ${lng}), level: 4 };
+  var map = new kakao.maps.Map(container, options);
+  new kakao.maps.Marker({
+    position: new kakao.maps.LatLng(${lat}, ${lng}),
+    map: map,
+  });
+});
+</script>
+</body>
+</html>`;
+}
 
 /* ── Types ─────────────────────────────────────────────────────────────── */
 
@@ -18,6 +57,7 @@ type Participant = {
   id: string;
   userId: string;
   nickname: string;
+  profileImage: string | null;
   status: AttendanceStatus;
   isMe: boolean;
 };
@@ -28,29 +68,12 @@ type ScheduleDetail = {
   scheduledAt: string;
   placeName: string;
   placeAddress: string;
+  lat: number;
+  lng: number;
   memo: string | null;
   isCreator: boolean;
   myStatus: AttendanceStatus;
   participants: Participant[];
-};
-
-/* ── Mock ─────────────────────────────────────────────────────────────── */
-
-const MOCK: ScheduleDetail = {
-  id: '1',
-  title: '홍대 팀 회식',
-  scheduledAt: new Date(Date.now() + 86400000 * 3).toISOString(),
-  placeName: '스타벅스 홍대점',
-  placeAddress: '서울 마포구 와우산로 12',
-  memo: '지각하면 벌금 3000원 🙏',
-  isCreator: true,
-  myStatus: 'accepted',
-  participants: [
-    { id: 'p1', userId: 'u1', nickname: '나',    status: 'accepted', isMe: true  },
-    { id: 'p2', userId: 'u2', nickname: '김철수', status: 'accepted', isMe: false },
-    { id: 'p3', userId: 'u3', nickname: '이영희', status: 'pending',  isMe: false },
-    { id: 'p4', userId: 'u4', nickname: '박지수', status: 'declined', isMe: false },
-  ],
 };
 
 /* ── Helpers ─────────────────────────────────────────────────────────── */
@@ -63,70 +86,43 @@ const ATTENDANCE: Record<AttendanceStatus, { label: string; color: string; bg: s
 
 /* ── NavHeader ─────────────────────────────────────────────────────────── */
 
-function NavHeader({ initial, onBack, onMore }: { initial: string; onBack: () => void; onMore: () => void }) {
+function NavHeader({ initial, profileImage, onBack, onMore }: { initial: string; profileImage?: string | null; onBack: () => void; onMore?: () => void }) {
   return (
     <View style={nav.wrap}>
       <TouchableOpacity onPress={onBack} style={nav.btn} hitSlop={8}>
         <Ionicons name="chevron-back" size={22} color="#c6c5d5" />
       </TouchableOpacity>
-      <Text style={nav.logo}>Clue<Text style={nav.accent}>Pot</Text></Text>
-      <TouchableOpacity onPress={onMore} style={nav.btn} hitSlop={8}>
-        <Ionicons name="ellipsis-vertical" size={20} color="#8a8f98" />
-      </TouchableOpacity>
+      <Text allowFontScaling={false} style={nav.logo}>Clue<Text allowFontScaling={false} style={nav.accent}>Pot</Text></Text>
+      <View style={nav.right}>
+        <View style={nav.avatarWrap}>
+          {profileImage
+            ? <Image source={{ uri: profileImage }} style={nav.avatar} />
+            : <View style={nav.avatarFallback}><Text allowFontScaling={false} style={nav.avatarText}>{initial}</Text></View>
+          }
+        </View>
+        {onMore && (
+          <TouchableOpacity onPress={onMore} style={nav.moreBtn} hitSlop={8} accessibilityLabel="더보기">
+            <Ionicons name="ellipsis-vertical" size={18} color="#8a8f98" />
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 }
+
+const SB_H = Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0;
 
 const nav = StyleSheet.create({
-  wrap:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, height: 56, borderBottomWidth: 1, borderBottomColor: '#23252a', backgroundColor: '#131316' },
-  btn:    { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  logo:   { fontSize: 20, fontWeight: '700', color: '#f7f8f8', letterSpacing: -0.3 },
-  accent: { color: '#bdc2ff' },
-});
-
-/* ── MapPlaceholder ─────────────────────────────────────────────────────── */
-
-function MapPlaceholder({ placeName }: { placeName: string }) {
-  return (
-    <View style={mp.wrap}>
-      {/* road grid */}
-      {[30, 70, 110, 150].map((top) => (
-        <View key={`h${top}`} style={[mp.hLine, { top }]} />
-      ))}
-      {[40, 90, 140, 190].map((left) => (
-        <View key={`v${left}`} style={[mp.vLine, { left }]} />
-      ))}
-      {/* blocks */}
-      <View style={[mp.block, { top: 10, left: 10, width: 55, height: 45 }]} />
-      <View style={[mp.block, { top: 10, left: 100, width: 70, height: 45 }]} />
-      <View style={[mp.block, { top: 80, left: 10, width: 45, height: 55 }]} />
-      <View style={[mp.block, { top: 80, left: 110, width: 55, height: 55 }]} />
-      <View style={[mp.block, { top: 155, left: 50, width: 80, height: 40 }]} />
-      {/* pin */}
-      <View style={mp.pinWrap}>
-        <View style={mp.pinCircle}>
-          <Ionicons name="location" size={16} color="#fdfaff" />
-        </View>
-        <View style={mp.pinTail} />
-      </View>
-      {/* label */}
-      <View style={mp.labelWrap}>
-        <Text style={mp.labelText} numberOfLines={1}>{placeName}</Text>
-      </View>
-    </View>
-  );
-}
-
-const mp = StyleSheet.create({
-  wrap:      { height: 200, backgroundColor: '#0f1011', borderRadius: 14, borderWidth: 1, borderColor: '#23252a', overflow: 'hidden', position: 'relative', alignItems: 'center', justifyContent: 'center' },
-  hLine:     { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: '#1c1b1f' },
-  vLine:     { position: 'absolute', top: 0, bottom: 0, width: 1, backgroundColor: '#1c1b1f' },
-  block:     { position: 'absolute', backgroundColor: '#141516', borderRadius: 4 },
-  pinWrap:   { alignItems: 'center', zIndex: 10 },
-  pinCircle: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#5e6ad2', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#fdfaff' },
-  pinTail:   { width: 2, height: 8, backgroundColor: '#5e6ad2', marginTop: -1 },
-  labelWrap: { position: 'absolute', bottom: 12, left: 16, right: 16, backgroundColor: '#141516', borderRadius: 8, borderWidth: 1, borderColor: '#34343a', paddingHorizontal: 10, paddingVertical: 6 },
-  labelText: { fontSize: 12, fontWeight: '600', color: '#f7f8f8', textAlign: 'center' },
+  wrap:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: SB_H, height: 56 + SB_H, borderBottomWidth: 1, borderBottomColor: '#23252a', backgroundColor: '#131316' },
+  btn:          { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  logo:         { fontSize: 20, fontWeight: '700', color: '#f7f8f8', letterSpacing: -0.3 },
+  accent:       { color: '#bdc2ff' },
+  right:        { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  avatarWrap:   { width: 30, height: 30, borderRadius: 15, overflow: 'hidden', borderWidth: 1, borderColor: '#34343a' },
+  avatar:       { width: 30, height: 30, borderRadius: 15 },
+  avatarFallback: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#5e6ad2', alignItems: 'center', justifyContent: 'center' },
+  avatarText:   { fontSize: 12, fontWeight: '700', color: '#fdfaff' },
+  moreBtn:      { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
 });
 
 /* ── ScheduleDetailScreen ──────────────────────────────────────────────── */
@@ -134,8 +130,9 @@ const mp = StyleSheet.create({
 export default function ScheduleDetailScreen() {
   const { id }   = useLocalSearchParams<{ id: string }>();
   const router   = useRouter();
-  const nickname = useAuthStore((s) => s.user?.nickname ?? '?');
-  const initial  = nickname[0].toUpperCase();
+  const nickname     = useAuthStore((s) => s.user?.nickname ?? '?');
+  const profileImage = useAuthStore((s) => s.user?.profileImage ?? null);
+  const initial      = nickname[0].toUpperCase();
 
   const [schedule, setSchedule] = useState<ScheduleDetail | null>(null);
   const [loading,  setLoading]  = useState(true);
@@ -150,8 +147,7 @@ export default function ScheduleDetailScreen() {
       const { data } = await api.get(`/schedules/${id}`);
       setSchedule(data);
     } catch {
-      // fallback to mock while API is not ready
-      setSchedule(MOCK);
+      Alert.alert('오류', '일정을 불러올 수 없어요.', [{ text: '확인', onPress: () => router.back() }]);
     } finally {
       setLoading(false);
     }
@@ -162,11 +158,56 @@ export default function ScheduleDetailScreen() {
     setRsvpLoading(true);
     try {
       await api.patch(`/schedules/${id}/rsvp`, { status });
-      setSchedule((prev) => prev ? { ...prev, myStatus: status } : prev);
+      setSchedule((prev) => prev ? {
+        ...prev,
+        myStatus: status,
+        participants: prev.participants.map((p) => p.isMe ? { ...p, status } : p),
+      } : prev);
     } catch {
       Alert.alert('오류', '응답을 저장하지 못했어요.');
     } finally {
       setRsvpLoading(false);
+    }
+  }
+
+  async function handleAddToCalendar() {
+    if (!schedule) return;
+    try {
+      const { status } = await Calendar.requestCalendarPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('권한 필요', '설정에서 캘린더 접근을 허용해주세요.');
+        return;
+      }
+
+      let calendarId: string;
+      if (Platform.OS === 'ios') {
+        const defaultCalendar = await Calendar.getDefaultCalendarAsync();
+        calendarId = defaultCalendar.id;
+      } else {
+        const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
+        const writable = calendars.find((c) => c.allowsModifications);
+        if (!writable) {
+          Alert.alert('오류', '사용 가능한 캘린더가 없어요.');
+          return;
+        }
+        calendarId = writable.id;
+      }
+
+      const startDate = new Date(schedule.scheduledAt);
+      const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+
+      await Calendar.createEventAsync(calendarId, {
+        title: schedule.title,
+        startDate,
+        endDate,
+        location: `${schedule.placeName} ${schedule.placeAddress}`,
+        notes: schedule.memo ?? undefined,
+        timeZone: 'Asia/Seoul',
+      });
+
+      Alert.alert('완료', '캘린더에 일정이 추가됐어요.');
+    } catch {
+      Alert.alert('오류', '캘린더 추가에 실패했어요.');
     }
   }
 
@@ -179,7 +220,7 @@ export default function ScheduleDetailScreen() {
         onPress: async () => {
           try {
             await api.delete(`/schedules/${id}`);
-            router.back();
+            router.replace('/(app)/rooms/index' as any);
           } catch {
             Alert.alert('오류', '삭제하지 못했어요.');
           }
@@ -192,7 +233,7 @@ export default function ScheduleDetailScreen() {
     return (
       <View style={s.root}>
         <StatusBar barStyle="light-content" backgroundColor="#131316" />
-        <NavHeader initial={initial} onBack={() => router.back()} onMore={() => {}} />
+        <NavHeader initial={initial} profileImage={profileImage} onBack={() => router.back()} />
         <View style={s.loadingWrap}>
           <ActivityIndicator color="#bdc2ff" />
         </View>
@@ -209,7 +250,7 @@ export default function ScheduleDetailScreen() {
   return (
     <View style={s.root}>
       <StatusBar barStyle="light-content" backgroundColor="#131316" />
-      <NavHeader initial={initial} onBack={() => router.back()} onMore={() => setMoreOpen(true)} />
+      <NavHeader initial={initial} profileImage={profileImage} onBack={() => router.back()} onMore={schedule.isCreator ? () => setMoreOpen(true) : undefined} />
 
       <ScrollView
         style={s.scroll}
@@ -220,10 +261,10 @@ export default function ScheduleDetailScreen() {
         <View style={s.titleSection}>
           <View style={s.confirmedBadge}>
             <View style={[s.dot, { backgroundColor: '#27a644' }]} />
-            <Text style={s.confirmedBadgeText}>일정 확정됨</Text>
+            <Text allowFontScaling={false} style={s.confirmedBadgeText}>일정 확정됨</Text>
           </View>
-          <Text style={s.title}>{schedule.title}</Text>
-          <Text style={s.participantSummary}>
+          <Text allowFontScaling={false} style={s.title}>{schedule.title}</Text>
+          <Text allowFontScaling={false} style={s.participantSummary}>
             {accepted}/{total}명 참석 확정
           </Text>
         </View>
@@ -235,8 +276,8 @@ export default function ScheduleDetailScreen() {
               <Ionicons name="calendar-outline" size={16} color="#bdc2ff" />
             </View>
             <View>
-              <Text style={s.infoLabel}>날짜</Text>
-              <Text style={s.infoValue}>{date}</Text>
+              <Text allowFontScaling={false} style={s.infoLabel}>날짜</Text>
+              <Text allowFontScaling={false} style={s.infoValue}>{date}</Text>
             </View>
           </View>
 
@@ -247,8 +288,8 @@ export default function ScheduleDetailScreen() {
               <Ionicons name="time-outline" size={16} color="#bdc2ff" />
             </View>
             <View>
-              <Text style={s.infoLabel}>시간</Text>
-              <Text style={s.infoValue}>{time}</Text>
+              <Text allowFontScaling={false} style={s.infoLabel}>시간</Text>
+              <Text allowFontScaling={false} style={s.infoValue}>{time}</Text>
             </View>
           </View>
 
@@ -259,35 +300,56 @@ export default function ScheduleDetailScreen() {
               <Ionicons name="location-outline" size={16} color="#bdc2ff" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={s.infoLabel}>장소</Text>
-              <Text style={s.infoValue}>{schedule.placeName}</Text>
-              <Text style={s.infoSub}>{schedule.placeAddress}</Text>
+              <Text allowFontScaling={false} style={s.infoLabel}>장소</Text>
+              <Text allowFontScaling={false} style={s.infoValue}>{schedule.placeName}</Text>
+              <Text allowFontScaling={false} style={s.infoSub}>{schedule.placeAddress}</Text>
             </View>
           </View>
         </View>
 
         {/* ── 지도 ── */}
         <View style={s.section}>
-          <MapPlaceholder placeName={schedule.placeName} />
+          {Platform.OS !== 'web' ? (
+            <WebView
+              key={`${schedule.lat}-${schedule.lng}`}
+              source={{ html: kakaoMapHtml(schedule.lat, schedule.lng, schedule.placeName) }}
+              style={s.map}
+              originWhitelist={['*']}
+              javaScriptEnabled
+              domStorageEnabled
+              mixedContentMode="always"
+              scrollEnabled={false}
+              onError={(e) => console.warn('[Map] error:', e.nativeEvent)}
+              onMessage={(e) => console.log('[Map] msg:', e.nativeEvent.data)}
+            />
+          ) : (
+            <View style={[s.map, s.mapFallback]}>
+              <Ionicons name="map-outline" size={32} color="#34343a" />
+              <Text allowFontScaling={false} style={s.mapFallbackText}>지도는 앱에서 확인하세요</Text>
+            </View>
+          )}
         </View>
 
         {/* ── 참가자 ── */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>참가자 {total}명</Text>
+          <Text allowFontScaling={false} style={s.sectionTitle}>참가자 {total}명</Text>
           <View style={s.participantList}>
             {schedule.participants.map((p, idx) => {
               const att = ATTENDANCE[p.status];
               const isLast = idx === schedule.participants.length - 1;
               return (
                 <View key={p.id} style={[s.participantRow, !isLast && s.participantRowBorder]}>
-                  <InitialAvatar name={p.nickname} size={36} />
+                  {p.profileImage
+                    ? <Image source={{ uri: p.profileImage }} style={s.participantImg} />
+                    : <InitialAvatar name={p.nickname} size={36} />
+                  }
                   <View style={s.participantInfo}>
-                    <Text style={s.participantName}>
+                    <Text allowFontScaling={false} style={s.participantName}>
                       {p.nickname}{p.isMe ? ' (나)' : ''}
                     </Text>
                   </View>
                   <View style={[s.attBadge, { backgroundColor: att.bg }]}>
-                    <Text style={[s.attBadgeText, { color: att.color }]}>{att.label}</Text>
+                    <Text allowFontScaling={false} style={[s.attBadgeText, { color: att.color }]}>{att.label}</Text>
                   </View>
                 </View>
               );
@@ -298,18 +360,32 @@ export default function ScheduleDetailScreen() {
         {/* ── 메모 ── */}
         {schedule.memo && (
           <View style={s.section}>
-            <Text style={s.sectionTitle}>메모</Text>
+            <Text allowFontScaling={false} style={s.sectionTitle}>메모</Text>
             <View style={s.memoBox}>
               <Ionicons name="document-text-outline" size={14} color="#8a8f98" style={{ marginTop: 1 }} />
-              <Text style={s.memoText}>{schedule.memo}</Text>
+              <Text allowFontScaling={false} style={s.memoText}>{schedule.memo}</Text>
             </View>
           </View>
         )}
 
+        {/* ── 일정 확인하기 ── */}
+        <View style={s.section}>
+          <TouchableOpacity
+            style={s.calendarBtn}
+            onPress={() => router.push('/(app)/calendar' as any)}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="캘린더에서 일정 확인하기"
+          >
+            <Ionicons name="calendar-outline" size={16} color="#bdc2ff" />
+            <Text allowFontScaling={false} style={s.calendarBtnText}>일정 확인하기</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* ── 내 참석 응답 (비호스트) ── */}
         {!schedule.isCreator && (
           <View style={s.section}>
-            <Text style={s.sectionTitle}>내 참석 응답</Text>
+            <Text allowFontScaling={false} style={s.sectionTitle}>내 참석 응답</Text>
             <View style={s.rsvpRow}>
               <Pressable
                 style={({ pressed }) => [
@@ -325,7 +401,7 @@ export default function ScheduleDetailScreen() {
                   size={16}
                   color={schedule.myStatus === 'accepted' ? '#27a644' : '#8a8f98'}
                 />
-                <Text style={[s.rsvpBtnText, schedule.myStatus === 'accepted' && s.rsvpBtnTextAccepted]}>
+                <Text allowFontScaling={false} style={[s.rsvpBtnText, schedule.myStatus === 'accepted' && s.rsvpBtnTextAccepted]}>
                   참석
                 </Text>
               </Pressable>
@@ -343,7 +419,7 @@ export default function ScheduleDetailScreen() {
                   size={16}
                   color={schedule.myStatus === 'declined' ? '#ffb4ab' : '#8a8f98'}
                 />
-                <Text style={[s.rsvpBtnText, schedule.myStatus === 'declined' && s.rsvpBtnTextDeclined]}>
+                <Text allowFontScaling={false} style={[s.rsvpBtnText, schedule.myStatus === 'declined' && s.rsvpBtnTextDeclined]}>
                   불참
                 </Text>
               </Pressable>
@@ -361,10 +437,10 @@ export default function ScheduleDetailScreen() {
           <View style={s.sheetHandle} />
           <TouchableOpacity
             style={s.sheetItem}
-            onPress={() => { setMoreOpen(false); router.push(`/(app)/calendar/${id}`); }}
+            onPress={() => { setMoreOpen(false); router.push({ pathname: '/(app)/calendar/[scheduleId]', params: { scheduleId: id } } as any); }}
           >
             <Ionicons name="create-outline" size={20} color="#d0d6e0" />
-            <Text style={s.sheetItemText}>일정 수정</Text>
+            <Text allowFontScaling={false} style={s.sheetItemText}>일정 수정</Text>
           </TouchableOpacity>
           <View style={s.sheetDivider} />
           <TouchableOpacity
@@ -372,7 +448,7 @@ export default function ScheduleDetailScreen() {
             onPress={() => { setMoreOpen(false); handleDelete(); }}
           >
             <Ionicons name="trash-outline" size={20} color="#ffb4ab" />
-            <Text style={[s.sheetItemText, { color: '#ffb4ab' }]}>일정 삭제</Text>
+            <Text allowFontScaling={false} style={[s.sheetItemText, { color: '#ffb4ab' }]}>일정 삭제</Text>
           </TouchableOpacity>
         </View>
       </Modal>
@@ -485,6 +561,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
   },
+  participantImg: { width: 36, height: 36, borderRadius: 18, borderWidth: 1, borderColor: '#34343a' },
   participantRowBorder: { borderBottomWidth: 1, borderBottomColor: '#1c1b1f' },
   participantInfo: { flex: 1 },
   participantName: { fontSize: 14, fontWeight: '600', color: '#f7f8f8', letterSpacing: -0.1 },
@@ -542,6 +619,25 @@ const s = StyleSheet.create({
   sheetItem: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16, minHeight: 52 },
   sheetItemText: { fontSize: 15, fontWeight: '500', color: '#d0d6e0' },
   sheetDivider: { height: 1, backgroundColor: '#1c1b1f' },
+
+  /* calendar */
+  calendarBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    height: 48,
+    backgroundColor: 'rgba(189,194,255,0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(189,194,255,0.2)',
+    borderRadius: 12,
+  },
+  calendarBtnText: { fontSize: 14, fontWeight: '600', color: '#bdc2ff' },
+
+  /* map */
+  map: { height: 260, borderRadius: 14, overflow: 'hidden' },
+  mapFallback: { backgroundColor: '#0f1011', borderWidth: 1, borderColor: '#23252a', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  mapFallbackText: { fontSize: 13, color: '#454652' },
 
   /* shared */
   dot: { width: 6, height: 6, borderRadius: 3 },

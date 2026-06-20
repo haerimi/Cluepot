@@ -19,7 +19,7 @@ export function formatDateTime(iso: string) {
 export function InitialAvatar({ name, size = 36 }: { name: string; size?: number }) {
   return (
     <View style={[av.wrap, { width: size, height: size, borderRadius: size / 2 }]}>
-      <Text style={[av.text, { fontSize: size * 0.4 }]}>
+      <Text allowFontScaling={false} style={[av.text, { fontSize: size * 0.4 }]}>
         {name.charAt(0).toUpperCase()}
       </Text>
     </View>

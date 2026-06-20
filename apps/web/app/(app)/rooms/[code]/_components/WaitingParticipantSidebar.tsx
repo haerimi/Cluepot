@@ -136,7 +136,7 @@ export function WaitingParticipantSidebar({
                 : "bg-surface-3 text-ink-subtle border-hairline",
             ].join(" ")}
           >
-            {allReady ? "모두 준비됨 ✓" : `${totalCount}명`}
+            {allReady ? "모두 준비됨" : `${totalCount}명`}
           </span>
         </div>
 
@@ -177,8 +177,8 @@ export function WaitingParticipantSidebar({
               className={[
                 "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200",
                 isReady
-                  ? "bg-white border border-hairline hover:border-hairline-strong hover:shadow-xs"
-                  : "border border-transparent hover:bg-surface-warm opacity-75 hover:opacity-100",
+                  ? "bg-surface border border-hairline hover:border-hairline-strong"
+                  : "border border-transparent hover:bg-surface-2 opacity-75 hover:opacity-100",
               ].join(" ")}
               style={{ animation: `fade-up 0.35s ease-out ${idx * 0.05}s both` }}
             >
@@ -221,14 +221,16 @@ export function WaitingParticipantSidebar({
           onClick={onShowInvite}
           className={[
             "flex items-center justify-center gap-2 w-full rounded-xl border text-[13px] font-medium transition-all duration-150",
-            "h-10 bg-white text-ink-muted border-hairline",
+            "h-10 bg-surface-2 text-ink-muted border-hairline",
             "hover:bg-surface-3 hover:border-hairline-strong hover:text-ink",
             "active:scale-[0.98] active:bg-hairline",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
           ].join(" ")}
           aria-label="초대 코드 보기"
         >
-          <span aria-hidden="true">🔗</span>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M5.5 8.5l3-3M3.5 9L2 10.5A2 2 0 104.5 13L6 11.5M8 5l1.5-1.5A2 2 0 1112 6.5L10.5 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+          </svg>
           초대 코드 보기
         </button>
       </div>

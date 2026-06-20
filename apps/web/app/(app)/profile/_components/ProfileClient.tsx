@@ -175,7 +175,7 @@ export default function ProfileClient({ user }: Readonly<{ user: UserInfo }>) {
           {/* ── 좌열: 폼 카드 + 푸터 ── */}
           <div>
             <div
-              className="bg-white rounded-2xl border border-hairline overflow-hidden"
+              className="bg-surface rounded-2xl border border-hairline overflow-hidden"
               style={{
                 boxShadow: "var(--shadow-md)",
                 animation: "fade-up 0.4s ease-out 0.1s both",
@@ -201,7 +201,7 @@ export default function ProfileClient({ user }: Readonly<{ user: UserInfo }>) {
                   <div className="relative">
                     <div
                       className="relative w-[104px] h-[104px] sm:w-[116px] sm:h-[116px] rounded-full overflow-hidden
-                                 border-[3px] border-white shadow-md
+                                 border-[3px] border-canvas shadow-md
                                  ring-2 ring-hairline group-hover:ring-accent
                                  transition-all duration-200 group-hover:scale-[1.04] group-focus-within:ring-accent"
                     >
@@ -242,7 +242,7 @@ export default function ProfileClient({ user }: Readonly<{ user: UserInfo }>) {
                         style={{ animation: "fade-up 0.2s ease-out both" }}
                       >
                         <svg width="9" height="9" viewBox="0 0 9 9" fill="none" aria-hidden="true">
-                          <circle cx="4.5" cy="4.5" r="4" fill="#7298C7" />
+                          <circle cx="4.5" cy="4.5" r="4" fill="#5e6ad2" />
                         </svg>
                         변경됨
                       </span>
@@ -301,7 +301,7 @@ export default function ProfileClient({ user }: Readonly<{ user: UserInfo }>) {
                     aria-required="true"
                     autoComplete="nickname"
                     className="h-12 rounded-xl border border-hairline px-4 text-[14px] font-medium text-ink
-                               placeholder:text-ink-subtle/50 bg-white
+                               placeholder:text-ink-subtle/50 bg-surface
                                hover:border-hairline-strong
                                focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20
                                transition-all duration-150"
@@ -438,7 +438,7 @@ export default function ProfileClient({ user }: Readonly<{ user: UserInfo }>) {
                   type="button"
                   onClick={logout}
                   className="h-9 px-4 text-[12px] font-semibold text-error border border-error-border
-                             rounded-full bg-white
+                             rounded-full bg-surface
                              hover:bg-error-bg hover:border-error
                              active:scale-[0.97]
                              transition-all duration-150
@@ -480,7 +480,7 @@ export default function ProfileClient({ user }: Readonly<{ user: UserInfo }>) {
           >
 
             {/* 참가자 미리보기 카드 */}
-            <div className="bg-white rounded-2xl border border-hairline overflow-hidden" style={{ boxShadow: "var(--shadow-sm)" }}>
+            <div className="bg-surface rounded-2xl border border-hairline overflow-hidden" style={{ boxShadow: "var(--shadow-sm)" }}>
               <div className="p-5">
                 <SectionLabel
                   extra={
@@ -523,7 +523,7 @@ export default function ProfileClient({ user }: Readonly<{ user: UserInfo }>) {
             </div>
 
             {/* 계정 정보 카드 */}
-            <div className="bg-white rounded-2xl border border-hairline overflow-hidden" style={{ boxShadow: "var(--shadow-sm)" }}>
+            <div className="bg-surface rounded-2xl border border-hairline overflow-hidden" style={{ boxShadow: "var(--shadow-sm)" }}>
               <div className="p-5">
                 <SectionLabel>계정 정보</SectionLabel>
 
