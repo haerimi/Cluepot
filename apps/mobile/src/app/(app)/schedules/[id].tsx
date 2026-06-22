@@ -7,10 +7,10 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import WebView from 'react-native-webview';
-import * as Calendar from 'expo-calendar';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import { formatDateTime, InitialAvatar } from '@/lib/scheduleUtils';
+import { WebViewErrorEvent, WebViewMessageEvent } from 'react-native-webview/lib/WebViewTypes';
 
 const KAKAO_MAP_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_KEY ?? '';
 
@@ -79,9 +79,9 @@ type ScheduleDetail = {
 /* ── Helpers ─────────────────────────────────────────────────────────── */
 
 const ATTENDANCE: Record<AttendanceStatus, { label: string; color: string; bg: string }> = {
-  accepted: { label: '참석',  color: '#27a644', bg: 'rgba(39,166,68,0.12)' },
-  declined: { label: '불참',  color: '#ffb4ab', bg: 'rgba(255,180,171,0.12)' },
-  pending:  { label: '미응답', color: '#8a8f98', bg: 'rgba(138,143,152,0.12)' },
+  accepted: { label: '참석', color: '#27a644', bg: 'rgba(39,166,68,0.12)' },
+  declined: { label: '불참', color: '#ffb4ab', bg: 'rgba(255,180,171,0.12)' },
+  pending: { label: '미응답', color: '#8a8f98', bg: 'rgba(138,143,152,0.12)' },
 };
 
 /* ── NavHeader ─────────────────────────────────────────────────────────── */
@@ -113,29 +113,29 @@ function NavHeader({ initial, profileImage, onBack, onMore }: { initial: string;
 const SB_H = Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0;
 
 const nav = StyleSheet.create({
-  wrap:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: SB_H, height: 56 + SB_H, borderBottomWidth: 1, borderBottomColor: '#23252a', backgroundColor: '#131316' },
-  btn:          { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  logo:         { fontSize: 20, fontWeight: '700', color: '#f7f8f8', letterSpacing: -0.3 },
-  accent:       { color: '#bdc2ff' },
-  right:        { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  avatarWrap:   { width: 30, height: 30, borderRadius: 15, overflow: 'hidden', borderWidth: 1, borderColor: '#34343a' },
-  avatar:       { width: 30, height: 30, borderRadius: 15 },
+  wrap: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: SB_H, height: 56 + SB_H, borderBottomWidth: 1, borderBottomColor: '#23252a', backgroundColor: '#131316' },
+  btn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  logo: { fontSize: 20, fontWeight: '700', color: '#f7f8f8', letterSpacing: -0.3 },
+  accent: { color: '#bdc2ff' },
+  right: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  avatarWrap: { width: 30, height: 30, borderRadius: 15, overflow: 'hidden', borderWidth: 1, borderColor: '#34343a' },
+  avatar: { width: 30, height: 30, borderRadius: 15 },
   avatarFallback: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#5e6ad2', alignItems: 'center', justifyContent: 'center' },
-  avatarText:   { fontSize: 12, fontWeight: '700', color: '#fdfaff' },
-  moreBtn:      { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontSize: 12, fontWeight: '700', color: '#fdfaff' },
+  moreBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
 });
 
 /* ── ScheduleDetailScreen ──────────────────────────────────────────────── */
 
 export default function ScheduleDetailScreen() {
-  const { id }   = useLocalSearchParams<{ id: string }>();
-  const router   = useRouter();
-  const nickname     = useAuthStore((s) => s.user?.nickname ?? '?');
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
+  const nickname = useAuthStore((s) => s.user?.nickname ?? '?');
   const profileImage = useAuthStore((s) => s.user?.profileImage ?? null);
-  const initial      = nickname[0].toUpperCase();
+  const initial = nickname[0].toUpperCase();
 
   const [schedule, setSchedule] = useState<ScheduleDetail | null>(null);
-  const [loading,  setLoading]  = useState(true);
+  const [loading, setLoading] = useState(true);
   const [moreOpen, setMoreOpen] = useState(false);
   const [rsvpLoading, setRsvpLoading] = useState(false);
 
@@ -167,47 +167,6 @@ export default function ScheduleDetailScreen() {
       Alert.alert('오류', '응답을 저장하지 못했어요.');
     } finally {
       setRsvpLoading(false);
-    }
-  }
-
-  async function handleAddToCalendar() {
-    if (!schedule) return;
-    try {
-      const { status } = await Calendar.requestCalendarPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('권한 필요', '설정에서 캘린더 접근을 허용해주세요.');
-        return;
-      }
-
-      let calendarId: string;
-      if (Platform.OS === 'ios') {
-        const defaultCalendar = await Calendar.getDefaultCalendarAsync();
-        calendarId = defaultCalendar.id;
-      } else {
-        const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
-        const writable = calendars.find((c) => c.allowsModifications);
-        if (!writable) {
-          Alert.alert('오류', '사용 가능한 캘린더가 없어요.');
-          return;
-        }
-        calendarId = writable.id;
-      }
-
-      const startDate = new Date(schedule.scheduledAt);
-      const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
-
-      await Calendar.createEventAsync(calendarId, {
-        title: schedule.title,
-        startDate,
-        endDate,
-        location: `${schedule.placeName} ${schedule.placeAddress}`,
-        notes: schedule.memo ?? undefined,
-        timeZone: 'Asia/Seoul',
-      });
-
-      Alert.alert('완료', '캘린더에 일정이 추가됐어요.');
-    } catch {
-      Alert.alert('오류', '캘린더 추가에 실패했어요.');
     }
   }
 
@@ -245,7 +204,19 @@ export default function ScheduleDetailScreen() {
 
   const { date, time } = formatDateTime(schedule.scheduledAt);
   const accepted = schedule.participants.filter((p) => p.status === 'accepted').length;
-  const total    = schedule.participants.length;
+  const total = schedule.participants.length;
+
+  const handleMapError = (e: WebViewErrorEvent) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[Map] error:', e.nativeEvent)
+    }
+  }
+
+  const handleMapMessage = (e: WebViewMessageEvent) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Map] msg:', e.nativeEvent.data)
+    }
+  }
 
   return (
     <View style={s.root}>
@@ -319,8 +290,8 @@ export default function ScheduleDetailScreen() {
               domStorageEnabled
               mixedContentMode="always"
               scrollEnabled={false}
-              onError={(e) => console.warn('[Map] error:', e.nativeEvent)}
-              onMessage={(e) => console.log('[Map] msg:', e.nativeEvent.data)}
+              onError={handleMapError}
+              onMessage={handleMapMessage}
             />
           ) : (
             <View style={[s.map, s.mapFallback]}>
@@ -459,8 +430,8 @@ export default function ScheduleDetailScreen() {
 /* ── Styles ─────────────────────────────────────────────────────────────── */
 
 const s = StyleSheet.create({
-  root:        { flex: 1, backgroundColor: '#131316' },
-  scroll:      { flex: 1 },
+  root: { flex: 1, backgroundColor: '#131316' },
+  scroll: { flex: 1 },
   scrollContent: { paddingBottom: 48 },
   loadingWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
@@ -529,7 +500,7 @@ const s = StyleSheet.create({
   },
   infoLabel: { fontSize: 10, fontWeight: '700', color: '#454652', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.8 },
   infoValue: { fontSize: 15, fontWeight: '600', color: '#f7f8f8', letterSpacing: -0.2 },
-  infoSub:   { fontSize: 12, color: '#8a8f98', marginTop: 3, lineHeight: 17 },
+  infoSub: { fontSize: 12, color: '#8a8f98', marginTop: 3, lineHeight: 17 },
   infoDivider: { height: 1, backgroundColor: '#1c1b1f', marginLeft: 68 },
 
   /* section */

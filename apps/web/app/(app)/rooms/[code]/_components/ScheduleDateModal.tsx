@@ -59,7 +59,9 @@ export function ScheduleDateModal({
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
 
   useEffect(() => {
-    getRecommendedDates(roomCode).then(setRecommendations).catch(() => {})
+    getRecommendedDates(roomCode).then(setRecommendations).catch(() => {
+      setError("추천 날짜를 불러오지 못했어요.");
+    })
   }, [roomCode])
 
   // Esc 키로 모달 닫기 (제출 중에는 닫기 방지)
@@ -266,12 +268,12 @@ export function ScheduleDateModal({
 
           {error && (
             <p className="text-[12px] text-error flex items-center gap-1.5" role="alert">
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1L15 14H1L8 1z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M8 6v4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/><circle cx="8" cy="11.5" r="0.8" fill="currentColor"/></svg>{error}
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1L15 14H1L8 1z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /><path d="M8 6v4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /><circle cx="8" cy="11.5" r="0.8" fill="currentColor" /></svg>{error}
             </p>
           )}
           {submitError && (
             <p className="text-[12px] text-error flex items-center gap-1.5" role="alert">
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1L15 14H1L8 1z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M8 6v4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/><circle cx="8" cy="11.5" r="0.8" fill="currentColor"/></svg>{submitError}
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1L15 14H1L8 1z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /><path d="M8 6v4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /><circle cx="8" cy="11.5" r="0.8" fill="currentColor" /></svg>{submitError}
             </p>
           )}
         </div>

@@ -67,7 +67,9 @@ export default function JoinRoomPage() {
   useEffect(() => {
     createClient().auth.getUser().then(({ data: { user } }) => {
       if (!user) router.push("/login");
-    });
+    }).catch(() => {
+      setError("인증 확인에 실패했어요. 새로고침 해주세요.");
+    });;
     // 자동 포커스
     inputRef.current?.focus();
   }, [router]);
@@ -260,7 +262,7 @@ export default function JoinRoomPage() {
                       aria-live="assertive"
                       style={{ animation: "fade-up 0.25s ease-out both" }}
                     >
-                      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true" className="shrink-0 text-error mt-0.5"><path d="M8 1L15 14H1L8 1z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M8 6v4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/><circle cx="8" cy="11.5" r="0.8" fill="currentColor"/></svg>
+                      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true" className="shrink-0 text-error mt-0.5"><path d="M8 1L15 14H1L8 1z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /><path d="M8 6v4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /><circle cx="8" cy="11.5" r="0.8" fill="currentColor" /></svg>
                       <p className="text-[13px] text-error leading-snug">{error}</p>
                     </div>
                   )}

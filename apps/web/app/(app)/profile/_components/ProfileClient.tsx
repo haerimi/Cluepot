@@ -2,6 +2,7 @@
 
 import { logout, updateUserInfo } from "@/app/actions/auth";
 import { createClient } from "@/util/supabase/client";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 
@@ -47,8 +48,7 @@ function AvatarContent({
 }) {
   if (src) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img src={src} alt={imgAlt} className="w-full h-full object-cover" />
+      <Image src={src} alt={imgAlt} className="w-full h-full object-cover" />
     );
   }
   return (

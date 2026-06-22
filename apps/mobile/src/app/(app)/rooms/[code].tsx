@@ -6,11 +6,12 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import WebView from 'react-native-webview';
+import WebView, { WebViewMessageEvent } from 'react-native-webview';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import { supabase } from '@/lib/supabase';
+import { WebViewErrorEvent, WebViewHttpErrorEvent } from 'react-native-webview/lib/WebViewTypes';
 
 type Transport = 'walk' | 'transit' | 'car' | 'bike';
 type DistanceTolerance = 'short' | 'medium' | 'far';
@@ -64,20 +65,20 @@ const TRANSPORT_EMOJI: Record<string, string> = {
   walk: '🚶', transit: '🚇', car: '🚗', bike: '🚲',
 };
 
-const TRANSPORT_OPTIONS: { value: Transport; label: string; icon: any; iconColor: string }[] = [
+const TRANSPORT_OPTIONS: { value: Transport; label: string; icon: keyof typeof Ionicons.glyphMap; iconColor: string }[] = [
   { value: 'walk', label: '도보', icon: 'walk-outline', iconColor: '#bdc2ff' },
   { value: 'transit', label: '대중교통', icon: 'subway-outline', iconColor: '#ffb867' },
   { value: 'car', label: '자동차', icon: 'car-outline', iconColor: '#7a7fad' },
   { value: 'bike', label: '자전거', icon: 'bicycle-outline', iconColor: '#27a644' },
 ];
 
-const DISTANCE_OPTIONS: { value: DistanceTolerance; label: string; icon: any; desc: string }[] = [
+const DISTANCE_OPTIONS: { value: DistanceTolerance; label: string; icon: keyof typeof Ionicons.glyphMap; desc: string }[] = [
   { value: 'short', label: '짧게', icon: 'flash-outline', desc: '15분 이내' },
   { value: 'medium', label: '적당히', icon: 'walk-outline', desc: '30분 이내' },
   { value: 'far', label: '상관없어요', icon: 'map-outline', desc: '멀어도 OK' },
 ];
 
-const ATMOSPHERE_OPTIONS: { value: AtmospherePreference; label: string; icon: any; iconColor: string }[] = [
+const ATMOSPHERE_OPTIONS: { value: AtmospherePreference; label: string; icon: keyof typeof Ionicons.glyphMap; iconColor: string }[] = [
   { value: 'quiet', label: '조용한', icon: 'cafe-outline', iconColor: '#bdc2ff' },
   { value: 'lively', label: '활기찬', icon: 'musical-notes-outline', iconColor: '#ffb867' },
   { value: 'cozy', label: '아늑한', icon: 'flame-outline', iconColor: '#7a7fad' },
@@ -255,7 +256,7 @@ export default function RoomScreen() {
         try {
           const { data: pData } = await api.get(`/rooms/${roomCode}/participants`);
           setParticipants(pData.participants);
-        } catch {}
+        } catch { }
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
@@ -271,7 +272,7 @@ export default function RoomScreen() {
           } else if (data?.roomStatus === 'done') {
             router.replace('/(app)/calendar' as any);
           }
-        } catch {}
+        } catch { }
       }
     });
     return () => sub.remove();
@@ -536,55 +537,73 @@ export default function RoomScreen() {
     const mapLng = selectedPlace?.lng ?? 126.9780;
     const mapName = selectedPlace?.placeName ?? '';
 
+    const handleMapMessage = (e: WebViewMessageEvent) => {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Map] message:', e.nativeEvent.data)
+      }
+    }
+
+    const handleMapHttpError = (e: WebViewHttpErrorEvent) => {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[Map] HTTP error:', e.nativeEvent.statusCode, e.nativeEvent.url)
+      }
+    }
+
+    const handleMapError = (e: WebViewErrorEvent) => {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[Map] WebView error:', e.nativeEvent)
+      }
+    }
+
     return (
       <View style={styles.container}>
         <NavHeader initial={currentNickname[0].toUpperCase()} />
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 140 }}>
-        {/* 카카오 지도 + 정보 섹션 */}
-        <View style={styles.mapSection}>
-          {Platform.OS !== 'web' ? (
-            <WebView
-              key={`${mapLat}-${mapLng}`}
-              source={{ html: kakaoMapHtml(mapLat, mapLng, mapName) }}
-              style={styles.mapWebView}
-              originWhitelist={['*']}
-              javaScriptEnabled
-              domStorageEnabled
-              mixedContentMode="always"
-              scrollEnabled={false}
-              showsHorizontalScrollIndicator={false}
-              showsVerticalScrollIndicator={false}
-              onError={(e) => console.warn('[Map] WebView error:', e.nativeEvent)}
-              onHttpError={(e) => console.warn('[Map] HTTP error:', e.nativeEvent.statusCode, e.nativeEvent.url)}
-              onMessage={(e) => console.log('[Map] message:', e.nativeEvent.data)}
-            />
-          ) : (
-            <View style={[styles.mapWebView, styles.mapWebFallback]}>
-              <Ionicons name="map-outline" size={32} color="#34343a" />
-              <Text allowFontScaling={false} style={styles.mapWebFallbackText}>지도는 앱에서 확인하세요</Text>
-            </View>
-          )}
-
-          {/* 정보 오버레이 */}
-          <View style={styles.mapInfoOverlay}>
-            {isTopPick && (
-              <View style={styles.topPickBadge}>
-                <Ionicons name="star" size={11} color="#ffb867" />
-                <Text allowFontScaling={false} style={styles.topPickText}>Top Pick</Text>
+          {/* 카카오 지도 + 정보 섹션 */}
+          <View style={styles.mapSection}>
+            {Platform.OS !== 'web' ? (
+              <WebView
+                key={`${mapLat}-${mapLng}`}
+                source={{ html: kakaoMapHtml(mapLat, mapLng, mapName) }}
+                style={styles.mapWebView}
+                originWhitelist={['*']}
+                javaScriptEnabled
+                domStorageEnabled
+                mixedContentMode="always"
+                scrollEnabled={false}
+                showsHorizontalScrollIndicator={false}
+                showsVerticalScrollIndicator={false}
+                onError={handleMapError}
+                onHttpError={handleMapHttpError}
+                onMessage={handleMapMessage}
+              />
+            ) : (
+              <View style={[styles.mapWebView, styles.mapWebFallback]}>
+                <Ionicons name="map-outline" size={32} color="#34343a" />
+                <Text allowFontScaling={false} style={styles.mapWebFallbackText}>지도는 앱에서 확인하세요</Text>
               </View>
             )}
-            <Text allowFontScaling={false} style={styles.mapPlaceName}>{selectedPlace?.placeName}</Text>
-            <View style={styles.mapAddressRow}>
-              <Ionicons name="location-outline" size={12} color="#8a8f98" />
-              <Text allowFontScaling={false} style={styles.mapAddress}>{selectedPlace?.placeAddress}</Text>
-            </View>
-            <View style={styles.mapMatchRow}>
-              <Text allowFontScaling={false} style={styles.mapMatchPct}>{selectedPlace?.atmosphereMatch}</Text>
-              <Text allowFontScaling={false} style={styles.mapMatchLabel}> 매칭</Text>
+
+            {/* 정보 오버레이 */}
+            <View style={styles.mapInfoOverlay}>
+              {isTopPick && (
+                <View style={styles.topPickBadge}>
+                  <Ionicons name="star" size={11} color="#ffb867" />
+                  <Text allowFontScaling={false} style={styles.topPickText}>Top Pick</Text>
+                </View>
+              )}
+              <Text allowFontScaling={false} style={styles.mapPlaceName}>{selectedPlace?.placeName}</Text>
+              <View style={styles.mapAddressRow}>
+                <Ionicons name="location-outline" size={12} color="#8a8f98" />
+                <Text allowFontScaling={false} style={styles.mapAddress}>{selectedPlace?.placeAddress}</Text>
+              </View>
+              <View style={styles.mapMatchRow}>
+                <Text allowFontScaling={false} style={styles.mapMatchPct}>{selectedPlace?.atmosphereMatch}</Text>
+                <Text allowFontScaling={false} style={styles.mapMatchLabel}> 매칭</Text>
+              </View>
             </View>
           </View>
-        </View>
           {/* 대안 가로 스크롤 */}
           <Text allowFontScaling={false} style={styles.resultEyebrow}>ALTERNATIVE OPTIONS</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.altScrollContent}>
@@ -895,9 +914,9 @@ export default function RoomScreen() {
             {confirming
               ? <ActivityIndicator color="#fdfaff" size="small" />
               : <>
-                  <Ionicons name="checkmark-circle" size={20} color="#fdfaff" />
-                  <Text allowFontScaling={false} style={styles.confirmBtnText}>선택 플랜 확정하기</Text>
-                </>
+                <Ionicons name="checkmark-circle" size={20} color="#fdfaff" />
+                <Text allowFontScaling={false} style={styles.confirmBtnText}>선택 플랜 확정하기</Text>
+              </>
             }
           </TouchableOpacity>
           <TouchableOpacity

@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { getCurrentUserId } from "@/lib/auth";
+import { ROOM_LINK_EXPIRES_MS } from "@/lib/constants";
 
 function generateCode(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -17,7 +18,7 @@ export async function createRoom(
 
   const room = await prisma.$transaction(async (tx) => {
     const room = await tx.room.create({
-      data: { roomCode, category, name, linkExpiresAt: new Date(Date.now() + 4 * 60 * 60 * 1000) },
+      data: { roomCode, category, name, linkExpiresAt: new Date(Date.now() + ROOM_LINK_EXPIRES_MS) },
     });
     // 방 생성과 동시에 호스트 등록 → 이후 joinRoom에서 count가 항상 ≥1
     await tx.participant.create({
@@ -116,7 +117,7 @@ export async function extendRoomLink(roomCode: string) {
 
   return await prisma.room.update({
     where: { roomCode },
-    data: { linkExpiresAt: new Date(Date.now() + 4 * 60 * 60 * 1000) },
+    data: { linkExpiresAt: new Date(Date.now() + ROOM_LINK_EXPIRES_MS) },
   });
 }
 

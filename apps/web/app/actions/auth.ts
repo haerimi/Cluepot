@@ -14,8 +14,8 @@ export async function login(
   _prev: AuthState,
   formData: FormData,
 ): Promise<AuthState> {
-  const email = ((formData.get("email") as string) ?? "").trim();
-  const password = (formData.get("password") as string) ?? "";
+  const email = (formData.get("email") ?? "").toString().trim();
+  const password = (formData.get("password") ?? "").toString();
 
   if (!email || !password) {
     return { error: "이메일과 비밀번호를 입력해주세요." };
@@ -38,9 +38,9 @@ export async function signup(
   _prev: AuthState,
   formData: FormData,
 ): Promise<AuthState> {
-  const email = ((formData.get("email") as string) ?? "").trim();
-  const password = (formData.get("password") as string) ?? "";
-  const nickname = ((formData.get("nickname") as string) ?? "").trim();
+  const email = (formData.get("email") ?? "").toString().trim();
+  const password = (formData.get("password") ?? "").toString();
+  const nickname = (formData.get("nickname") ?? "").toString().trim();
 
   if (!email || !password || !nickname) {
     return { error: "모든 항목을 입력해주세요." };

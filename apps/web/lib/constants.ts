@@ -1,0 +1,1 @@
+export const ROOM_LINK_EXPIRES_MS = 4 * 60 * 60 * 1000;

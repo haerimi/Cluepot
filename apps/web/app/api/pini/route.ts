@@ -346,7 +346,8 @@ ${participantDesc}
                 responseSchema: { type: Type.STRING },
             },
         });
-        const targetArea = JSON.parse(areaRes.text!) as string;
+        const parsed = JSON.parse(areaRes.text!);
+        const targetArea = typeof parsed === "string" ? parsed : String(parsed);
         kakaoPlaces = await searchKakaoPlacesByArea(categoryKo, targetArea);
     }
 
@@ -381,11 +382,11 @@ ${participantDesc}
 
     // ── Step 3-a: 카테고리 불일치 장소 코드 레벨 필터링 ─────────────────────
     const CATEGORY_FILTER: Record<string, string[]> = {
-        cafe:       ["카페"],
+        cafe: ["카페"],
         restaurant: ["음식점", "한식", "중식", "일식", "양식", "분식", "패스트푸드"],
-        bar:        ["술집", "bar", "주점"],
-        brunch:     ["카페", "음식점"],
-        dessert:    ["카페", "디저트"],
+        bar: ["술집", "bar", "주점"],
+        brunch: ["카페", "음식점"],
+        dessert: ["카페", "디저트"],
     };
     const allowedKeywords = CATEGORY_FILTER[category];
     if (allowedKeywords) {

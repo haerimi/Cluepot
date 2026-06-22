@@ -8,6 +8,7 @@ import { CategoryPicker, CATEGORIES } from "@/app/components/CategoryPicker";
 import { useRoomStore } from "@/store/room";
 import { createRoom } from "@/app/actions/rooms";
 import { joinRoom } from "@/app/actions/participant";
+import { ROOM_LINK_EXPIRES_MS } from "@/lib/constants";
 import { createClient } from "@/util/supabase/client";
 
 type Step = 1 | 2 | 3;
@@ -15,26 +16,26 @@ type Step = 1 | 2 | 3;
 function IconBalance() {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M12 4v16M5 4h14M3 12l4-5 4 5M13 12l4-5 4 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M3 17h8M13 17h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M12 4v16M5 4h14M3 12l4-5 4 5M13 12l4-5 4 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M3 17h8M13 17h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );
 }
 function IconMasks() {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="9" cy="12" r="5" stroke="currentColor" strokeWidth="1.5"/>
-      <circle cx="15" cy="12" r="5" stroke="currentColor" strokeWidth="1.5"/>
-      <path d="M7 10.5c.5-.5 1-.5 2 0M11.5 10.5c.5-.5 1-.5 2 0M7.5 13.5c1 1 2 1 3 0M12.5 13.5c1 1 2 1 3 0" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+      <circle cx="9" cy="12" r="5" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="15" cy="12" r="5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M7 10.5c.5-.5 1-.5 2 0M11.5 10.5c.5-.5 1-.5 2 0M7.5 13.5c1 1 2 1 3 0M12.5 13.5c1 1 2 1 3 0" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
     </svg>
   );
 }
 function IconSearch() {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.5"/>
-      <path d="M16 16l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-      <path d="M8.5 11.5h5M11 9v5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+      <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M16 16l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M8.5 11.5h5M11 9v5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
     </svg>
   );
 }
@@ -134,12 +135,12 @@ function StepIndicator({ currentStep }: { currentStep: Step }) {
               style={{
                 backgroundColor:
                   s < currentStep ? "#5e6ad2"
-                  : s === currentStep ? "#5e6ad2"
-                  : "#23252a",
+                    : s === currentStep ? "#5e6ad2"
+                      : "#23252a",
                 color:
                   s < currentStep ? "#fff"
-                  : s === currentStep ? "#fff"
-                  : "#4a4d5a",
+                    : s === currentStep ? "#fff"
+                      : "#4a4d5a",
               }}
             >
               {s < currentStep ? "✓" : s}
@@ -251,7 +252,9 @@ export default function CreateRoomPage() {
   useEffect(() => {
     createClient().auth.getUser().then(({ data: { user } }) => {
       if (!user) router.push("/login");
-    });
+    }).catch(() => {
+      setCreateError("인증 확인에 실패했어요. 새로고침 해주세요.");
+    });;
   }, [router]);
 
   const [step, setStep] = useState<Step>(1);
@@ -277,7 +280,7 @@ export default function CreateRoomPage() {
         roomCode,
         roomCategory: category,
         roomStatus: "waiting",
-        linkExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        linkExpiresAt: new Date(Date.now() + ROOM_LINK_EXPIRES_MS).toISOString(),
       });
       setStep(3);
     } catch {
@@ -518,7 +521,7 @@ export default function CreateRoomPage() {
                 style={{ animation: "fade-up 0.4s ease-out 0.35s both" }}
               >
                 <span className="text-accent shrink-0" aria-hidden="true">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 9l3-3 2.5 2.5 3.5-5L14 7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 9l3-3 2.5 2.5 3.5-5L14 7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 </span>
                 <p className="text-[13px] text-accent font-medium leading-[1.6] break-keep min-w-0">
                   다수결이 아닙니다. 모두의 상황을 고려해요.

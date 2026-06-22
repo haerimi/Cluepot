@@ -74,6 +74,7 @@ import {
 import { createSchedule, getScheduleByRoomCode } from "@/app/actions/schedule";
 import { useUserStore } from "@/store/user";
 import { extendRoomLink, checkRoomExists } from "@/app/actions/rooms";
+import Image from "next/image";
 
 /* ── Inferred type from server action ────────────────────────────────── */
 
@@ -124,8 +125,8 @@ function ScheduleView({
         {/* Icon */}
         <div className="w-16 h-16 rounded-full bg-success-bg flex items-center justify-center text-success mb-8">
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-            <circle cx="16" cy="16" r="14" fill="rgba(39,166,68,0.18)" stroke="#27a644" strokeWidth="2"/>
-            <path d="M9 16l5 5 9-10" stroke="#27a644" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <circle cx="16" cy="16" r="14" fill="rgba(39,166,68,0.18)" stroke="#27a644" strokeWidth="2" />
+            <path d="M9 16l5 5 9-10" stroke="#27a644" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
 
@@ -153,16 +154,16 @@ function ScheduleView({
             <button
               onClick={() => window.open(handleViewMap(placeName, lat, lng), '_blank')}
               className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl bg-surface-3 text-ink-muted text-[13px] font-semibold hover:bg-hairline transition-colors">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1.5C4.52 1.5 2.5 3.52 2.5 6c0 3.75 4.5 7.5 4.5 7.5S11.5 9.75 11.5 6c0-2.48-2.02-4.5-4.5-4.5Z" stroke="currentColor" strokeWidth="1.3"/><circle cx="7" cy="6" r="1.5" stroke="currentColor" strokeWidth="1.3"/></svg>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1.5C4.52 1.5 2.5 3.52 2.5 6c0 3.75 4.5 7.5 4.5 7.5S11.5 9.75 11.5 6c0-2.48-2.02-4.5-4.5-4.5Z" stroke="currentColor" strokeWidth="1.3" /><circle cx="7" cy="6" r="1.5" stroke="currentColor" strokeWidth="1.3" /></svg>
               지도 보기
             </button>
             <button
               onClick={handleCopy}
               className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl bg-surface-3 text-ink-muted text-[13px] font-semibold hover:bg-hairline transition-colors">
               {copied ? (
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 7l3.5 3.5L12 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 7l3.5 3.5L12 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
               ) : (
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><rect x="5" y="1.5" width="7.5" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.3"/><path d="M1.5 4.5h2M1.5 12.5h8.5V4.5H1.5V12.5z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><rect x="5" y="1.5" width="7.5" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.3" /><path d="M1.5 4.5h2M1.5 12.5h8.5V4.5H1.5V12.5z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
               )}
               복사
             </button>
@@ -185,8 +186,7 @@ function ScheduleView({
                     "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold"}
                 >
                   {p.user.profileImage ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={p.user.profileImage} alt={p.user.nickname}
+                    <Image src={p.user.profileImage} alt={p.user.nickname}
                       className="w-full h-full object-cover rounded-full" />
                   ) : (
                     p.user.nickname.charAt(0)
@@ -408,9 +408,9 @@ function RoomLinkSheet({
           </span>
           <span className="text-ink-muted">
             {copied ? (
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10l4.5 4.5L16 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10l4.5 4.5L16 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
             ) : (
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="7" y="2" width="10" height="13" rx="2" stroke="currentColor" strokeWidth="1.4"/><path d="M3 7h3M3 18h12V7H3V18z" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="7" y="2" width="10" height="13" rx="2" stroke="currentColor" strokeWidth="1.4" /><path d="M3 7h3M3 18h12V7H3V18z" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
             )}
           </span>
         </button>
@@ -429,9 +429,9 @@ function RoomLinkSheet({
         >
           <span className={`shrink-0 ${warning ? "text-warning-orange" : "text-ink-muted"}`}>
             {warning ? (
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M9 1.5L16.5 15H1.5L9 1.5z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M9 7.5v3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/><circle cx="9" cy="12.5" r="0.8" fill="currentColor"/></svg>
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M9 1.5L16.5 15H1.5L9 1.5z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /><path d="M9 7.5v3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /><circle cx="9" cy="12.5" r="0.8" fill="currentColor" /></svg>
             ) : (
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><circle cx="9" cy="9" r="7" stroke="currentColor" strokeWidth="1.4"/><path d="M9 5.5v3.75l2.25 1.75" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><circle cx="9" cy="9" r="7" stroke="currentColor" strokeWidth="1.4" /><path d="M9 5.5v3.75l2.25 1.75" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
             )}
           </span>
           <div>
@@ -455,7 +455,7 @@ function RoomLinkSheet({
             onClick={onExtend}
             className="w-full h-11 rounded-xl bg-accent text-white text-[14px] font-semibold hover:bg-accent/90 transition-colors mb-3 flex items-center justify-center gap-2"
           >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M5.5 8.5l3-3M3.5 9L2 10.5A2 2 0 104.5 13L6 11.5M8 5l1.5-1.5A2 2 0 1112 6.5L10.5 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M5.5 8.5l3-3M3.5 9L2 10.5A2 2 0 104.5 13L6 11.5M8 5l1.5-1.5A2 2 0 1112 6.5L10.5 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>
             4시간 연장하기
           </button>
         )}
@@ -607,7 +607,9 @@ export default function RoomPage() {
     participant().catch(() => {
       setIsLoading(false);
     });
-    checkAndWatch().catch(() => { });
+    checkAndWatch().catch(() => {
+      setIsLoading(false);
+    });;
 
     let pollIntervalId: ReturnType<typeof setInterval> | null = null;
     let schedulePollIntervalId: ReturnType<typeof setInterval> | null = null;
@@ -665,7 +667,7 @@ export default function RoomPage() {
    * immediately, giving the user a spatial cue that results are coming.
    */
   const hasResults = piniLoading || piniPlaces.length > 0;
-  
+
   /* ── Handlers ── */
 
   async function handleRunPini() {
@@ -873,7 +875,7 @@ export default function RoomPage() {
                      hover:border-hairline-strong hover:bg-surface-2 transition-colors"
         >
           <span className="font-mono tracking-wider text-ink">{roomCode}</span>
-          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true" className="text-ink-subtle"><path d="M5.5 8.5l3-3M3.5 9L2 10.5A2 2 0 104.5 13L6 11.5M8 5l1.5-1.5A2 2 0 1112 6.5L10.5 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true" className="text-ink-subtle"><path d="M5.5 8.5l3-3M3.5 9L2 10.5A2 2 0 104.5 13L6 11.5M8 5l1.5-1.5A2 2 0 1112 6.5L10.5 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>
         </button>
       </header>
 
@@ -920,7 +922,7 @@ export default function RoomPage() {
           {roomStatus === "reselecting" && !isHost && (
             <div className="mx-6 lg:mx-10 mt-6 px-4 py-3 rounded-xl bg-warning-bg-alt border border-warning-border flex items-start gap-3">
               <span className="text-warning-orange shrink-0 mt-0.5" aria-hidden="true">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 1l1.5 5.5L16 8l-5.5 1.5L9 15l-1.5-5.5L2 8l5.5-1.5L9 1z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/></svg>
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 1l1.5 5.5L16 8l-5.5 1.5L9 15l-1.5-5.5L2 8l5.5-1.5L9 1z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /></svg>
               </span>
               <div>
                 <p className="text-[13px] font-semibold text-warning-text">호스트가 새 장소를 고르고 있어요</p>
@@ -1009,8 +1011,8 @@ export default function RoomPage() {
                 >
                   <div className="w-12 h-12 rounded-full bg-accent-light flex items-center justify-center shrink-0">
                     <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-                      <path d="M11 2C7.68 2 5 4.68 5 8c0 4.67 6 12 6 12s6-7.33 6-12c0-3.32-2.68-6-6-6Z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                      <circle cx="11" cy="8" r="2" stroke="currentColor" strokeWidth="1.6"/>
+                      <path d="M11 2C7.68 2 5 4.68 5 8c0 4.67 6 12 6 12s6-7.33 6-12c0-3.32-2.68-6-6-6Z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                      <circle cx="11" cy="8" r="2" stroke="currentColor" strokeWidth="1.6" />
                     </svg>
                   </div>
                   <div className="text-center">
@@ -1065,7 +1067,7 @@ export default function RoomPage() {
                 return (
                   <div className="flex mt-4 items-center gap-3 p-4 bg-surface rounded-xl border border-hairline">
                     <span className="text-ink-muted" aria-hidden="true">
-                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 2h12M4 18h12M6 2v4l4 4-4 4v4M14 2v4l-4 4 4 4v4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 2h12M4 18h12M6 2v4l4 4-4 4v4M14 2v4l-4 4 4 4v4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     </span>
                     <div>
                       <p className="text-[13px] font-semibold text-ink-muted">
