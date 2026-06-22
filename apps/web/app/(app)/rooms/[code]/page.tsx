@@ -120,7 +120,7 @@ function ScheduleView({
   }
 
   return (
-    <div className="w-full flex-1">
+    <div className="w-full flex-1 overflow-y-auto">
       <div className="mx-auto flex min-h-[calc(100dvh-56px)] max-w-[576px] flex-col px-6 py-12 items-center">
         {/* Icon */}
         <div className="w-16 h-16 rounded-full bg-success-bg flex items-center justify-center text-success mb-8">
