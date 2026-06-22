@@ -2,7 +2,6 @@
 
 import { logout, updateUserInfo } from "@/app/actions/auth";
 import { createClient } from "@/util/supabase/client";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 
@@ -48,7 +47,7 @@ function AvatarContent({
 }) {
   if (src) {
     return (
-      <Image src={src} alt={imgAlt} className="w-full h-full object-cover" />
+      <img src={src} alt={imgAlt} className="w-full h-full object-cover" />
     );
   }
   return (

@@ -186,7 +186,7 @@ function ScheduleView({
                     "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold"}
                 >
                   {p.user.profileImage ? (
-                    <Image src={p.user.profileImage} alt={p.user.nickname}
+                    <img src={p.user.profileImage} alt={p.user.nickname}
                       className="w-full h-full object-cover rounded-full" />
                   ) : (
                     p.user.nickname.charAt(0)

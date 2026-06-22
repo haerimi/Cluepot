@@ -80,6 +80,15 @@
 | 지오코딩 | Kakao Geocoding API |
 | 리뷰 수집 | Naver Blog Search API |
 
+### Mobile
+| 분류 | 기술 |
+|------|------|
+| Framework | Expo SDK 56 |
+| Language | TypeScript 5 |
+| UI | React Native |
+| 상태 관리 | Zustand |
+| 인증 | Supabase Auth |
+
 ### 인프라
 | 분류 | 기술 |
 |------|------|
@@ -112,6 +121,7 @@
    └───────────────┘     └────────────────────────┘
 
 Client: React 19 + Zustand (지도·추천결과·일정 전역 상태)
+Mobile: React Native (Expo) + Zustand — 모바일 전용 UI 및 API 서버 연동
 ```
 
 **주요 흐름**
@@ -331,7 +341,7 @@ const kst = value.replace("T", " ") + ":00+09:00";
 
 ```bash
 # 저장소 클론
-git clone https://github.com/your-username/cluepot.git
+git clone https://github.com/haerimi/Cluepot.git
 cd cluepot
 
 # 패키지 설치
