@@ -202,7 +202,7 @@ export function BentoGrid() {
               >
                 리뷰 신뢰 검증
               </h4>
-              <p className="text-[13px] leading-[1.75] text-[#8a8f98]">
+              <p className="text-[14px] leading-[1.75] text-[#8a8f98]">
                 광고성 후기와 실제 방문자 후기를 구분해
                 신뢰할 수 있는 정보만 추천에 활용해요.
               </p>
@@ -231,7 +231,7 @@ export function BentoGrid() {
               >
                 교통수단 반영
               </h4>
-              <p className="text-[13px] leading-[1.75] text-[#8a8f98]">
+              <p className="text-[14px] leading-[1.75] text-[#8a8f98]">
                 도보·지하철·자가용 모두 고려해 이동 방식별
                 소요 시간을 정확히 계산해요.
               </p>
@@ -277,7 +277,7 @@ export function BentoGrid() {
                 >
                   이유와 함께 추천
                 </h4>
-                <p className="text-[13px] leading-[1.7] text-[#8a8f98]">
+                <p className="text-[14px] leading-[1.7] text-[#8a8f98]">
                   왜 이 장소인지 PINI가 직접 설명해요.
                   균형도 수치와 참가자별 이동 시간을 투명하게 공개해요.
                 </p>

@@ -279,22 +279,15 @@ export function PiniPanel({
   participantCount = 3,
   variant = "modal",
 }: PiniPanelProps) {
-  const [panelState, setPanelState] = useState<PanelState>("loading");
   const [resetKey, setResetKey] = useState(0);
 
   const isActive = variant === "inline" ? true : open;
 
+  const panelState: PanelState = isLoading ? "loading" : error ? "error" : places.length > 0 ? "done" : "loading";
+
   useEffect(() => {
-    if (!isActive) return;
-    if (isLoading) {
-      setPanelState("loading");
-      setResetKey((k) => k + 1);
-    } else if (error) {
-      setPanelState("error");
-    } else if (places.length > 0) {
-      setPanelState("done");
-    }
-  }, [isActive, isLoading, error, places]);
+    if (isActive && isLoading) setResetKey((k) => k + 1);
+  }, [isActive, isLoading]);
 
   const showConfirm = panelState === "done" && !!selectedPlaceId && !!onConfirm;
 

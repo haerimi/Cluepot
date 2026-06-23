@@ -280,7 +280,7 @@ export default function PreferencesPage() {
   return (
     <>
     <div
-      className="flex-1 overflow-y-auto pb-36 lg:pb-14"
+      className="flex-1 overflow-y-auto overflow-x-hidden pb-36 lg:pb-14"
       style={{ animation: "cinematic-up 0.5s ease-out both" }}
     >
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">

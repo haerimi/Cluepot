@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition, useRef, useCallback } from "react";
+import { useState, useEffect, useTransition, useRef } from "react";
 import Link from "next/link";
 import { KakaoMap } from "@/app/components/KakaoMap";
 import { Button } from "@/app/components/ui/Button";
@@ -117,14 +117,6 @@ function EditModal({
     }
     setError(null);
     start(async () => {
-      await updateSchedule(
-        schedule.id,
-        {
-          title: title.trim(),
-          scheduledAt: `${dt}:00+09:00`,
-          memo: memo || null
-        },
-        schedule.roomCode);
       await updateSchedule(
         schedule.id,
         {
@@ -453,23 +445,7 @@ export function ScheduleDetailView({ schedule, variant = "page" }: ScheduleDetai
   const [isPending, start] = useTransition();
   const [showReplace, setShowReplace] = useState(false);
 
-  /* 마우스 시차 효과 (page 모드 전용) */
   const cardRef = useRef<HTMLDivElement>(null);
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!cardRef.current) return;
-    const centerX = window.innerWidth / 2;
-    const centerY = window.innerHeight / 2;
-    const moveX = (e.clientX - centerX) / 55;
-    const moveY = (e.clientY - centerY) / 55;
-    cardRef.current.style.transform = `translate3d(${moveX}px, ${moveY}px, 0)`;
-  }, []);
-
-  useEffect(() => {
-    if (isPanel) return;
-    document.addEventListener("mousemove", handleMouseMove);
-    return () => document.removeEventListener("mousemove", handleMouseMove);
-  }, [isPanel, handleMouseMove]);
 
   useEffect(() => {
     const scheduleId = schedule.id;
@@ -740,7 +716,7 @@ export function ScheduleDetailView({ schedule, variant = "page" }: ScheduleDetai
 
   return (
     <div
-      className="flex-1 min-h-0 overflow-y-auto relative"
+      className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden relative"
       style={{ background: "var(--color-canvas)" }}
     >
       {/* ── 도트 그리드 배경 ── */}
@@ -900,7 +876,6 @@ export function ScheduleDetailView({ schedule, variant = "page" }: ScheduleDetai
             boxShadow:
               "0 10px 32px -4px rgba(0,0,0,0.55), 0 4px 8px -4px rgba(0,0,0,0.35)",
             animation: "cinematic-up 0.75s cubic-bezier(0.16,1,0.3,1) 0.1s both",
-            transition: "transform 0.12s ease-out",
           }}
         >
 
@@ -1024,6 +999,21 @@ export function ScheduleDetailView({ schedule, variant = "page" }: ScheduleDetai
               </p>
             </div>
           </div>
+
+          {/* 메모 */}
+          {data.memo && (
+            <>
+              <div className="mb-6 h-px bg-hairline" />
+              <div className="mb-6">
+                <label className="block font-bold uppercase mb-2 text-ink-tertiary" style={{ fontSize: "11px", letterSpacing: "0.5px" }}>
+                  메모
+                </label>
+                <p className="text-[14px] text-ink leading-relaxed whitespace-pre-wrap">
+                  {data.memo}
+                </p>
+              </div>
+            </>
+          )}
 
           {/* 내 참석 여부 */}
           {myMember && (
