@@ -427,7 +427,7 @@ export function CalendarView({ schedules }: CalendarViewProps) {
 
   return (
     <div
-      className="flex-1 overflow-y-auto"
+      className="flex-1 overflow-y-auto overflow-x-hidden"
       style={{ animation: "section-fade 0.35s ease-out both" }}
     >
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-7 lg:py-10">

@@ -7,7 +7,7 @@ export default async function RoomsPage() {
   const rooms = await getMyRooms();
 
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div className="flex-1 overflow-y-auto overflow-x-hidden">
       {rooms.length === 0 ? (
         // 빈 상태 UI
         <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-6">

@@ -7,10 +7,10 @@ import { LandingCtaButtons } from "./LandingShared";
 
 /* ── 모듈 스코프 정적 데이터 ────────────────────────────────── */
 const PARTICIPANTS = [
-  { emoji: "🐶", name: "강남구", done: true },
-  { emoji: "🐧", name: "마포구", done: true },
-  { emoji: "🐿️", name: "잠실", done: true },
-  { emoji: "🦊", name: "서초구", done: false },
+  { initials: "강", color: "#3a4a9e", name: "강남구", done: true },
+  { initials: "마", color: "#2d5c8e", name: "마포구", done: true },
+  { initials: "잠", color: "#3d6b6b", name: "잠실", done: true },
+  { initials: "서", color: "#6b3d6b", name: "서초구", done: false },
 ] as const;
 
 const PLACES = [
@@ -18,7 +18,11 @@ const PLACES = [
   { name: "신촌 문화공원 주변", score: 89, width: "89%" },
 ] as const;
 
-const MOBILE_EMOJIS = ["🐶", "🐧", "🐿️"] as const;
+const MOBILE_AVATARS = [
+  { initials: "강", color: "#3a4a9e" },
+  { initials: "마", color: "#2d5c8e" },
+  { initials: "잠", color: "#3d6b6b" },
+] as const;
 
 /* ── 앱 UI 목업 (히어로 스크린샷 대용) ─────────────────────── */
 function PiniUIMockup() {
@@ -76,7 +80,12 @@ function PiniUIMockup() {
               className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg"
               style={{ background: p.done ? "#141516" : "transparent" }}
             >
-              <span className="text-sm leading-none">{p.emoji}</span>
+              <div
+                className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[9px] font-bold text-white leading-none"
+                style={{ background: p.color, opacity: p.done ? 1 : 0.35 }}
+              >
+                {p.initials}
+              </div>
               <span className="text-[12px] flex-1" style={{ color: p.done ? "#d0d6e0" : "#454652" }}>
                 {p.name}
               </span>
@@ -165,8 +174,14 @@ function PiniUIMockup() {
             {/* 모바일 전용: 참가자 카운트 칩 */}
             <div className="sm:hidden flex items-center gap-2 pt-1">
               <div className="flex -space-x-1.5">
-                {MOBILE_EMOJIS.map((e) => (
-                  <span key={e} className="text-sm">{e}</span>
+                {MOBILE_AVATARS.map((a) => (
+                  <div
+                    key={a.initials}
+                    className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white leading-none border border-[#0d0d10]"
+                    style={{ background: a.color }}
+                  >
+                    {a.initials}
+                  </div>
                 ))}
               </div>
               <span className="text-[11px]" style={{ color: "#8a8f98" }}>3명 참여 완료</span>

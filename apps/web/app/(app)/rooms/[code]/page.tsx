@@ -120,7 +120,7 @@ function ScheduleView({
   }
 
   return (
-    <div className="w-full flex-1 overflow-y-auto">
+    <div className="w-full flex-1 overflow-y-auto overflow-x-hidden">
       <div className="mx-auto flex min-h-[calc(100dvh-56px)] max-w-[576px] flex-col px-6 py-12 items-center">
         {/* Icon */}
         <div className="w-16 h-16 rounded-full bg-success-bg flex items-center justify-center text-success mb-8">
@@ -525,7 +525,6 @@ export default function RoomPage() {
 
   // isDone: scheduleInfo에서 파생 — 별도 셀렉터 불필요
   const scheduleInfo = useScheduleStore((s) => s.scheduleInfo);
-  const setSchedule = useScheduleStore((s) => s.setSchedule);
   const isDone = scheduleInfo !== null && scheduleInfo.roomCode === roomCode;
 
   const currentUserId = useUserStore((s) => s.userInfo?.myId);
@@ -772,17 +771,6 @@ export default function RoomPage() {
         scheduledAt: data.scheduledAt,
         memo: data.memo,
       });
-      setSchedule({
-        scheduleId: id,
-        roomCode,
-        placeName: selectedPlace.placeName,
-        placeAddress: selectedPlace.placeAddress,
-        lat: selectedPlace.lat,
-        lng: selectedPlace.lng,
-        title: data.title,
-        scheduledAt: data.scheduledAt,
-        memo: data.memo,
-      });
       setPiniOpen(false);
       setShowDateModal(false);
       router.push(`/calendar/${id}`);
@@ -917,7 +905,7 @@ export default function RoomPage() {
       >
         {/* ── Left pane ─────────────────────────────────────────────── */}
         {/* flex-1 fills the flex-col parent on mobile; ignored by grid on desktop */}
-        <div className="flex-1  min-w-0  flex flex-col overflow-y-auto lg:border-r border-hairline pb-36 lg:pb-0">
+        <div className="flex-1 min-w-0 flex flex-col overflow-y-auto overflow-x-hidden lg:border-r border-hairline pb-36 lg:pb-0">
           {/* 재선정 배너 — 호스트는 이미 장소를 고르는 중이므로 참가자에게만 표시 */}
           {roomStatus === "reselecting" && !isHost && (
             <div className="mx-6 lg:mx-10 mt-6 px-4 py-3 rounded-xl bg-warning-bg-alt border border-warning-border flex items-start gap-3">

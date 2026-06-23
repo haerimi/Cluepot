@@ -146,7 +146,7 @@ export default function ProfileClient({ user }: Readonly<{ user: UserInfo }>) {
 
   return (
     <div
-      className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-10 py-8 lg:py-12"
+      className="flex-1 overflow-y-auto overflow-x-hidden px-4 sm:px-6 lg:px-10 py-8 lg:py-12"
       style={{ animation: "section-fade 0.35s ease-out both" }}
     >
       {/* 최대 너비 컨테이너 — lg에서 2열 */}

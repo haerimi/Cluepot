@@ -21,7 +21,7 @@ import { useMapStore } from "@/store/map";
 import { useScheduleStore } from "@/store/schedule";
 import { logout } from "@/app/actions/auth";
 import type { HydratedUser } from "./AuthHydrator";
-import { PlusIcon, RoomsIcon, CalendarIcon, ProfileIcon, LogoutIcon, JoinCodeIcon } from "./AppTopNav";
+import { LogoutIcon } from "./AppTopNav";
 
 const AMBIENT_LINES = [
   "장소에는 이야기가 있어요",
@@ -151,10 +151,10 @@ export function AppSidebar({ user }: Readonly<{ user: HydratedUser | null }>) {
 
       {/* ── Navigation ── */}
       <nav className="px-3 py-4 flex flex-col gap-0.5">
-        <NavItem href="/calendar" label="내 일정" icon={<CalendarIcon />} active={pathname.startsWith("/calendar")} />
-        <NavItem href="/rooms" label="내 모임" icon={<RoomsIcon />} active={pathname.startsWith("/rooms") && !pathname.startsWith("/rooms/create") && !pathname.startsWith("/rooms/join")} />
-        <NavItem href="/rooms/create" label="일정 만들기" icon={<PlusIcon />} active={pathname.startsWith("/rooms/create")} />
-        <NavItem href="/rooms/join" label="코드로 참가" icon={<JoinCodeIcon />} active={pathname.startsWith("/rooms/join")} />
+        <NavItem href="/calendar" label="내 일정" active={pathname.startsWith("/calendar")} />
+        <NavItem href="/rooms" label="내 모임" active={pathname.startsWith("/rooms") && !pathname.startsWith("/rooms/create") && !pathname.startsWith("/rooms/join")} />
+        <NavItem href="/rooms/create" label="일정 만들기" active={pathname.startsWith("/rooms/create")} />
+        <NavItem href="/rooms/join" label="코드로 참가" active={pathname.startsWith("/rooms/join")} />
       </nav>
 
       {/* ── PINI ambient text + user section — pinned to bottom ── */}
@@ -229,21 +229,18 @@ export function AppSidebar({ user }: Readonly<{ user: HydratedUser | null }>) {
 function NavItem({
   href,
   label,
-  icon,
   active,
 }: Readonly<{
   href: string;
   label: string;
-  icon: React.ReactNode;
   active: boolean;
 }>) {
-  const base = "flex items-center gap-2 px-3 py-2 rounded-lg text-[13px] transition-colors";
+  const base = "flex items-center px-3 py-2 rounded-lg text-[13px] transition-colors";
   const activeClass = "bg-accent-light text-accent font-semibold";
   const idleClass = "text-ink-subtle hover:text-ink hover:bg-surface-3";
 
   return (
     <Link href={href} className={`${base} ${active ? activeClass : idleClass}`}>
-      {icon}
       {label}
     </Link>
   );

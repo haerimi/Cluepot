@@ -18,7 +18,6 @@ import type { HydratedUser } from "./AuthHydrator";
 interface NavItem {
   readonly href: string;
   readonly label: string;
-  readonly icon: React.ReactNode;
 }
 
 export function HomeIcon() {
@@ -99,10 +98,10 @@ export function AppTopNav({ user }: Readonly<{ user: HydratedUser | null }>) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navItems: NavItem[] = [
-    { href: "/calendar", label: "내 일정", icon: <CalendarIcon /> },
-    { href: "/rooms", label: "내 모임", icon: <RoomsIcon /> },
-    { href: "/rooms/create", label: "일정 만들기", icon: <PlusIcon /> },
-    { href: "/rooms/join", label: "코드로 참가", icon: <JoinCodeIcon /> },
+    { href: "/calendar", label: "내 일정" },
+    { href: "/rooms", label: "내 모임" },
+    { href: "/rooms/create", label: "일정 만들기" },
+    { href: "/rooms/join", label: "코드로 참가" },
   ];
 
   function closeMenu() {
@@ -219,20 +218,12 @@ export function AppTopNav({ user }: Readonly<{ user: HydratedUser | null }>) {
                     href={item.href}
                     onClick={closeMenu}
                     className={[
-                      "flex items-center gap-3 px-3 py-3 rounded-xl text-[14px] font-medium transition-colors",
+                      "flex items-center px-3 py-3 rounded-xl text-[14px] font-medium transition-colors",
                       isActive
                         ? "bg-accent-light text-accent font-semibold"
                         : "text-ink-muted hover:bg-surface-2 hover:text-ink",
                     ].join(" ")}
                   >
-                    <span
-                      className={[
-                        "shrink-0",
-                        isActive ? "text-accent" : "text-ink-subtle",
-                      ].join(" ")}
-                    >
-                      {item.icon}
-                    </span>
                     {item.label}
                   </Link>
                 );

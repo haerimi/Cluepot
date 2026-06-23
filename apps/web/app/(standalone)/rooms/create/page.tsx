@@ -332,19 +332,9 @@ export default function CreateRoomPage() {
             <Link
               href="/"
               aria-label="CluePot 홈으로"
-              className="flex items-center gap-2 transition-opacity hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 rounded"
+              className="text-[20px] sm:text-[22px] font-bold tracking-tight text-ink transition-opacity hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 rounded"
             >
-              <div className="w-8 h-8 rounded bg-accent flex items-center justify-center shrink-0">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                  <rect x="2" y="2" width="5" height="5" rx="1" fill="white" fillOpacity="0.9" />
-                  <rect x="9" y="2" width="5" height="5" rx="1" fill="white" fillOpacity="0.9" />
-                  <rect x="2" y="9" width="5" height="5" rx="1" fill="white" fillOpacity="0.9" />
-                  <rect x="9" y="9" width="5" height="5" rx="1" fill="white" fillOpacity="0.5" />
-                </svg>
-              </div>
-              <span className="text-[20px] sm:text-[22px] font-bold tracking-tight text-ink">
-                CluePot
-              </span>
+              CluePot
             </Link>
           </div>
 

@@ -334,26 +334,13 @@ export default function SignupPage() {
       >
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
 
-          {/* 브랜드 로고 — HomeNav와 동일 */}
+          {/* 브랜드 로고 */}
           <Link
             href="/"
             aria-label="CluePot 홈으로"
-            className="flex items-center gap-2 transition-opacity hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5e6ad2] focus-visible:ring-offset-2 focus-visible:ring-offset-[#010102] rounded"
+            className="text-[20px] sm:text-[22px] font-bold tracking-tight text-[#bdc2ff] transition-opacity hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5e6ad2] focus-visible:ring-offset-2 focus-visible:ring-offset-[#010102] rounded"
           >
-            <div
-              className="w-8 h-8 rounded flex items-center justify-center shrink-0"
-              style={{ background: "#5e6ad2" }}
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <rect x="2" y="2" width="5" height="5" rx="1" fill="white" fillOpacity="0.9" />
-                <rect x="9" y="2" width="5" height="5" rx="1" fill="white" fillOpacity="0.9" />
-                <rect x="2" y="9" width="5" height="5" rx="1" fill="white" fillOpacity="0.9" />
-                <rect x="9" y="9" width="5" height="5" rx="1" fill="white" fillOpacity="0.5" />
-              </svg>
-            </div>
-            <span className="text-[20px] sm:text-[22px] font-bold tracking-tight text-[#bdc2ff]">
-              CluePot
-            </span>
+            CluePot
           </Link>
 
           {/* 우측: 로그인 링크 — HomeNav 비로그인 상태 버튼 스타일 기준 */}
@@ -363,7 +350,7 @@ export default function SignupPage() {
             </span>
             <Link
               href="/login"
-              className="h-9 px-4 text-[13px] font-medium rounded-lg border border-[#34343a] text-[#d0d6e0] hover:text-white hover:border-[#454652] hover:bg-[#1a1a1e] flex items-center transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5e6ad2]"
+              className="h-9 px-4 text-[13px] font-medium rounded-lg border border-[#34343a] text-[#d0d6e0] hover:text-white hover:border-[#454652] hover:bg-[#1a1a1e] flex items-center justify-center transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5e6ad2]"
             >
               로그인
             </Link>
