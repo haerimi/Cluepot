@@ -643,10 +643,10 @@ export function CalendarView({ schedules }: CalendarViewProps) {
                   action={
                     <Link
                       href="/rooms/create"
-                      className="inline-flex items-center h-11 px-6 bg-ink text-white text-[13px] font-semibold rounded-full
-                                 hover:bg-ink-muted hover:-translate-y-0.5 active:translate-y-0
+                      className="inline-flex items-center h-11 px-6 bg-accent text-white text-[13px] font-semibold rounded-full
+                                 hover:bg-accent-hover hover:-translate-y-0.5 active:translate-y-0
                                  transition-all duration-150
-                                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
+                                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
                     >
                       새 모임 만들기
                     </Link>
