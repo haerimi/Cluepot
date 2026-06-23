@@ -39,7 +39,7 @@ export function KakaoMap({ lat, lng, placeName, className = "" }: KakaoMapProps)
       const marker = new window.kakao.maps.Marker({ position: coords, map });
 
       const info = new window.kakao.maps.InfoWindow({
-        content: `<div style="padding:6px 10px;font-size:12px;font-weight:600;white-space:nowrap;">${placeName.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#x27;")}</div>`,
+        content: `<div style="padding:6px 10px;font-size:12px;font-weight:600;white-space:nowrap;color:#000;">${placeName.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#x27;")}</div>`,
       });
       info.open(map, marker);
     }

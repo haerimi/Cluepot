@@ -107,13 +107,13 @@ export function HomeNav({ user }: Readonly<{ user: HomeNavUser | null }>) {
             <>
               <Link
                 href="/login"
-                className="h-9 px-4 text-[13px] font-medium rounded-lg border border-[#34343a] text-[#d0d6e0] hover:text-white hover:border-[#454652] hover:bg-[#1a1a1e] flex items-center transition-colors duration-200 focus-ring-landing"
+                className="h-9 px-4 text-[13px] font-medium rounded-lg border border-[#34343a] text-[#d0d6e0] hover:text-white hover:border-[#454652] hover:bg-[#1a1a1e] flex items-center justify-center transition-colors duration-200 focus-ring-landing"
               >
                 로그인
               </Link>
               <Link
                 href="/rooms/create"
-                className="btn-primary-landing h-9 px-4 text-[13px] font-semibold rounded-lg flex items-center focus-ring-landing"
+                className="btn-primary-landing h-9 px-4 text-[13px] font-semibold rounded-lg flex items-center justify-center focus-ring-landing"
               >
                 새 모임 만들기
               </Link>

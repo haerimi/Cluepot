@@ -20,8 +20,8 @@ function toDateKey(d: Date) {
 }
 
 function getCalendarCells(year: number, month: number): Date[] {
-  const first    = new Date(year, month, 1);
-  const lastDay  = new Date(year, month + 1, 0); // 섀도잉 방지: last → lastDay
+  const first = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0); // 섀도잉 방지: last → lastDay
   const cells: Date[] = [];
 
   // 1일이 속한 주의 일요일부터 채움
@@ -50,8 +50,8 @@ function formatDateTime(iso: string) {
   const h = d.getHours();
   const m = d.getMinutes();
   const period = h < 12 ? "오전" : "오후";
-  const hour   = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  const min    = String(m).padStart(2, "0");
+  const hour = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  const min = String(m).padStart(2, "0");
   return { date: datePart, time: `${period} ${hour}:${min}` };
 }
 
@@ -328,10 +328,10 @@ function PanelEmptyCard({
           aria-hidden="true"
         >
           <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
-            <rect x="3" y="5" width="20" height="18" rx="3" stroke="currentColor" strokeWidth="1.5"/>
-            <path d="M3 11h20" stroke="currentColor" strokeWidth="1.5"/>
-            <path d="M9 3v4M17 3v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-            <path d="M8 16h4M14 16h4M8 20h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            <rect x="3" y="5" width="20" height="18" rx="3" stroke="currentColor" strokeWidth="1.5" />
+            <path d="M3 11h20" stroke="currentColor" strokeWidth="1.5" />
+            <path d="M9 3v4M17 3v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            <path d="M8 16h4M14 16h4M8 20h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
         </div>
         {eyebrow && (
@@ -354,7 +354,7 @@ interface CalendarViewProps {
 }
 
 export function CalendarView({ schedules }: CalendarViewProps) {
-  const [year,  setYear]  = useState(() => new Date().getFullYear());
+  const [year, setYear] = useState(() => new Date().getFullYear());
   const [month, setMonth] = useState(() => new Date().getMonth());
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [todayKey, setTodayKey] = useState<string | null>(null);
@@ -413,14 +413,14 @@ export function CalendarView({ schedules }: CalendarViewProps) {
 
   function prevMonth() {
     if (month === 0) { setYear((y) => y - 1); setMonth(11); }
-    else             { setMonth((m) => m - 1); }
+    else { setMonth((m) => m - 1); }
     setSelectedKey(null);
     setActiveScheduleId(null);
   }
 
   function nextMonth() {
     if (month === 11) { setYear((y) => y + 1); setMonth(0); }
-    else              { setMonth((m) => m + 1); }
+    else { setMonth((m) => m + 1); }
     setSelectedKey(null);
     setActiveScheduleId(null);
   }
@@ -526,12 +526,12 @@ export function CalendarView({ schedules }: CalendarViewProps) {
             {/* 날짜 셀 */}
             <div className="grid grid-cols-7 gap-1 px-3 lg:px-4 pb-4 lg:pb-5">
               {cells.map((cellDate, i) => {
-                const key           = toDateKey(cellDate);
-                const isCurrMonth   = cellDate.getMonth() === month;
-                const isToday       = key === todayKey;
-                const isSelected    = key === selectedKey;
+                const key = toDateKey(cellDate);
+                const isCurrMonth = cellDate.getMonth() === month;
+                const isToday = key === todayKey;
+                const isSelected = key === selectedKey;
                 const cellSchedules = isCurrMonth ? (byDate.get(key) ?? []) : [];
-                const hasSchedule   = cellSchedules.length > 0;
+                const hasSchedule = cellSchedules.length > 0;
 
                 return (
                   <button
@@ -550,10 +550,10 @@ export function CalendarView({ schedules }: CalendarViewProps) {
                       isSelected
                         ? "bg-accent/[0.12] border-accent ring-2 ring-accent/60 ring-offset-1 ring-offset-canvas"
                         : hasSchedule
-                        ? "bg-accent/[0.07] border-accent/30 hover:bg-accent/[0.12] hover:border-accent/50 cursor-pointer active:scale-[0.97]"
-                        : isCurrMonth
-                        ? "border-hairline hover:bg-surface-2 hover:border-hairline-strong cursor-pointer active:scale-[0.97]"
-                        : "border-transparent cursor-default",
+                          ? "bg-accent/[0.07] border-accent/30 hover:bg-accent/[0.12] hover:border-accent/50 cursor-pointer active:scale-[0.97]"
+                          : isCurrMonth
+                            ? "border-hairline hover:bg-surface-2 hover:border-hairline-strong cursor-pointer active:scale-[0.97]"
+                            : "border-transparent cursor-default",
                     ].join(" ")}
                   >
                     {/* 날짜 숫자 — isSelected/isToday 조건 통합 */}
@@ -563,10 +563,10 @@ export function CalendarView({ schedules }: CalendarViewProps) {
                         (isSelected || isToday)
                           ? "text-accent font-black"
                           : hasSchedule
-                          ? "text-accent font-bold"
-                          : isCurrMonth
-                          ? "text-ink"
-                          : "text-ink-tertiary opacity-40",
+                            ? "text-accent font-bold"
+                            : isCurrMonth
+                              ? "text-ink"
+                              : "text-ink-tertiary opacity-40",
                       ].join(" ")}
                     >
                       {cellDate.getDate()}

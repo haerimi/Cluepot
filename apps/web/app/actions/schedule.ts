@@ -120,6 +120,8 @@ export type ScheduleListItem = {
   createdBy: string | null;
   memberCount: number;
   myStatus: string;
+  lng: number;
+  lat: number
 };
 
 export async function getMySchedules(): Promise<ScheduleListItem[]> {
@@ -140,6 +142,8 @@ export async function getMySchedules(): Promise<ScheduleListItem[]> {
     createdBy: s.createdBy,
     memberCount: s.members.length,
     myStatus: s.members.find((m) => m.userId === userId)?.status ?? "pending",
+    lat: s.lat,
+    lng: s.lng
   }));
 }
 

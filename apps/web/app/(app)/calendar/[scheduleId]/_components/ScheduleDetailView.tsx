@@ -208,7 +208,7 @@ function EditModal({
           </div>
           {error && (
             <p className="text-[12px] text-error flex items-center gap-1.5">
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1L15 14H1L8 1z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M8 6v4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/><circle cx="8" cy="11.5" r="0.8" fill="currentColor"/></svg>
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1L15 14H1L8 1z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /><path d="M8 6v4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /><circle cx="8" cy="11.5" r="0.8" fill="currentColor" /></svg>
               {error}
             </p>
           )}
@@ -903,6 +903,7 @@ export function ScheduleDetailView({ schedule, variant = "page" }: ScheduleDetai
             transition: "transform 0.12s ease-out",
           }}
         >
+
           {/* 모임 이름 */}
           <div className="mb-6">
             <label className="block font-bold uppercase mb-2 text-ink-tertiary" style={{ fontSize: "11px", letterSpacing: "0.5px" }}>
@@ -957,6 +958,19 @@ export function ScheduleDetailView({ schedule, variant = "page" }: ScheduleDetai
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* 구분선 */}
+          <div className="mb-6 h-px bg-hairline" />
+
+          {/* 지도 */}
+          <div className="rounded-xl border border-hairline overflow-hidden mb-6">
+            <KakaoMap
+              lat={data.lat}
+              lng={data.lng}
+              placeName={data.placeName}
+              className="w-full h-[200px]"
+            />
           </div>
 
           {/* 구분선 */}
